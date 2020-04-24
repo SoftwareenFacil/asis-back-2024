@@ -1,0 +1,62 @@
+
+const gi = [
+    {
+        _id: '33443444434545464TGFG67STG36FTD63G',
+        codigo: 'ASIS-GI-00001',
+        rut: '76.325.648-8',
+        razon_social: 'Asociacion Chilena de Seguridad',
+        nombre_fantasia: 'ACHS',
+        giro_principal: '',
+        grio_secundario: '',
+        rubro:'Seguridad',
+        grupo_interes:'cliente',
+        categoria: 'Empresa/Organizacion',
+        categoria_empresa: 'Gran Empresa',
+        categoria_cliente:'frecuente',
+        genero: 'no aplca',
+        fecha_inic_nac: '1910-02-17',
+        nivel_educacional: 'no aplica',
+        contacto: '25418458',
+        contacto_2: '0',
+        email_central: 'archcontacto@arch.cl',
+        email_encargado: ' ',
+        profesion_oficio: ' seguridad',
+        cargo: 'gerente general',
+        licencia_conducion: '',
+        clase_licencia:['A1', 'A2'],
+        ley_aplicable: '94125',
+        fecha_venc_licencia: '2022-05-21',
+        direccion: ' direccion detallada de la ARCH ',
+        localidad: 'San Bernardo',
+        comuna: 'San Bernardo',
+        sector: 'Urbano',
+        nacionalidad: 'Chilena',
+        pais_origen: 'Chile',
+        credito: 'Si',
+        dias_credito: '90',
+        orden_compra: 'Si',
+        url_file_adjunto: 'src/files/7464563736463gfbce.pdf'
+    }
+];
+
+const solicitud = [
+    {
+        _id: '66663636gf63tr63rt36r3',
+        id_GI: '33443444434545464TGFG67STG36FTD63G',
+        codigo: 'ASIS-SOL-2020-00001',
+        fecha_solicitud: '2020-04-23',
+        mes_solicitud: 'Abril',
+        anio_solicitud: '2020',
+        nombre_receptor: ' ',
+        categoria_servicio: 'Salud Laboral',
+        nombre_servicio: 'Psicosensotecnico',
+        precio: 25.000,
+        lugar_servicio: 'oficina',
+        sucursal:'Oficina Illapel',
+        observacion: '',
+        profesional_asignado: 'Juan Perez',
+        hora_ini: '12:00',
+        hora_fin: '13:00',
+        jornada: 'Diurna',
+    }
+]
