@@ -1,8 +1,15 @@
 import { Router } from "express";
 const router = Router();
 
-router.get('/', (req, res) =>{
-    
+//database connection
+import { connect } from "../../database";
+import { ObjectID } from "mongodb";
+
+//SELECT
+router.get('/', async (req, res) =>{
+    const db = await connect();
+    const result = await db.collection('gi').find({}).toArray();
+    res.json(result)
 });
 
 export default router;
