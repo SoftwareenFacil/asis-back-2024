@@ -40,6 +40,8 @@ var gi = [{
 var solicitud = [{
   _id: '66663636gf63tr63rt36r3',
   id_GI: '33443444434545464TGFG67STG36FTD63G',
+  rut_cliente: '76-360-100-6',
+  razon_social_cliente: 'ASOCIACION CHILENA DE SEGURIDAD',
   codigo: 'ASIS-SOL-2020-00001',
   fecha_solicitud: '2020-04-23',
   mes_solicitud: 'Abril',
@@ -54,5 +56,6 @@ var solicitud = [{
   profesional_asignado: 'Juan Perez',
   hora_ini: '12:00',
   hora_fin: '13:00',
-  jornada: 'Diurna'
+  jornada: 'Diurna',
+  estado: 'Ingresado'
 }];

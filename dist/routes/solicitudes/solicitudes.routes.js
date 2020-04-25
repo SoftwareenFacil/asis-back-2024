@@ -48,6 +48,74 @@ router.get('/', /*#__PURE__*/function () {
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
+}()); //INSERT
+
+router.post('/', /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
+    var db, newSolicitud, result;
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            _context2.next = 2;
+            return (0, _database.connect)();
+
+          case 2:
+            db = _context2.sent;
+            newSolicitud = req.body;
+            _context2.next = 6;
+            return db.collection('solicitudes').insertOne(newSolicitud);
+
+          case 6:
+            result = _context2.sent;
+            res.json(result);
+
+          case 8:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+
+  return function (_x3, _x4) {
+    return _ref2.apply(this, arguments);
+  };
+}()); //DELETE
+
+router["delete"]('/:id', /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
+    var id, db, result;
+    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            id = req.params.id;
+            _context3.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context3.sent;
+            _context3.next = 6;
+            return db.collection('solicitudes').deleteOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            });
+
+          case 6:
+            result = _context3.sent;
+            res.json(result);
+
+          case 8:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+
+  return function (_x5, _x6) {
+    return _ref3.apply(this, arguments);
+  };
 }());
 var _default = router;
 exports["default"] = _default;

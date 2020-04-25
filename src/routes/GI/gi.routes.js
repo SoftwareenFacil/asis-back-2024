@@ -12,6 +12,14 @@ router.get('/', async (req, res) =>{
     res.json(result)
 });
 
+//SELECT BY RUT
+router.get('/:rut', async (req, res) =>{
+    const {rut} = req.params;
+    const db = await connect();
+    const result = await db.collection('gi').findOne({rut: rut})
+    res.json(result)
+})
+
 //INSERT
 router.post('/', async (req, res) => {
     const db = await connect()

@@ -48,23 +48,25 @@ router.get('/', /*#__PURE__*/function () {
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
-}()); //INSERT
+}()); //SELECT BY RUT
 
-router.post('/', /*#__PURE__*/function () {
+router.get('/:rut', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var db, newGi, result;
+    var rut, db, result;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            _context2.next = 2;
+            rut = req.params.rut;
+            _context2.next = 3;
             return (0, _database.connect)();
 
-          case 2:
+          case 3:
             db = _context2.sent;
-            newGi = req.body;
             _context2.next = 6;
-            return db.collection('gi').insertOne(newGi);
+            return db.collection('gi').findOne({
+              rut: rut
+            });
 
           case 6:
             result = _context2.sent;
@@ -81,25 +83,23 @@ router.post('/', /*#__PURE__*/function () {
   return function (_x3, _x4) {
     return _ref2.apply(this, arguments);
   };
-}()); //DELETE
+}()); //INSERT
 
-router["delete"]('/:id', /*#__PURE__*/function () {
+router.post('/', /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, db, result;
+    var db, newGi, result;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
-            id = req.params.id;
-            _context3.next = 3;
+            _context3.next = 2;
             return (0, _database.connect)();
 
-          case 3:
+          case 2:
             db = _context3.sent;
+            newGi = req.body;
             _context3.next = 6;
-            return db.collection('gi').deleteOne({
-              _id: (0, _mongodb.ObjectID)(id)
-            });
+            return db.collection('gi').insertOne(newGi);
 
           case 6:
             result = _context3.sent;
@@ -115,6 +115,41 @@ router["delete"]('/:id', /*#__PURE__*/function () {
 
   return function (_x5, _x6) {
     return _ref3.apply(this, arguments);
+  };
+}()); //DELETE
+
+router["delete"]('/:id', /*#__PURE__*/function () {
+  var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
+    var id, db, result;
+    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            id = req.params.id;
+            _context4.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context4.sent;
+            _context4.next = 6;
+            return db.collection('gi').deleteOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            });
+
+          case 6:
+            result = _context4.sent;
+            res.json(result);
+
+          case 8:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, _callee4);
+  }));
+
+  return function (_x7, _x8) {
+    return _ref4.apply(this, arguments);
   };
 }());
 var _default = router;
