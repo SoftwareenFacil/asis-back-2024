@@ -1,4 +1,5 @@
 import { Router } from "express";
+import {calculate} from "../../functions/NewCodeGI";
 const router = Router();
 
 //database connection
@@ -23,7 +24,10 @@ router.get('/:rut', async (req, res) =>{
 //INSERT
 router.post('/', async (req, res) => {
     const db = await connect()
-    const newGi = req.body
+    const newGi = req.body   
+    const items = await db.collection('gi').find({}).toArray();
+    newGi.codigo = calculate(items[items.length - 1])
+    console.log(newGi)
     const result = await db.collection('gi').insertOne(newGi);
     res.json(result)
 });

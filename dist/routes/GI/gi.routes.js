@@ -7,6 +7,8 @@ exports["default"] = void 0;
 
 var _express = require("express");
 
+var _NewCodeGI = require("../../functions/NewCodeGI");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -87,7 +89,7 @@ router.get('/:rut', /*#__PURE__*/function () {
 
 router.post('/', /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var db, newGi, result;
+    var db, newGi, items, result;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -99,13 +101,20 @@ router.post('/', /*#__PURE__*/function () {
             db = _context3.sent;
             newGi = req.body;
             _context3.next = 6;
-            return db.collection('gi').insertOne(newGi);
+            return db.collection('gi').find({}).toArray();
 
           case 6:
+            items = _context3.sent;
+            newGi.codigo = (0, _NewCodeGI.calculate)(items[items.length - 1]);
+            console.log(newGi);
+            _context3.next = 11;
+            return db.collection('gi').insertOne(newGi);
+
+          case 11:
             result = _context3.sent;
             res.json(result);
 
-          case 8:
+          case 13:
           case "end":
             return _context3.stop();
         }
