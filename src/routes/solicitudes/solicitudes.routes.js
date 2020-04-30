@@ -1,4 +1,5 @@
 import { Router } from "express";
+import {calculate} from "../../functions/NewCode";
 const router = Router();
 
 //database connection
@@ -16,6 +17,13 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     const db = await connect()
     const newSolicitud = req.body
+    const items = await db.collection('solicitudes').find({}).toArray();
+    if(items.length > 0){
+        newSolicitud.codigo = `ASIS-SOL-${calculate(items[items.length - 1])}` 
+    }
+    else{
+        newSolicitud.codigo = `ASIS-SOL-00001`
+    }
     const result = await db.collection('solicitudes').insertOne(newSolicitud);
     res.json(result)
 });

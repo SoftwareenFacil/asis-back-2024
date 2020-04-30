@@ -2,9 +2,8 @@ export function calculate(item){
       var lastCode = item.codigo
       var nro = 0
       var newNumber = ''
-      var newCode = ''
 
-      nro = Number(lastCode.substring(8, lastCode.length))
+      nro = Number(lastCode.substring((lastCode.length-5), lastCode.length))
       nro = nro + 1;
       if(nro >= 1 && nro <= 9){
         newNumber = `0000${nro}`
@@ -21,7 +20,6 @@ export function calculate(item){
       else{
         newNumber = nro
       }
-      newCode = `ASIS-GI-${newNumber}`
 
-      return newCode;
+      return newNumber;
 }

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {calculate} from "../../functions/NewCodeGI";
+import {calculate} from "../../functions/NewCode";
 const router = Router();
 
 //database connection
@@ -26,7 +26,12 @@ router.post('/', async (req, res) => {
     const db = await connect()
     const newGi = req.body   
     const items = await db.collection('gi').find({}).toArray();
-    newGi.codigo = calculate(items[items.length - 1])
+    if(items.length > 0){
+        newGi.codigo = `ASIS-GI-${calculate(items[items.length - 1])}` 
+    }
+    else{
+        newGi.codigo = `ASIS-GI-00001`
+    }
     console.log(newGi)
     const result = await db.collection('gi').insertOne(newGi);
     res.json(result)

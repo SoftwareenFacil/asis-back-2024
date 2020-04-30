@@ -7,7 +7,7 @@ exports["default"] = void 0;
 
 var _express = require("express");
 
-var _NewCodeGI = require("../../functions/NewCodeGI");
+var _NewCode = require("../../functions/NewCode");
 
 var _database = require("../../database");
 
@@ -105,7 +105,13 @@ router.post('/', /*#__PURE__*/function () {
 
           case 6:
             items = _context3.sent;
-            newGi.codigo = (0, _NewCodeGI.calculate)(items[items.length - 1]);
+
+            if (items.length > 0) {
+              newGi.codigo = "ASIS-GI-".concat((0, _NewCode.calculate)(items[items.length - 1]));
+            } else {
+              newGi.codigo = "ASIS-GI-00001";
+            }
+
             console.log(newGi);
             _context3.next = 11;
             return db.collection('gi').insertOne(newGi);

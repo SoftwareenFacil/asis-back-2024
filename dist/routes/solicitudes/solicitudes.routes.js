@@ -7,6 +7,8 @@ exports["default"] = void 0;
 
 var _express = require("express");
 
+var _NewCode = require("../../functions/NewCode");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -52,7 +54,7 @@ router.get('/', /*#__PURE__*/function () {
 
 router.post('/', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var db, newSolicitud, result;
+    var db, newSolicitud, items, result;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -64,13 +66,25 @@ router.post('/', /*#__PURE__*/function () {
             db = _context2.sent;
             newSolicitud = req.body;
             _context2.next = 6;
-            return db.collection('solicitudes').insertOne(newSolicitud);
+            return db.collection('solicitudes').find({}).toArray();
 
           case 6:
+            items = _context2.sent;
+
+            if (items.length > 0) {
+              newSolicitud.codigo = "ASIS-SOL-".concat((0, _NewCode.calculate)(items[items.length - 1]));
+            } else {
+              newSolicitud.codigo = "ASIS-SOL-00001";
+            }
+
+            _context2.next = 10;
+            return db.collection('solicitudes').insertOne(newSolicitud);
+
+          case 10:
             result = _context2.sent;
             res.json(result);
 
-          case 8:
+          case 12:
           case "end":
             return _context2.stop();
         }
