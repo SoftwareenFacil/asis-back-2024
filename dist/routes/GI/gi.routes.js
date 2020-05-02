@@ -9,6 +9,8 @@ var _express = require("express");
 
 var _NewCode = require("../../functions/NewCode");
 
+var _getYearActual = require("../../functions/getYearActual");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -17,9 +19,10 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-var router = (0, _express.Router)(); //database connection
+var router = (0, _express.Router)();
+var YEAR = (0, _getYearActual.getYear)(); //database connection
 
-//SELECT
+// SELECT
 router.get('/', /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
     var db, result;
@@ -107,9 +110,9 @@ router.post('/', /*#__PURE__*/function () {
             items = _context3.sent;
 
             if (items.length > 0) {
-              newGi.codigo = "ASIS-GI-".concat((0, _NewCode.calculate)(items[items.length - 1]));
+              newGi.codigo = "ASIS-GI-".concat(YEAR, "-").concat((0, _NewCode.calculate)(items[items.length - 1]));
             } else {
-              newGi.codigo = "ASIS-GI-00001";
+              newGi.codigo = "ASIS-GI-".concat(YEAR, "-00001");
             }
 
             console.log(newGi);

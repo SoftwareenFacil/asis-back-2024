@@ -1,12 +1,15 @@
 import { Router } from "express";
 import {calculate} from "../../functions/NewCode";
+import { getYear } from "../../functions/getYearActual";
 const router = Router();
+
+const YEAR = getYear();
 
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 
-//SELECT
+// SELECT
 router.get('/', async (req, res) =>{
     const db = await connect();
     const result = await db.collection('gi').find({}).toArray();
@@ -27,10 +30,10 @@ router.post('/', async (req, res) => {
     const newGi = req.body   
     const items = await db.collection('gi').find({}).toArray();
     if(items.length > 0){
-        newGi.codigo = `ASIS-GI-${calculate(items[items.length - 1])}` 
+        newGi.codigo = `ASIS-GI-${YEAR}-${calculate(items[items.length - 1])}` 
     }
     else{
-        newGi.codigo = `ASIS-GI-00001`
+        newGi.codigo = `ASIS-GI-${YEAR}-00001`
     }
     console.log(newGi)
     const result = await db.collection('gi').insertOne(newGi);
