@@ -1,6 +1,9 @@
 import { Router } from "express";
 import {calculate} from "../../functions/NewCode";
+import { getYear } from "../../functions/getYearActual";
 const router = Router();
+
+const YEAR = getYear();
 
 //database connection
 import { connect } from "../../database";
@@ -30,29 +33,50 @@ router.post('/', async (req, res) => {
     const newSolicitud = req.body
     const items = await db.collection('solicitudes').find({}).toArray();
     if(items.length > 0){
-        newSolicitud.codigo = `ASIS-SOL-${calculate(items[items.length - 1])}` 
+        newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(items[items.length - 1])}` 
     }
     else{
-        newSolicitud.codigo = `ASIS-SOL-00001`
+        newSolicitud.codigo = `ASIS-SOL-${YEAR}-00001`
     }
     const result = await db.collection('solicitudes').insertOne(newSolicitud);
     res.json(result)
 });
 
-//PASAR SOLICUTUD A CONFIRMADO
+//CONFIRMAR SOLICITUD
 router.post('/confirmar/:id', async (req, res) =>{
-    // const db = await connect()
-    // const { id } = req.params
-    // //obtener mail del cliente principal
-    // const gi = await db.collection('gi').findOne({_id: ObjectID(id)});
-    // console.log('id gi', id)
-    // console.log('correo', gi.email_central)
-    // const result = await db.collection('solicitudes').findOneAndUpdate({_id: ObjectID(id)}, {
-    //     $set:{
-    //         "fecha_servicio_solicitado": req.body.fecha,
-    //         "hora_servicio": req.body.hora
-    //     }
-    // })
+    const db = await connect()
+    const solicitud = req.body
+    const { id } = req.params
+    //obtener mail del cliente principal
+    const resultSol = await db.collection('solicitudes').updateOne({_id: ObjectID(id)}, {
+        $set:{
+            fecha_servicio_solicitado: solicitud.fecha_servicio_solicitado,
+            hora_servicio: solicitud.hora_servicio,
+            observacion_solicitud: solicitud.observacion_solicitud,
+            estado: "Confirmado"
+        }
+    });
+
+    console.log('result sol', resultSol)
+
+    if(resultSol.result.ok){
+        const resultGI = await db.collection('gi').updateOne({_id: ObjectID(solicitud.id_GI_Principal)}, {
+            $set:{
+                email_central: solicitud.email_central
+            }
+        });
+
+        console.log('result gi', resultGI)
+
+        if(resultGI.result.ok){
+        //-------------------------------------FALTA CREAR LA RESERVA-----------------------
+           res.json({
+               status:{
+                    message: "ok"
+               }
+           })
+        }
+    }
 })
 
 //DELETE
