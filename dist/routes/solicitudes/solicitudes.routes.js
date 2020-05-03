@@ -146,7 +146,7 @@ router.post('/', /*#__PURE__*/function () {
 
 router.post('/confirmar/:id', /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
-    var db, solicitud, id, resultSol, resultGI;
+    var db, solicitud, id, resultSol, resultGI, resp, codigoAsis, newReserva, resulReserva;
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
@@ -176,7 +176,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             console.log('result sol', resultSol);
 
             if (!resultSol.result.ok) {
-              _context4.next = 15;
+              _context4.next = 25;
               break;
             }
 
@@ -193,16 +193,46 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             resultGI = _context4.sent;
             console.log('result gi', resultGI);
 
-            if (resultGI.result.ok) {
-              //-------------------------------------FALTA CREAR LA RESERVA-----------------------
-              res.json({
-                status: {
-                  message: "ok"
-                }
-              });
+            if (!resultGI.result.ok) {
+              _context4.next = 25;
+              break;
             }
 
-          case 15:
+            _context4.next = 17;
+            return db.collection('solicitudes').findOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            });
+
+          case 17:
+            resp = _context4.sent;
+            codigoAsis = resp.codigo;
+            codigoAsis = codigoAsis.replace('SOL', 'AGE');
+            newReserva = {
+              codigo: codigoAsis,
+              id_GI_Principal: resp.id_GI_Principal,
+              id_GI_Secundario: resp.id_GI_Secundario,
+              id_GI_personalAsignado: resp.id_GI_PersonalAsignado,
+              rut_cp: resp.rut_CP,
+              razon_social_cp: resp.razon_social_CP,
+              fecha_reserva: resp.fecha_servicio_solicitado,
+              hora_reserva: resp.hora_servicio,
+              jornada: resp.jornada,
+              mes: resp.mes_solicitud,
+              anio: resp.anio_solicitud,
+              nombre_servicio: resp.nombre_servicio,
+              lugar_servicio: resp.lugar_servicio,
+              sucursal: resp.sucursal,
+              observacion: '',
+              estado: 'Ingresado'
+            };
+            _context4.next = 23;
+            return db.collection('reservas').insertOne(newReserva);
+
+          case 23:
+            resulReserva = _context4.sent;
+            res.json(resulReserva);
+
+          case 25:
           case "end":
             return _context4.stop();
         }

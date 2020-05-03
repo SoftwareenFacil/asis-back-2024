@@ -5,6 +5,7 @@ import cors from "cors";
 import IndexRoute from "./routes/index.routes";
 import GIRoute from "./routes/GI/gi.routes";
 import SolicitudesRoute from "./routes/solicitudes/solicitudes.routes";
+import ReservasRoute from "./routes/Reservas/reservas.routes";
 
 const app = express();
 
@@ -20,5 +21,6 @@ app.use(express.json())
 app.use(IndexRoute);
 app.use('/gi', GIRoute)
 app.use('/solicitudes', SolicitudesRoute)
+app.use('/reservas', ReservasRoute)
 
 export default app;

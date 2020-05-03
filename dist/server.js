@@ -17,6 +17,8 @@ var _gi = _interopRequireDefault(require("./routes/GI/gi.routes"));
 
 var _solicitudes = _interopRequireDefault(require("./routes/solicitudes/solicitudes.routes"));
 
+var _reservas = _interopRequireDefault(require("./routes/Reservas/reservas.routes"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 //---------------------IMPORTS ROUTES
@@ -31,5 +33,6 @@ app.use(_express["default"].json()); //Routes
 app.use(_index["default"]);
 app.use('/gi', _gi["default"]);
 app.use('/solicitudes', _solicitudes["default"]);
+app.use('/reservas', _reservas["default"]);
 var _default = app;
 exports["default"] = _default;

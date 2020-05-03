@@ -47,6 +47,8 @@ const solicitud = [
         id_GI_PersonalAsignado: String,
         rut_CP: String,
         razon_social_CP: String,       
+        rut_cs: String,
+        razon_social_cs: String,
         fecha_solicitud: String,
         fecha_servicio_solicitado: String,
         mes_solicitud: String,
@@ -62,6 +64,30 @@ const solicitud = [
         observacion_solicitud: String,
         hora_servicio: String,
         jornada: String,
+        estado: 'Ingresado'
+    }
+];
+
+const reserva = [
+    {
+        _id: String,
+        codigo: String,
+        id_GI_Principal: String,
+        id_GI_Secundario: String,
+        id_GI_PersonalAsignado: String,
+        rut_cp: String,
+        razon_social_cp: String,
+        rut_cs: String,
+        razon_social_cs: String,
+        fecha_reserva: String,
+        hora_reserva: String,
+        jornada: String,
+        mes: String,
+        anio: String,
+        nombre_servicio: String,
+        lugar_servicio: String,
+        sucursal: String,
+        observacion: String,
         estado: 'Ingresado'
     }
 ]

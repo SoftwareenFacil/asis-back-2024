@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {calculate} from "../../functions/NewCode";
+import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 const router = Router();
 
@@ -17,12 +17,12 @@ router.get('/', async (req, res) => {
 })
 
 //SELECT FIELDS TO CONFIRM SOLICITUD
-router.get('/mostrar/:id', async (req, res) =>{
+router.get('/mostrar/:id', async (req, res) => {
     const db = await connect();
     const { id } = req.params;
     const resultFinal = {}
-    const resultSol = await db.collection('solicitudes').findOne({_id: ObjectID(id)});
-    const resultGI = await db.collection('gi').findOne({_id: ObjectID(resultSol.id_GI_Principal)})
+    const resultSol = await db.collection('solicitudes').findOne({ _id: ObjectID(id) });
+    const resultGI = await db.collection('gi').findOne({ _id: ObjectID(resultSol.id_GI_Principal) })
     resultSol.email_gi = resultGI.email_central;
     res.json(resultSol)
 })
@@ -32,10 +32,10 @@ router.post('/', async (req, res) => {
     const db = await connect()
     const newSolicitud = req.body
     const items = await db.collection('solicitudes').find({}).toArray();
-    if(items.length > 0){
-        newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(items[items.length - 1])}` 
+    if (items.length > 0) {
+        newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(items[items.length - 1])}`
     }
-    else{
+    else {
         newSolicitud.codigo = `ASIS-SOL-${YEAR}-00001`
     }
     const result = await db.collection('solicitudes').insertOne(newSolicitud);
@@ -43,13 +43,13 @@ router.post('/', async (req, res) => {
 });
 
 //CONFIRMAR SOLICITUD
-router.post('/confirmar/:id', async (req, res) =>{
+router.post('/confirmar/:id', async (req, res) => {
     const db = await connect()
     const solicitud = req.body
     const { id } = req.params
     //obtener mail del cliente principal
-    const resultSol = await db.collection('solicitudes').updateOne({_id: ObjectID(id)}, {
-        $set:{
+    const resultSol = await db.collection('solicitudes').updateOne({ _id: ObjectID(id) }, {
+        $set: {
             fecha_servicio_solicitado: solicitud.fecha_servicio_solicitado,
             hora_servicio: solicitud.hora_servicio,
             observacion_solicitud: solicitud.observacion_solicitud,
@@ -59,31 +59,50 @@ router.post('/confirmar/:id', async (req, res) =>{
 
     console.log('result sol', resultSol)
 
-    if(resultSol.result.ok){
-        const resultGI = await db.collection('gi').updateOne({_id: ObjectID(solicitud.id_GI_Principal)}, {
-            $set:{
+    if (resultSol.result.ok) {
+        const resultGI = await db.collection('gi').updateOne({ _id: ObjectID(solicitud.id_GI_Principal) }, {
+            $set: {
                 email_central: solicitud.email_central
             }
         });
 
         console.log('result gi', resultGI)
 
-        if(resultGI.result.ok){
-        //-------------------------------------FALTA CREAR LA RESERVA-----------------------
-           res.json({
-               status:{
-                    message: "ok"
-               }
-           })
+        if (resultGI.result.ok) {
+            //-------------------------------------CREAR LA RESERVA-----------------------
+            const resp = await db.collection('solicitudes').findOne({ _id: ObjectID(id) })
+            let codigoAsis = resp.codigo
+            codigoAsis = codigoAsis.replace('SOL', 'AGE')
+            const newReserva = {
+                codigo: codigoAsis,
+                id_GI_Principal: resp.id_GI_Principal,
+                id_GI_Secundario: resp.id_GI_Secundario,
+                id_GI_personalAsignado: resp.id_GI_PersonalAsignado,
+                rut_cp: resp.rut_CP,
+                razon_social_cp: resp.razon_social_CP,
+                fecha_reserva: resp.fecha_servicio_solicitado,
+                hora_reserva: resp.hora_servicio,
+                jornada: resp.jornada,
+                mes: resp.mes_solicitud,
+                anio: resp.anio_solicitud,
+                nombre_servicio: resp.nombre_servicio,               
+                lugar_servicio: resp.lugar_servicio,
+                sucursal: resp.sucursal,
+                observacion: '',
+                estado: 'Ingresado'
+            }
+
+            const resulReserva = await db.collection('reservas').insertOne(newReserva)
+            res.json(resulReserva)
         }
     }
 })
 
 //DELETE
-router.delete('/:id', async (req, res) =>{
-    const {id} = req.params;
+router.delete('/:id', async (req, res) => {
+    const { id } = req.params;
     const db = await connect()
-    const result = await db.collection('solicitudes').deleteOne({_id: ObjectID(id)})
+    const result = await db.collection('solicitudes').deleteOne({ _id: ObjectID(id) })
     res.json(result)
 })
 
