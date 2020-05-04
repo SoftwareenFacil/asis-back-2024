@@ -13,8 +13,13 @@ import { ObjectID } from "mongodb";
 //SELECT
 router.get('/', async (req, res) => {
     const db = await connect();
-    const result = await db.collection('reservas').find({}).toArray();
-    res.json(result);
+    const solicitudes = await db.collection('solicitudes').find({}).toArray();
+    const reservas = await db.collection('reservas').find({}).toArray();
+    let totalDatos = []
+    totalDatos.push(solicitudes)
+    totalDatos.push(reservas)
+    // console.log('total datos', totalDatos)
+    res.json(totalDatos);
 })
 
 

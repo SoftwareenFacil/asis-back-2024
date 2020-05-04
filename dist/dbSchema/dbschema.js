@@ -59,7 +59,8 @@ var solicitud = [{
   lugar_servicio: String,
   sucursal: String,
   observacion_solicitud: String,
-  hora_servicio: String,
+  hora_solicitud: String,
+  hora_servicio_solicitado: String,
   jornada: String,
   estado: 'Ingresado'
 }];

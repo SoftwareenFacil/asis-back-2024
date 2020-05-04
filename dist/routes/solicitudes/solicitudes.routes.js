@@ -214,6 +214,8 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               id_GI_personalAsignado: resp.id_GI_PersonalAsignado,
               rut_cp: resp.rut_CP,
               razon_social_cp: resp.razon_social_CP,
+              rut_cs: resp.rut_cs,
+              razon_social_cs: resp.razon_social_cs,
               fecha_reserva: resp.fecha_servicio_solicitado,
               hora_reserva: resp.hora_servicio,
               jornada: resp.jornada,
