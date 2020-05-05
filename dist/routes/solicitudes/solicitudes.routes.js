@@ -164,8 +164,8 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
-                fecha_servicio_solicitado: solicitud.fecha_servicio_solicitado,
-                hora_servicio: solicitud.hora_servicio,
+                fecha_solicitud: solicitud.fecha_solicitud,
+                hora_solicitud: solicitud.hora_solicitud,
                 observacion_solicitud: solicitud.observacion_solicitud,
                 estado: "Confirmado"
               }
@@ -173,14 +173,13 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
 
           case 7:
             resultSol = _context4.sent;
-            console.log('result sol', resultSol);
 
             if (!resultSol.result.ok) {
-              _context4.next = 25;
+              _context4.next = 24;
               break;
             }
 
-            _context4.next = 12;
+            _context4.next = 11;
             return db.collection('gi').updateOne({
               _id: (0, _mongodb.ObjectID)(solicitud.id_GI_Principal)
             }, {
@@ -189,24 +188,24 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 12:
+          case 11:
             resultGI = _context4.sent;
-            console.log('result gi', resultGI);
 
             if (!resultGI.result.ok) {
-              _context4.next = 25;
+              _context4.next = 24;
               break;
             }
 
-            _context4.next = 17;
+            _context4.next = 15;
             return db.collection('solicitudes').findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
-          case 17:
+          case 15:
             resp = _context4.sent;
             codigoAsis = resp.codigo;
             codigoAsis = codigoAsis.replace('SOL', 'AGE');
+            console.log('sol', resp);
             newReserva = {
               codigo: codigoAsis,
               id_GI_Principal: resp.id_GI_Principal,
@@ -217,7 +216,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               rut_cs: resp.rut_cs,
               razon_social_cs: resp.razon_social_cs,
               fecha_reserva: resp.fecha_servicio_solicitado,
-              hora_reserva: resp.hora_servicio,
+              hora_reserva: resp.hora_servicio_solicitado,
               jornada: resp.jornada,
               mes: resp.mes_solicitud,
               anio: resp.anio_solicitud,
@@ -227,14 +226,14 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               observacion: '',
               estado: 'Ingresado'
             };
-            _context4.next = 23;
+            _context4.next = 22;
             return db.collection('reservas').insertOne(newReserva);
 
-          case 23:
+          case 22:
             resulReserva = _context4.sent;
             res.json(resulReserva);
 
-          case 25:
+          case 24:
           case "end":
             return _context4.stop();
         }

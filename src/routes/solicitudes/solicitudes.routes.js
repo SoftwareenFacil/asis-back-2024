@@ -57,7 +57,7 @@ router.post('/confirmar/:id', async (req, res) => {
         }
     });
 
-    console.log('result sol', resultSol)
+    // console.log('result sol', resultSol)
 
     if (resultSol.result.ok) {
         const resultGI = await db.collection('gi').updateOne({ _id: ObjectID(solicitud.id_GI_Principal) }, {
@@ -66,7 +66,7 @@ router.post('/confirmar/:id', async (req, res) => {
             }
         });
 
-        console.log('result gi', resultGI)
+        // console.log('result gi', resultGI)
 
         if (resultGI.result.ok) {
             //-------------------------------------CREAR LA RESERVA-----------------------

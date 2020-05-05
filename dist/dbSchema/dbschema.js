@@ -35,6 +35,8 @@ var gi = [{
   credito: 'Si',
   dias_credito: '90',
   orden_compra: 'Si',
+  id_GI_org_perteneciente: '78wf783fg3gf3f3fg783r',
+  razon_social_org_perteneciente: 'Empresas Altamirano SpA',
   url_file_adjunto: 'src/files/7464563736463gfbce.pdf'
 }];
 var solicitud = [{
@@ -56,6 +58,7 @@ var solicitud = [{
   categoria3: String,
   nombre_servicio: String,
   precio: Number,
+  costo_estimado: Number,
   lugar_servicio: String,
   sucursal: String,
   observacion_solicitud: String,
