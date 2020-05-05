@@ -50,8 +50,8 @@ router.post('/confirmar/:id', async (req, res) => {
     //obtener mail del cliente principal
     const resultSol = await db.collection('solicitudes').updateOne({ _id: ObjectID(id) }, {
         $set: {
-            fecha_servicio_solicitado: solicitud.fecha_servicio_solicitado,
-            hora_servicio: solicitud.hora_servicio,
+            fecha_solicitud: solicitud.fecha_solicitud,
+            hora_solicitud: solicitud.hora_solicitud,
             observacion_solicitud: solicitud.observacion_solicitud,
             estado: "Confirmado"
         }
