@@ -17,5 +17,13 @@ router.get('/', async (req, res) => {
     res.json(result);
 })
 
+//SELECT ONE 
+router.get('/:id', async (req, res) =>{
+    const { id } = req.params
+    const db = await connect();
+    const result = await db.collection('reservas').findOne({_id: ObjectID(id)})
+    res.json(result)
+})
+
 
 export default router;
