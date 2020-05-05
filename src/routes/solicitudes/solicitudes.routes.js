@@ -73,6 +73,7 @@ router.post('/confirmar/:id', async (req, res) => {
             const resp = await db.collection('solicitudes').findOne({ _id: ObjectID(id) })
             let codigoAsis = resp.codigo
             codigoAsis = codigoAsis.replace('SOL', 'AGE')
+            console.log('sol', resp)
             const newReserva = {
                 codigo: codigoAsis,
                 id_GI_Principal: resp.id_GI_Principal,
@@ -83,7 +84,7 @@ router.post('/confirmar/:id', async (req, res) => {
                 rut_cs: resp.rut_cs,
                 razon_social_cs: resp.razon_social_cs,
                 fecha_reserva: resp.fecha_servicio_solicitado,
-                hora_reserva: resp.hora_servicio,
+                hora_reserva: resp.hora_servicio_solicitado,
                 jornada: resp.jornada,
                 mes: resp.mes_solicitud,
                 anio: resp.anio_solicitud,
