@@ -167,6 +167,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
                 fecha_solicitud: solicitud.fecha_solicitud,
                 hora_solicitud: solicitud.hora_solicitud,
                 observacion_solicitud: solicitud.observacion_solicitud,
+                medio_confirmacion: solicitud.medio_confirmacion,
                 estado: "Confirmado"
               }
             });
