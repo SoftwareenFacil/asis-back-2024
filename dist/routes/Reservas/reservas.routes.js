@@ -11,6 +11,8 @@ var _NewCode = require("../../functions/NewCode");
 
 var _getYearActual = require("../../functions/getYearActual");
 
+var _changeToMiniscula = require("../../functions/changeToMiniscula");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -87,6 +89,115 @@ router.get('/:id', /*#__PURE__*/function () {
 
   return function (_x3, _x4) {
     return _ref2.apply(this, arguments);
+  };
+}()); //CONFIRMAR RESERVA
+
+router.post('/confirmar/:id', /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
+    var id, datos, db, result, resulEva, reserva, codAsis;
+    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            id = req.params.id;
+            datos = req.body;
+            _context3.next = 4;
+            return (0, _database.connect)();
+
+          case 4:
+            db = _context3.sent;
+            result = null;
+            resulEva = null;
+            _context3.prev = 7;
+            _context3.next = 10;
+            return db.collection('reservas').updateOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            }, {
+              $set: {
+                fecha_reserva: datos.fecha_reserva,
+                hora_reserva: datos.hora_reserva,
+                hora_reserva_fin: datos.hora_reserva_fin,
+                id_GI_personalAsignado: datos.id_GI_personalAsignado,
+                sucursal: datos.sucursal,
+                observacion: datos.observacion,
+                estado: "Reservado",
+                reqEvaluacion: (0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion)
+              }
+            });
+
+          case 10:
+            result = _context3.sent;
+            console.log('result modified', result.result.ok);
+
+            if (!((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == 'si' && result.result.ok == 1)) {
+              _context3.next = 24;
+              break;
+            }
+
+            _context3.next = 15;
+            return db.collection('reservas').findOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            });
+
+          case 15:
+            reserva = _context3.sent;
+            codAsis = reserva.codigo;
+            codAsis = codAsis.replace('AGE', 'EVA');
+            _context3.next = 20;
+            return db.collection('evaluaciones').insertOne({
+              id_GI_personalAsignado: reserva.id_GI_personalAsignado,
+              codigo: codAsis,
+              fecha_evaluacion: reserva.fecha_reserva,
+              hora_inicio_evaluacion: reserva.hora_reserva,
+              hora_termino_evaluacion: reserva.hora_reserva_fin,
+              mes: reserva.mes,
+              anio: reserva.anio,
+              nombre_servicio: reserva.nombre_servicio,
+              rut_cp: reserva.rut_cp,
+              razon_social_cp: reserva.razon_social_cp,
+              rut_cs: reserva.rut_cs,
+              razon_social_cs: reserva.razon_social_cs,
+              lugar_servicio: reserva.lugar_servicio,
+              sucursal: reserva.sucursal,
+              estado: "En Evaluacion"
+            });
+
+          case 20:
+            resulEva = _context3.sent;
+            res.json({
+              status: 200,
+              message: "Reserva Confirmada"
+            });
+            _context3.next = 25;
+            break;
+
+          case 24:
+            if ((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == 'no') {}
+
+          case 25:
+            _context3.next = 31;
+            break;
+
+          case 27:
+            _context3.prev = 27;
+            _context3.t0 = _context3["catch"](7);
+            console.log('error', _context3.t0);
+            res.json({
+              status: 500,
+              message: "No se pudo concretar la confirmacion de la reserva",
+              error: _context3.t0
+            });
+
+          case 31:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3, null, [[7, 27]]);
+  }));
+
+  return function (_x5, _x6) {
+    return _ref3.apply(this, arguments);
   };
 }());
 var _default = router;

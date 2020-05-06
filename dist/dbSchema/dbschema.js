@@ -88,3 +88,21 @@ var reserva = [{
   observacion: String,
   estado: 'Ingresado'
 }];
+var evaluacion = [{
+  _id: String,
+  id_GI_personalAsignado: String,
+  codigo: String,
+  fecha_evaluacion: String,
+  hora_inicio_evaluacion: String,
+  hora_termino_evaluacion: String,
+  mes: String,
+  anio: String,
+  nombre_servicio: String,
+  rut_cp: String,
+  razon_social_cp: String,
+  rut_cs: String,
+  razon_social_cs: String,
+  lugar_servicio: String,
+  sucursal: String,
+  estado: String
+}];

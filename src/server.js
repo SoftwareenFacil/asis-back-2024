@@ -7,6 +7,7 @@ import GIRoute from "./routes/GI/gi.routes";
 import SolicitudesRoute from "./routes/solicitudes/solicitudes.routes";
 import ReservasRoute from "./routes/Reservas/reservas.routes";
 import CalendarioRoute from "./routes/Calendario/calendario.routes";
+import EvaluacionesRoute from "./routes/evaluaciones/evaluaciones.routes";
 
 const app = express();
 
@@ -24,5 +25,6 @@ app.use('/gi', GIRoute)
 app.use('/solicitudes', SolicitudesRoute)
 app.use('/reservas', ReservasRoute)
 app.use('/calendario', CalendarioRoute)
+app.use('/evaluaciones', EvaluacionesRoute)
 
 export default app;

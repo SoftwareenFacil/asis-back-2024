@@ -218,6 +218,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               razon_social_cs: resp.razon_social_cs,
               fecha_reserva: resp.fecha_servicio_solicitado,
               hora_reserva: resp.hora_servicio_solicitado,
+              hora_reserva_fin: "",
               jornada: resp.jornada,
               mes: resp.mes_solicitud,
               anio: resp.anio_solicitud,
