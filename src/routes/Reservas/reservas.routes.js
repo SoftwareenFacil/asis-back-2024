@@ -69,15 +69,14 @@ router.post('/confirmar/:id', async (req, res) => {
                 lugar_servicio: reserva.lugar_servicio,
                 sucursal: reserva.sucursal,
                 estado: "En Evaluacion"
-            })
-
-            res.json({
-                status: 200,
-                message: "Reserva Confirmada"
-            })
-        }else if(getMinusculas(datos.reqEvaluacion) == 'no'){
-
+            });          
         }
+
+        res.json({
+            status: 200,
+            message: "Reserva Confirmada"
+        });
+
     } catch (err) {
         console.log('error', err)
         res.json({
