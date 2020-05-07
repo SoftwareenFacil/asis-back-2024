@@ -130,7 +130,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             console.log('result modified', result.result.ok);
 
             if (!((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == 'si' && result.result.ok == 1)) {
-              _context3.next = 24;
+              _context3.next = 21;
               break;
             }
 
@@ -159,27 +159,22 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               razon_social_cs: reserva.razon_social_cs,
               lugar_servicio: reserva.lugar_servicio,
               sucursal: reserva.sucursal,
-              estado: "En Evaluacion"
+              estado: "Ingresado"
             });
 
           case 20:
             resulEva = _context3.sent;
+
+          case 21:
             res.json({
               status: 200,
               message: "Reserva Confirmada"
             });
-            _context3.next = 25;
+            _context3.next = 28;
             break;
 
           case 24:
-            if ((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == 'no') {}
-
-          case 25:
-            _context3.next = 31;
-            break;
-
-          case 27:
-            _context3.prev = 27;
+            _context3.prev = 24;
             _context3.t0 = _context3["catch"](7);
             console.log('error', _context3.t0);
             res.json({
@@ -188,12 +183,12 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               error: _context3.t0
             });
 
-          case 31:
+          case 28:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3, null, [[7, 27]]);
+    }, _callee3, null, [[7, 24]]);
   }));
 
   return function (_x5, _x6) {

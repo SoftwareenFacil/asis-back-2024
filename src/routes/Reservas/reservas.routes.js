@@ -68,7 +68,7 @@ router.post('/confirmar/:id', async (req, res) => {
                 razon_social_cs: reserva.razon_social_cs,
                 lugar_servicio: reserva.lugar_servicio,
                 sucursal: reserva.sucursal,
-                estado: "En Evaluacion"
+                estado: "Ingresado"
             });          
         }
 

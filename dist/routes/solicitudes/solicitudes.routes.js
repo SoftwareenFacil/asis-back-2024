@@ -164,8 +164,8 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
-                fecha_solicitud: solicitud.fecha_solicitud,
-                hora_solicitud: solicitud.hora_solicitud,
+                fecha_confirmacion: solicitud.fecha_solicitud,
+                hora_confirmacion: solicitud.hora_solicitud,
                 observacion_solicitud: solicitud.observacion_solicitud,
                 medio_confirmacion: solicitud.medio_confirmacion,
                 estado: "Confirmado"
