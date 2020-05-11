@@ -159,6 +159,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               razon_social_cs: reserva.razon_social_cs,
               lugar_servicio: reserva.lugar_servicio,
               sucursal: reserva.sucursal,
+              observaciones: "",
               estado: "Ingresado"
             });
 

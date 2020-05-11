@@ -52,6 +52,118 @@ router.get('/', /*#__PURE__*/function () {
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
+}()); //PASAR A EN EVALUACION
+
+router.post('/evaluar/:id', /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
+    var id, db, result;
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            id = req.params.id;
+            _context2.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context2.sent;
+            _context2.next = 6;
+            return db.collection('evaluaciones').updateOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            }, {
+              $set: {
+                estado: "En Evaluacion",
+                observaciones: req.body.observaciones,
+                archivoExamen: req.body.archivo_examen
+              }
+            });
+
+          case 6:
+            result = _context2.sent;
+            res.json(result);
+
+          case 8:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+
+  return function (_x3, _x4) {
+    return _ref2.apply(this, arguments);
+  };
+}()); //PASAR A EVALUADO
+
+router.post('/evaluado/:id', /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
+    var id, db, result, codAsis, resultinsert;
+    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            id = req.params.id;
+            _context3.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context3.sent;
+            _context3.next = 6;
+            return db.collection('evaluaciones').findOneAndUpdate({
+              _id: (0, _mongodb.ObjectID)(id)
+            }, {
+              $set: {
+                estado: "Evaluado",
+                archivoResultado: req.body.archivo
+              }
+            }, {
+              sort: {
+                codigo: 1
+              },
+              returnNewDocument: true
+            });
+
+          case 6:
+            result = _context3.sent;
+
+            if (!(result.ok == 1)) {
+              _context3.next = 13;
+              break;
+            }
+
+            codAsis = result.value.codigo;
+            codAsis = codAsis.replace('EVA', 'RES');
+            _context3.next = 12;
+            return db.collection('resultados').insertOne({
+              codigo: codAsis,
+              nombre_servicio: result.value.nombre_servicio,
+              id_GI_personalAsignado: result.value.id_GI_personalAsignado,
+              rut_cp: result.value.rut_cp,
+              razon_social_cp: result.value.razon_social_cp,
+              rut_cs: result.value.rut_cs,
+              razon_social_cs: result.value.razon_social_cs,
+              lugar_servicio: result.value.lugar_servicio,
+              sucursal: result.value.sucursal,
+              archivoResultado: result.value.archivoResultado
+            });
+
+          case 12:
+            resultinsert = _context3.sent;
+
+          case 13:
+            res.json(result);
+
+          case 14:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+
+  return function (_x5, _x6) {
+    return _ref3.apply(this, arguments);
+  };
 }());
 var _default = router;
 exports["default"] = _default;
