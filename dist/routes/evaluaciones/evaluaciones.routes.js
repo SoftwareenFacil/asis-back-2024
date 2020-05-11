@@ -114,7 +114,7 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
             }, {
               $set: {
                 estado: "Evaluado",
-                archivoResultado: req.body.archivo
+                observaciones: req.body.observaciones
               }
             }, {
               sort: {
@@ -127,12 +127,13 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
             result = _context3.sent;
 
             if (!(result.ok == 1)) {
-              _context3.next = 13;
+              _context3.next = 14;
               break;
             }
 
             codAsis = result.value.codigo;
-            codAsis = codAsis.replace('EVA', 'RES');
+            codAsis = codAsis.replace('EVA', 'RES'); // console.log('result', result.value)
+
             _context3.next = 12;
             return db.collection('resultados').insertOne({
               codigo: codAsis,
@@ -144,16 +145,21 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               razon_social_cs: result.value.razon_social_cs,
               lugar_servicio: result.value.lugar_servicio,
               sucursal: result.value.sucursal,
-              archivoResultado: result.value.archivoResultado
+              observaciones: req.body.observaciones,
+              archivo_resultado: req.body.archivo_resultado,
+              fecha_resultado: req.body.fecha_resultado,
+              hora_resultado: req.body.hora_resultado
             });
 
           case 12:
             resultinsert = _context3.sent;
-
-          case 13:
-            res.json(result);
+            result = resultinsert;
 
           case 14:
+            console.log('result', result);
+            res.json(result);
+
+          case 16:
           case "end":
             return _context3.stop();
         }

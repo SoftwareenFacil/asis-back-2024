@@ -34,10 +34,10 @@ router.post('/evaluar/:id', async (req, res) =>{
 router.post('/evaluado/:id', async (req, res) =>{
     const { id } = req.params
     const db = await connect();
-    const result = await db.collection('evaluaciones').findOneAndUpdate({_id: ObjectID(id)}, {
+    let result = await db.collection('evaluaciones').findOneAndUpdate({_id: ObjectID(id)}, {
         $set:{
             estado: "Evaluado",
-            archivoResultado: req.body.archivo
+            observaciones: req.body.observaciones,          
         },
     }, 
     { sort: { codigo: 1 }, returnNewDocument  : true });
@@ -46,6 +46,7 @@ router.post('/evaluado/:id', async (req, res) =>{
     if(result.ok == 1){
         let codAsis = result.value.codigo;
         codAsis = codAsis.replace('EVA', 'RES')
+        // console.log('result', result.value)
         const resultinsert = await db.collection('resultados').insertOne({
             codigo: codAsis,
             nombre_servicio: result.value.nombre_servicio,
@@ -56,12 +57,17 @@ router.post('/evaluado/:id', async (req, res) =>{
             razon_social_cs: result.value.razon_social_cs,
             lugar_servicio: result.value.lugar_servicio,
             sucursal: result.value.sucursal,
-            archivoResultado: result.value.archivoResultado
+
+            observaciones: req.body.observaciones,
+            archivo_resultado: req.body.archivo_resultado,
+            fecha_resultado: req.body.fecha_resultado,
+            hora_resultado: req.body.hora_resultado
         });
 
-
+        result = resultinsert
     }
 
+    console.log('result', result)
     res.json(result)
 });
 
