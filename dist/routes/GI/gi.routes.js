@@ -55,29 +55,58 @@ router.get('/', /*#__PURE__*/function () {
   };
 }()); //SELECT BY RUT
 
-router.get('/:rut', /*#__PURE__*/function () {
+router.post('/:rut', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var rut, db, result;
+    var rut, verificador, db, result;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
             rut = req.params.rut;
-            _context2.next = 3;
+            verificador = req.body.verificador;
+            _context2.next = 4;
             return (0, _database.connect)();
 
-          case 3:
+          case 4:
             db = _context2.sent;
-            _context2.next = 6;
+            result = "";
+            console.log('verificador', verificador);
+
+            if (!(verificador == 1)) {
+              _context2.next = 13;
+              break;
+            }
+
+            _context2.next = 10;
             return db.collection('gi').findOne({
-              rut: rut
+              rut: rut,
+              categoria: "Empresa/Organizacion"
             });
 
-          case 6:
+          case 10:
             result = _context2.sent;
+            _context2.next = 17;
+            break;
+
+          case 13:
+            if (!(verificador == 2)) {
+              _context2.next = 17;
+              break;
+            }
+
+            _context2.next = 16;
+            return db.collection('gi').findOne({
+              rut: rut,
+              categoria: "Persona Natural"
+            });
+
+          case 16:
+            result = _context2.sent;
+
+          case 17:
             res.json(result);
 
-          case 8:
+          case 18:
           case "end":
             return _context2.stop();
         }

@@ -57,6 +57,7 @@ router.post('/confirmar/:id', async (req, res) => {
                 id_GI_personalAsignado: reserva.id_GI_personalAsignado,
                 codigo: codAsis,
                 fecha_evaluacion: reserva.fecha_reserva,
+                fecha_evaluacion_fin: reserva.fecha_reserva_fin,
                 hora_inicio_evaluacion: reserva.hora_reserva,
                 hora_termino_evaluacion: reserva.hora_reserva_fin,
                 mes: reserva.mes,

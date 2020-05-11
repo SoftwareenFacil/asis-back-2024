@@ -23,7 +23,7 @@ router.post('/evaluar/:id', async (req, res) =>{
         $set:{
             estado: "En Evaluacion",
             observaciones: req.body.observaciones,
-            archivoExamen: req.body.archivo_examen
+            archivo_examen: req.body.archivo_examen
         }
     });
 
@@ -37,7 +37,9 @@ router.post('/evaluado/:id', async (req, res) =>{
     let result = await db.collection('evaluaciones').findOneAndUpdate({_id: ObjectID(id)}, {
         $set:{
             estado: "Evaluado",
-            observaciones: req.body.observaciones,          
+            observaciones: req.body.observaciones,     
+            fecha_resultado_examen: req.body.fecha_resultado_examen,
+            hora_resultado_examen: req.body.hora_resultado_examen
         },
     }, 
     { sort: { codigo: 1 }, returnNewDocument  : true });

@@ -17,10 +17,19 @@ router.get('/', async (req, res) =>{
 });
 
 //SELECT BY RUT
-router.get('/:rut', async (req, res) =>{
+router.post('/:rut', async (req, res) =>{
     const {rut} = req.params;
+    const verificador = req.body.verificador;
     const db = await connect();
-    const result = await db.collection('gi').findOne({rut: rut})
+    let result = ""
+    console.log('verificador', verificador)
+    if(verificador == 1){
+        result = await db.collection('gi').findOne({rut: rut, categoria: "Empresa/Organizacion"});
+    }
+    else if(verificador == 2){
+        result = await db.collection('gi').findOne({rut: rut, categoria: "Persona Natural"});
+    }
+    
     res.json(result)
 })
 
