@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
+import { CalculateFechaVenc } from "../../functions/getFechaVenc";
 
 const router = Router();
 
@@ -59,6 +60,7 @@ router.post('/evaluado/:id', async (req, res) => {
     if (result.ok == 1 && (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs")) {
         let codAsis = result.value.codigo;
         codAsis = codAsis.replace('EVA', 'RES')
+        let fechaVenci = CalculateFechaVenc(req.body.fecha_resultado_examen, req.body.vigencia_examen.replace(/\D/g,''));
         // console.log('result', result.value)
         const resultinsert = await db.collection('resultados').insertOne({
             codigo: codAsis,
@@ -77,7 +79,7 @@ router.post('/evaluado/:id', async (req, res) => {
             archivo_respuesta_examen: req.body.archivo_resultado,
             fecha_resultado: req.body.fecha_resultado_examen,
             hora_resultado: req.body.hora_resultado_examen,
-            estado_examen: req.body.estado_archivo
+            estado: req.body.estado_archivo
         });
 
         console.log('result resultado', resultinsert)

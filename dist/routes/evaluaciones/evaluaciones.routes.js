@@ -11,6 +11,8 @@ var _NewCode = require("../../functions/NewCode");
 
 var _getYearActual = require("../../functions/getYearActual");
 
+var _getFechaVenc = require("../../functions/getFechaVenc");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -100,7 +102,7 @@ router.post('/evaluar/:id', /*#__PURE__*/function () {
 
 router.post('/evaluado/:id', /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, db, estadoEvaluacion, result, codAsis, resultinsert;
+    var id, db, estadoEvaluacion, result, codAsis, fechaVenci, resultinsert;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -140,14 +142,15 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
             result = _context3.sent;
 
             if (!(result.ok == 1 && (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs"))) {
-              _context3.next = 17;
+              _context3.next = 18;
               break;
             }
 
             codAsis = result.value.codigo;
-            codAsis = codAsis.replace('EVA', 'RES'); // console.log('result', result.value)
+            codAsis = codAsis.replace('EVA', 'RES');
+            fechaVenci = (0, _getFechaVenc.CalculateFechaVenc)(req.body.fecha_resultado_examen, req.body.vigencia_examen.replace(/\D/g, '')); // console.log('result', result.value)
 
-            _context3.next = 14;
+            _context3.next = 15;
             return db.collection('resultados').insertOne({
               codigo: codAsis,
               nombre_servicio: result.value.nombre_servicio,
@@ -164,19 +167,19 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               archivo_respuesta_examen: req.body.archivo_resultado,
               fecha_resultado: req.body.fecha_resultado_examen,
               hora_resultado: req.body.hora_resultado_examen,
-              estado_examen: req.body.estado_archivo
+              estado: req.body.estado_archivo
             });
 
-          case 14:
+          case 15:
             resultinsert = _context3.sent;
             console.log('result resultado', resultinsert);
             result = resultinsert;
 
-          case 17:
+          case 18:
             console.log('result', result);
             res.json(result);
 
-          case 19:
+          case 20:
           case "end":
             return _context3.stop();
         }
