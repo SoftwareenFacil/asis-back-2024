@@ -80,7 +80,7 @@ router.post('/:rut', /*#__PURE__*/function () {
             _context2.next = 10;
             return db.collection('gi').findOne({
               rut: rut,
-              categoria: "Empresa/Organizacion"
+              categoria: "Empresa/Organización"
             });
 
           case 10:

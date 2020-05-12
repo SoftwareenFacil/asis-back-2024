@@ -24,7 +24,7 @@ router.post('/:rut', async (req, res) =>{
     let result = ""
     console.log('verificador', verificador)
     if(verificador == 1){
-        result = await db.collection('gi').findOne({rut: rut, categoria: "Empresa/Organizacion"});
+        result = await db.collection('gi').findOne({rut: rut, categoria: "Empresa/Organización"});
     }
     else if(verificador == 2){
         result = await db.collection('gi').findOne({rut: rut, categoria: "Persona Natural"});
