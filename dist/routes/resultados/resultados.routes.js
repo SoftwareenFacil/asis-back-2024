@@ -52,6 +52,51 @@ router.get('/', /*#__PURE__*/function () {
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
+}()); //confirmar resultado
+
+router.post('/confirmar/:id', /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
+    var id, db, result;
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            id = req.params.id;
+            _context2.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context2.sent;
+            _context2.next = 6;
+            return db.collection('resultados').updateOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            }, {
+              $set: {
+                estado_resultado: req.body.estado_resultado,
+                vigencia_examen: req.body.vigencia_examen,
+                fecha_resultado: req.body.fecha_resultado,
+                hora_resultado: req.body.hora_resultado,
+                observaciones: req.body.observaciones,
+                condicionantes: req.body.condicionantes,
+                archivo_resultado: req.body.archivo_resultado
+              }
+            });
+
+          case 6:
+            result = _context2.sent;
+            res.json(result);
+
+          case 8:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+
+  return function (_x3, _x4) {
+    return _ref2.apply(this, arguments);
+  };
 }());
 var _default = router;
 exports["default"] = _default;
