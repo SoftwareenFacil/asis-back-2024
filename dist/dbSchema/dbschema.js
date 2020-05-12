@@ -115,7 +115,28 @@ var evaluacion = [{
   razon_social_cs: String,
   lugar_servicio: String,
   sucursal: String,
-  estado: String,
-  estado_archivo: String,
+  estado: "Ingresado",
+  estado_archivo: "Sin Documento",
   archivo_examen: Object
+}];
+var resultado = [{
+  _id: String,
+  id_GI_personalAsignado: String,
+  codigo: String,
+  rut_cp: String,
+  razon_social_cp: String,
+  rut_cs: String,
+  razon_social_cs: String,
+  lugar_servicio: String,
+  sucursal: String,
+  observaciones: String,
+  archivo_resultado: String,
+  fecha_resultado: String,
+  hora_resultado: String,
+  estado_resultado: String,
+  vigencia_examen_meses: Number,
+  fecha_vencimiento_examen: String,
+  condicionantes: String,
+  estado_examen: String,
+  archivo_respuesta_examen: Object
 }];

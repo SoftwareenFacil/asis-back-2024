@@ -16,14 +16,17 @@ router.get('/', async (req, res) => {
 });
 
 //PASAR A EN EVALUACION
-router.post('/evaluar/:id', async (req, res) =>{
+router.post('/evaluar/:id', async (req, res) => {
     const { id } = req.params
     const db = await connect();
-    const result = await db.collection('evaluaciones').updateOne({_id: ObjectID(id)}, {
-        $set:{
+    const result = await db.collection('evaluaciones').updateOne({ _id: ObjectID(id) }, {
+        $set: {
             estado: "En Evaluacion",
+            estado_archivo: "Cargado",
             observaciones: req.body.observaciones,
-            archivo_examen: req.body.archivo_examen
+            archivo_examen: req.body.archivo_examen,
+            fecha_carga_examen: req.body.fecha_carga_examen,
+            hora_carga_examen: req.body.hora_carga_examen
         }
     });
 
@@ -31,21 +34,29 @@ router.post('/evaluar/:id', async (req, res) =>{
 });
 
 //PASAR A EVALUADO
-router.post('/evaluado/:id', async (req, res) =>{
+router.post('/evaluado/:id', async (req, res) => {
     const { id } = req.params
     const db = await connect();
-    let result = await db.collection('evaluaciones').findOneAndUpdate({_id: ObjectID(id)}, {
-        $set:{
-            estado: "Evaluado",
-            observaciones: req.body.observaciones,     
-            fecha_resultado_examen: req.body.fecha_resultado_examen,
-            hora_resultado_examen: req.body.hora_resultado_examen
-        },
-    }, 
-    { sort: { codigo: 1 }, returnNewDocument  : true });
+    let estadoEvaluacion = '';
 
+    if (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs") {
+
+        estadoEvaluacion = 'Evaluado'
+    }
+    else {
+        estadoEvaluacion = 'Ingresado'
+    }
     // console.log(result)
-    if(result.ok == 1){
+    let result = await db.collection('evaluaciones').findOneAndUpdate({ _id: ObjectID(id) }, {
+        $set: {
+            estado: estadoEvaluacion,
+            estado_archivo: req.body.estado_archivo,
+            observaciones: req.body.observaciones,
+        },
+    },
+        { sort: { codigo: 1 }, returnNewDocument: true });
+
+    if (result.ok == 1 && (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs")) {
         let codAsis = result.value.codigo;
         codAsis = codAsis.replace('EVA', 'RES')
         // console.log('result', result.value)
@@ -60,12 +71,16 @@ router.post('/evaluado/:id', async (req, res) =>{
             lugar_servicio: result.value.lugar_servicio,
             sucursal: result.value.sucursal,
 
+            condicionantes: req.body.condicionantes,
+            vigencia_examen: req.body.vigencia_examen,
             observaciones: req.body.observaciones,
-            archivo_resultado: req.body.archivo_resultado,
-            fecha_resultado: req.body.fecha_resultado,
-            hora_resultado: req.body.hora_resultado
+            archivo_respuesta_examen: req.body.archivo_resultado,
+            fecha_resultado: req.body.fecha_resultado_examen,
+            hora_resultado: req.body.hora_resultado_examen,
+            estado_examen: req.body.estado_archivo
         });
 
+        console.log('result resultado', resultinsert)
         result = resultinsert
     }
 

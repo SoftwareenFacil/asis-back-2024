@@ -73,8 +73,11 @@ router.post('/evaluar/:id', /*#__PURE__*/function () {
             }, {
               $set: {
                 estado: "En Evaluacion",
+                estado_archivo: "Cargado",
                 observaciones: req.body.observaciones,
-                archivo_examen: req.body.archivo_examen
+                archivo_examen: req.body.archivo_examen,
+                fecha_carga_examen: req.body.fecha_carga_examen,
+                hora_carga_examen: req.body.hora_carga_examen
               }
             });
 
@@ -97,7 +100,7 @@ router.post('/evaluar/:id', /*#__PURE__*/function () {
 
 router.post('/evaluado/:id', /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, db, result, codAsis, resultinsert;
+    var id, db, estadoEvaluacion, result, codAsis, resultinsert;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -108,15 +111,23 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
 
           case 3:
             db = _context3.sent;
-            _context3.next = 6;
+            estadoEvaluacion = '';
+
+            if (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs") {
+              estadoEvaluacion = 'Evaluado';
+            } else {
+              estadoEvaluacion = 'Ingresado';
+            } // console.log(result)
+
+
+            _context3.next = 8;
             return db.collection('evaluaciones').findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
-                estado: "Evaluado",
-                observaciones: req.body.observaciones,
-                fecha_resultado_examen: req.body.fecha_resultado_examen,
-                hora_resultado_examen: req.body.hora_resultado_examen
+                estado: estadoEvaluacion,
+                estado_archivo: req.body.estado_archivo,
+                observaciones: req.body.observaciones
               }
             }, {
               sort: {
@@ -125,18 +136,18 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               returnNewDocument: true
             });
 
-          case 6:
+          case 8:
             result = _context3.sent;
 
-            if (!(result.ok == 1)) {
-              _context3.next = 14;
+            if (!(result.ok == 1 && (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs"))) {
+              _context3.next = 17;
               break;
             }
 
             codAsis = result.value.codigo;
             codAsis = codAsis.replace('EVA', 'RES'); // console.log('result', result.value)
 
-            _context3.next = 12;
+            _context3.next = 14;
             return db.collection('resultados').insertOne({
               codigo: codAsis,
               nombre_servicio: result.value.nombre_servicio,
@@ -147,21 +158,25 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               razon_social_cs: result.value.razon_social_cs,
               lugar_servicio: result.value.lugar_servicio,
               sucursal: result.value.sucursal,
+              condicionantes: req.body.condicionantes,
+              vigencia_examen: req.body.vigencia_examen,
               observaciones: req.body.observaciones,
-              archivo_resultado: req.body.archivo_resultado,
-              fecha_resultado: req.body.fecha_resultado,
-              hora_resultado: req.body.hora_resultado
+              archivo_respuesta_examen: req.body.archivo_resultado,
+              fecha_resultado: req.body.fecha_resultado_examen,
+              hora_resultado: req.body.hora_resultado_examen,
+              estado_examen: req.body.estado_archivo
             });
 
-          case 12:
+          case 14:
             resultinsert = _context3.sent;
+            console.log('result resultado', resultinsert);
             result = resultinsert;
 
-          case 14:
+          case 17:
             console.log('result', result);
             res.json(result);
 
-          case 16:
+          case 19:
           case "end":
             return _context3.stop();
         }
