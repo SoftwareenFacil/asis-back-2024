@@ -70,6 +70,7 @@ router.post('/confirmar/:id', async (req, res) => {
                 lugar_servicio: reserva.lugar_servicio,
                 sucursal: reserva.sucursal,
                 observaciones: "",
+                estado_archivo: "Sin Documento",
                 estado: "Ingresado"
             });          
         }

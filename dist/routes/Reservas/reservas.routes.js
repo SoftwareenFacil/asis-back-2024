@@ -161,6 +161,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               lugar_servicio: reserva.lugar_servicio,
               sucursal: reserva.sucursal,
               observaciones: "",
+              estado_archivo: "Sin Documento",
               estado: "Ingresado"
             });
 
