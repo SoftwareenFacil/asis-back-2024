@@ -102,7 +102,7 @@ router.post('/evaluar/:id', /*#__PURE__*/function () {
 
 router.post('/evaluado/:id', /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, db, estadoEvaluacion, result, codAsis, fechaVenci, resultinsert;
+    var id, db, estadoEvaluacion, result, codAsis, resultinsert;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -129,7 +129,9 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               $set: {
                 estado: estadoEvaluacion,
                 estado_archivo: req.body.estado_archivo,
-                observaciones: req.body.observaciones
+                observaciones: req.body.observaciones,
+                fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
+                hora_confirmacion_examen: req.body.hora_confirmacion_examen
               }
             }, {
               sort: {
@@ -147,9 +149,9 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
             }
 
             codAsis = result.value.codigo;
-            codAsis = codAsis.replace('EVA', 'RES');
-            fechaVenci = (0, _getFechaVenc.CalculateFechaVenc)(req.body.fecha_resultado_examen, req.body.vigencia_examen.replace(/\D/g, '')); // console.log('result', result.value)
+            codAsis = codAsis.replace('EVA', 'RES'); // let fechaVenci = CalculateFechaVenc(req.body.fecha_resultado_examen, req.body.vigencia_examen.replace(/\D/g,''));
 
+            console.log('result', result.value);
             _context3.next = 15;
             return db.collection('resultados').insertOne({
               codigo: codAsis,
@@ -161,13 +163,13 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               razon_social_cs: result.value.razon_social_cs,
               lugar_servicio: result.value.lugar_servicio,
               sucursal: result.value.sucursal,
-              condicionantes: req.body.condicionantes,
-              vigencia_examen: req.body.vigencia_examen,
+              condicionantes: "",
+              vigencia_examen: "",
               observaciones: req.body.observaciones,
-              archivo_respuesta_examen: req.body.archivo_resultado,
-              fecha_resultado: req.body.fecha_resultado_examen,
-              hora_resultado: req.body.hora_resultado_examen,
-              estado: req.body.estado_archivo
+              // archivo_respuesta_examen: req.body.archivo_resultado,
+              // fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
+              // hora_confirmacion_examen: req.body.hora_confirmacion_examen,
+              estado: "En Revisión"
             });
 
           case 15:

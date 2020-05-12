@@ -53,6 +53,8 @@ router.post('/evaluado/:id', async (req, res) => {
             estado: estadoEvaluacion,
             estado_archivo: req.body.estado_archivo,
             observaciones: req.body.observaciones,
+            fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
+            hora_confirmacion_examen: req.body.hora_confirmacion_examen
         },
     },
         { sort: { codigo: 1 }, returnNewDocument: true });
@@ -60,8 +62,8 @@ router.post('/evaluado/:id', async (req, res) => {
     if (result.ok == 1 && (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs")) {
         let codAsis = result.value.codigo;
         codAsis = codAsis.replace('EVA', 'RES')
-        let fechaVenci = CalculateFechaVenc(req.body.fecha_resultado_examen, req.body.vigencia_examen.replace(/\D/g,''));
-        // console.log('result', result.value)
+        // let fechaVenci = CalculateFechaVenc(req.body.fecha_resultado_examen, req.body.vigencia_examen.replace(/\D/g,''));
+        console.log('result', result.value)
         const resultinsert = await db.collection('resultados').insertOne({
             codigo: codAsis,
             nombre_servicio: result.value.nombre_servicio,
@@ -72,14 +74,13 @@ router.post('/evaluado/:id', async (req, res) => {
             razon_social_cs: result.value.razon_social_cs,
             lugar_servicio: result.value.lugar_servicio,
             sucursal: result.value.sucursal,
-
-            condicionantes: req.body.condicionantes,
-            vigencia_examen: req.body.vigencia_examen,
+            condicionantes: "",
+            vigencia_examen: "",
             observaciones: req.body.observaciones,
-            archivo_respuesta_examen: req.body.archivo_resultado,
-            fecha_resultado: req.body.fecha_resultado_examen,
-            hora_resultado: req.body.hora_resultado_examen,
-            estado: req.body.estado_archivo
+            // archivo_respuesta_examen: req.body.archivo_resultado,
+            // fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
+            // hora_confirmacion_examen: req.body.hora_confirmacion_examen,
+            estado: "En Revisión"
         });
 
         console.log('result resultado', resultinsert)
