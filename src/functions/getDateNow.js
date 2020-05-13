@@ -3,9 +3,8 @@ export function getDate(){
         month = '' + (d.getMonth() + 1),
         day = '' + d.getDate(),
         year = d.getFullYear(),
-        hour = d.getHours(),
-        minutes = d.getMinutes(),
-        seconds = d.getSeconds();
+        hour = d.getHours().toLocaleString(),
+        minutes = d.getMinutes().toLocaleString();
     if (month.length < 2) 
         month = '0' + month;
     if (day.length < 2) 
