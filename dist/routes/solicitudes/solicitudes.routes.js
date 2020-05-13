@@ -11,6 +11,8 @@ var _NewCode = require("../../functions/NewCode");
 
 var _getYearActual = require("../../functions/getYearActual");
 
+var _getDateNow = require("../../functions/getDateNow");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -101,7 +103,7 @@ router.get('/mostrar/:id', /*#__PURE__*/function () {
 
 router.post('/', /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var db, newSolicitud, items, result;
+    var db, newSolicitud, nuevaObs, items, result;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -112,10 +114,11 @@ router.post('/', /*#__PURE__*/function () {
           case 2:
             db = _context3.sent;
             newSolicitud = req.body;
-            _context3.next = 6;
+            nuevaObs = req.body.observacion_solicitud;
+            _context3.next = 7;
             return db.collection('solicitudes').find({}).toArray();
 
-          case 6:
+          case 7:
             items = _context3.sent;
 
             if (items.length > 0) {
@@ -124,14 +127,19 @@ router.post('/', /*#__PURE__*/function () {
               newSolicitud.codigo = "ASIS-SOL-".concat(YEAR, "-00001");
             }
 
-            _context3.next = 10;
+            newSolicitud.observacion_solicitud = [];
+            newSolicitud.observacion_solicitud.push({
+              obs: nuevaObs,
+              fecha: (0, _getDateNow.getDate)()
+            });
+            _context3.next = 13;
             return db.collection('solicitudes').insertOne(newSolicitud);
 
-          case 10:
+          case 13:
             result = _context3.sent;
             res.json(result);
 
-          case 12:
+          case 15:
           case "end":
             return _context3.stop();
         }
@@ -146,7 +154,7 @@ router.post('/', /*#__PURE__*/function () {
 
 router.post('/confirmar/:id', /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
-    var db, solicitud, id, resultSol, resultGI, resp, codigoAsis, newReserva, resulReserva;
+    var db, solicitud, id, obs, resultSol, resultGI, resp, codigoAsis, newReserva, resulReserva;
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
@@ -157,30 +165,35 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
           case 2:
             db = _context4.sent;
             solicitud = req.body;
-            id = req.params.id; //obtener mail del cliente principal
+            id = req.params.id;
+            obs = {};
+            obs.obs = solicitud.observacion_solicitud;
+            obs.fecha = (0, _getDateNow.getDate)(); //obtener mail del cliente principal
 
-            _context4.next = 7;
+            _context4.next = 10;
             return db.collection('solicitudes').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
                 fecha_confirmacion: solicitud.fecha_solicitud,
                 hora_confirmacion: solicitud.hora_solicitud,
-                observacion_solicitud: solicitud.observacion_solicitud,
                 medio_confirmacion: solicitud.medio_confirmacion,
                 estado: "Confirmado"
+              },
+              $push: {
+                observacion_solicitud: obs
               }
             });
 
-          case 7:
+          case 10:
             resultSol = _context4.sent;
 
             if (!resultSol.result.ok) {
-              _context4.next = 24;
+              _context4.next = 27;
               break;
             }
 
-            _context4.next = 11;
+            _context4.next = 14;
             return db.collection('gi').updateOne({
               _id: (0, _mongodb.ObjectID)(solicitud.id_GI_Principal)
             }, {
@@ -189,20 +202,20 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 11:
+          case 14:
             resultGI = _context4.sent;
 
             if (!resultGI.result.ok) {
-              _context4.next = 24;
+              _context4.next = 27;
               break;
             }
 
-            _context4.next = 15;
+            _context4.next = 18;
             return db.collection('solicitudes').findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
-          case 15:
+          case 18:
             resp = _context4.sent;
             codigoAsis = resp.codigo;
             codigoAsis = codigoAsis.replace('SOL', 'AGE');
@@ -211,7 +224,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               codigo: codigoAsis,
               id_GI_Principal: resp.id_GI_Principal,
               id_GI_Secundario: resp.id_GI_Secundario,
-              id_GI_personalAsignado: resp.id_GI_PersonalAsignado,
+              id_GI_personalAsignado: resp.id_GI_personalAsignado,
               rut_cp: resp.rut_CP,
               razon_social_cp: resp.razon_social_CP,
               rut_cs: resp.rut_cs,
@@ -226,17 +239,17 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               nombre_servicio: resp.nombre_servicio,
               lugar_servicio: resp.lugar_servicio,
               sucursal: resp.sucursal,
-              observacion: '',
+              observacion: [],
               estado: 'Ingresado'
             };
-            _context4.next = 22;
+            _context4.next = 25;
             return db.collection('reservas').insertOne(newReserva);
 
-          case 22:
+          case 25:
             resulReserva = _context4.sent;
             res.json(resulReserva);
 
-          case 24:
+          case 27:
           case "end":
             return _context4.stop();
         }

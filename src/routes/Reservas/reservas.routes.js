@@ -2,6 +2,7 @@ import { Router } from "express";
 import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import { getMinusculas } from "../../functions/changeToMiniscula";
+import { getDate } from "../../functions/getDateNow";
 
 const router = Router();
 
@@ -31,22 +32,28 @@ router.post('/confirmar/:id', async (req, res) => {
     const { id } = req.params;
     const datos = req.body
     const db = await connect();
+    let obs = {}
+    obs.obs = datos.observacion
+    obs.fecha = getDate()
     let result = null
     let resulEva = null
     try {
         result = await db.collection('reservas').updateOne({ _id: ObjectID(id) }, {
             $set: {
                 fecha_reserva: datos.fecha_reserva,
+                fecha_reserva_fin: datos.fecha_reserva_fin,
                 hora_reserva: datos.hora_reserva,
                 hora_reserva_fin: datos.hora_reserva_fin,
                 id_GI_personalAsignado: datos.id_GI_personalAsignado,
                 sucursal: datos.sucursal,
-                observacion: datos.observacion,
                 estado: "Reservado",
                 reqEvaluacion: getMinusculas(datos.reqEvaluacion)
+            },
+            $push:{
+                observacion: obs
             }
         });
-        console.log('result modified', result.result.ok)
+        // console.log('result modified', result.result.ok)
         if (getMinusculas(datos.reqEvaluacion) == 'si' && result.result.ok == 1) {
             //insertamos la evaluacion
             const reserva = await db.collection('reservas').findOne({ _id: ObjectID(id) })
@@ -69,7 +76,7 @@ router.post('/confirmar/:id', async (req, res) => {
                 razon_social_cs: reserva.razon_social_cs,
                 lugar_servicio: reserva.lugar_servicio,
                 sucursal: reserva.sucursal,
-                observaciones: "",
+                observaciones: [],
                 estado_archivo: "Sin Documento",
                 estado: "Ingresado"
             });          

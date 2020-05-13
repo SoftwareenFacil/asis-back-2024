@@ -2,6 +2,7 @@ import { Router } from "express";
 import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import { CalculateFechaVenc } from "../../functions/getFechaVenc";
+import { getDate } from "../../functions/getDateNow";
 
 const router = Router();
 
@@ -20,14 +21,20 @@ router.get('/', async (req, res) => {
 router.post('/evaluar/:id', async (req, res) => {
     const { id } = req.params
     const db = await connect();
+    let obs = {}
+    obs.obs = req.body.observaciones
+    obs.fecha = getDate()
+    obs.estado = "Cargado"
     const result = await db.collection('evaluaciones').updateOne({ _id: ObjectID(id) }, {
         $set: {
             estado: "En Evaluacion",
             estado_archivo: "Cargado",
-            observaciones: req.body.observaciones,
             archivo_examen: req.body.archivo_examen,
             fecha_carga_examen: req.body.fecha_carga_examen,
             hora_carga_examen: req.body.hora_carga_examen
+        },
+        $push:{
+            observaciones: obs
         }
     });
 

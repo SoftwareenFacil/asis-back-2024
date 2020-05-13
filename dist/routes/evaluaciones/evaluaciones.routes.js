@@ -13,6 +13,8 @@ var _getYearActual = require("../../functions/getYearActual");
 
 var _getFechaVenc = require("../../functions/getFechaVenc");
 
+var _getDateNow = require("../../functions/getDateNow");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -58,7 +60,7 @@ router.get('/', /*#__PURE__*/function () {
 
 router.post('/evaluar/:id', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var id, db, result;
+    var id, db, obs, result;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -69,25 +71,31 @@ router.post('/evaluar/:id', /*#__PURE__*/function () {
 
           case 3:
             db = _context2.sent;
-            _context2.next = 6;
+            obs = {};
+            obs.obs = req.body.observaciones;
+            obs.fecha = (0, _getDateNow.getDate)();
+            obs.estado = "Cargado";
+            _context2.next = 10;
             return db.collection('evaluaciones').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
                 estado: "En Evaluacion",
                 estado_archivo: "Cargado",
-                observaciones: req.body.observaciones,
                 archivo_examen: req.body.archivo_examen,
                 fecha_carga_examen: req.body.fecha_carga_examen,
                 hora_carga_examen: req.body.hora_carga_examen
+              },
+              $push: {
+                observaciones: obs
               }
             });
 
-          case 6:
+          case 10:
             result = _context2.sent;
             res.json(result);
 
-          case 8:
+          case 12:
           case "end":
             return _context2.stop();
         }

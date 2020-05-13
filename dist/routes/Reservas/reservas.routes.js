@@ -13,6 +13,8 @@ var _getYearActual = require("../../functions/getYearActual");
 
 var _changeToMiniscula = require("../../functions/changeToMiniscula");
 
+var _getDateNow = require("../../functions/getDateNow");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -94,7 +96,7 @@ router.get('/:id', /*#__PURE__*/function () {
 
 router.post('/confirmar/:id', /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, datos, db, result, resulEva, reserva, codAsis;
+    var id, datos, db, obs, result, resulEva, reserva, codAsis;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -106,44 +108,49 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
 
           case 4:
             db = _context3.sent;
+            obs = {};
+            obs.obs = datos.observacion;
+            obs.fecha = (0, _getDateNow.getDate)();
             result = null;
             resulEva = null;
-            _context3.prev = 7;
-            _context3.next = 10;
+            _context3.prev = 10;
+            _context3.next = 13;
             return db.collection('reservas').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
                 fecha_reserva: datos.fecha_reserva,
+                fecha_reserva_fin: datos.fecha_reserva_fin,
                 hora_reserva: datos.hora_reserva,
                 hora_reserva_fin: datos.hora_reserva_fin,
                 id_GI_personalAsignado: datos.id_GI_personalAsignado,
                 sucursal: datos.sucursal,
-                observacion: datos.observacion,
                 estado: "Reservado",
                 reqEvaluacion: (0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion)
+              },
+              $push: {
+                observacion: obs
               }
             });
 
-          case 10:
+          case 13:
             result = _context3.sent;
-            console.log('result modified', result.result.ok);
 
             if (!((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == 'si' && result.result.ok == 1)) {
-              _context3.next = 21;
+              _context3.next = 23;
               break;
             }
 
-            _context3.next = 15;
+            _context3.next = 17;
             return db.collection('reservas').findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
-          case 15:
+          case 17:
             reserva = _context3.sent;
             codAsis = reserva.codigo;
             codAsis = codAsis.replace('AGE', 'EVA');
-            _context3.next = 20;
+            _context3.next = 22;
             return db.collection('evaluaciones').insertOne({
               id_GI_personalAsignado: reserva.id_GI_personalAsignado,
               codigo: codAsis,
@@ -160,25 +167,25 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               razon_social_cs: reserva.razon_social_cs,
               lugar_servicio: reserva.lugar_servicio,
               sucursal: reserva.sucursal,
-              observaciones: "",
+              observaciones: [],
               estado_archivo: "Sin Documento",
               estado: "Ingresado"
             });
 
-          case 20:
+          case 22:
             resulEva = _context3.sent;
 
-          case 21:
+          case 23:
             res.json({
               status: 200,
               message: "Reserva Confirmada"
             });
-            _context3.next = 28;
+            _context3.next = 30;
             break;
 
-          case 24:
-            _context3.prev = 24;
-            _context3.t0 = _context3["catch"](7);
+          case 26:
+            _context3.prev = 26;
+            _context3.t0 = _context3["catch"](10);
             console.log('error', _context3.t0);
             res.json({
               status: 500,
@@ -186,12 +193,12 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               error: _context3.t0
             });
 
-          case 28:
+          case 30:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3, null, [[7, 24]]);
+    }, _callee3, null, [[10, 26]]);
   }));
 
   return function (_x5, _x6) {

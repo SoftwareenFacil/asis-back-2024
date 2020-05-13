@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
+import { getDate } from "../../functions/getDateNow";
+
 const router = Router();
 
 const YEAR = getYear();
@@ -30,7 +32,8 @@ router.get('/mostrar/:id', async (req, res) => {
 //INSERT
 router.post('/', async (req, res) => {
     const db = await connect()
-    const newSolicitud = req.body
+    let newSolicitud = req.body
+    const nuevaObs = req.body.observacion_solicitud
     const items = await db.collection('solicitudes').find({}).toArray();
     if (items.length > 0) {
         newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(items[items.length - 1])}`
@@ -38,6 +41,8 @@ router.post('/', async (req, res) => {
     else {
         newSolicitud.codigo = `ASIS-SOL-${YEAR}-00001`
     }
+    newSolicitud.observacion_solicitud = []
+    newSolicitud.observacion_solicitud.push({obs: nuevaObs, fecha: getDate()})
     const result = await db.collection('solicitudes').insertOne(newSolicitud);
     res.json(result)
 });
@@ -47,18 +52,21 @@ router.post('/confirmar/:id', async (req, res) => {
     const db = await connect()
     const solicitud = req.body
     const { id } = req.params
+    let obs = {}
+    obs.obs = solicitud.observacion_solicitud
+    obs.fecha = getDate()
     //obtener mail del cliente principal
-    const resultSol = await db.collection('solicitudes').updateOne({ _id: ObjectID(id) }, {
+    const resultSol = await db.collection('solicitudes').updateOne({ _id: ObjectID(id) },{
         $set: {
             fecha_confirmacion: solicitud.fecha_solicitud,
             hora_confirmacion: solicitud.hora_solicitud,
-            observacion_solicitud: solicitud.observacion_solicitud,
             medio_confirmacion: solicitud.medio_confirmacion,
             estado: "Confirmado"
+        },
+        $push: {
+            observacion_solicitud: obs
         }
     });
-
-    // console.log('result sol', resultSol)
 
     if (resultSol.result.ok) {
         const resultGI = await db.collection('gi').updateOne({ _id: ObjectID(solicitud.id_GI_Principal) }, {
@@ -79,7 +87,7 @@ router.post('/confirmar/:id', async (req, res) => {
                 codigo: codigoAsis,
                 id_GI_Principal: resp.id_GI_Principal,
                 id_GI_Secundario: resp.id_GI_Secundario,
-                id_GI_personalAsignado: resp.id_GI_PersonalAsignado,
+                id_GI_personalAsignado: resp.id_GI_personalAsignado,
                 rut_cp: resp.rut_CP,
                 razon_social_cp: resp.razon_social_CP,
                 rut_cs: resp.rut_cs,
@@ -94,7 +102,7 @@ router.post('/confirmar/:id', async (req, res) => {
                 nombre_servicio: resp.nombre_servicio,               
                 lugar_servicio: resp.lugar_servicio,
                 sucursal: resp.sucursal,
-                observacion: '',
+                observacion: [],
                 estado: 'Ingresado'
             }
 
