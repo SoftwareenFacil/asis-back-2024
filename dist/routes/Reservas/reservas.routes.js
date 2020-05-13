@@ -123,7 +123,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
                 fecha_reserva_fin: datos.fecha_reserva_fin,
                 hora_reserva: datos.hora_reserva,
                 hora_reserva_fin: datos.hora_reserva_fin,
-                id_GI_personalAsignado: datos.id_GI_personalAsignado,
+                id_GI_personalAsignado: datos.id_GI_profesional_asignado,
                 sucursal: datos.sucursal,
                 estado: "Reservado",
                 reqEvaluacion: (0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion)
