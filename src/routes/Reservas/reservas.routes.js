@@ -34,7 +34,7 @@ router.post('/confirmar/:id', async (req, res) => {
     const db = await connect();
     let obs = {}
     obs.obs = datos.observacion
-    obs.fecha = getDate()
+    obs.fecha = getDate(new Date())
     let result = null
     let resulEva = null
     try {

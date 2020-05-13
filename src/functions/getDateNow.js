@@ -1,9 +1,9 @@
-export function getDate(){
-    let d = new Date(),
+export function getDate(fecha){
+    let d = fecha,
         month = '' + (d.getMonth() + 1),
         day = '' + d.getDate(),
         year = d.getFullYear(),
-        hour = d.getHours().toLocaleString(),
+        hour = d.getHours()-4,
         minutes = d.getMinutes();
     if (month.length < 2) 
         month = '0' + month;

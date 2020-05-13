@@ -11,6 +11,10 @@ var _NewCode = require("../../functions/NewCode");
 
 var _getYearActual = require("../../functions/getYearActual");
 
+var _fechaVencExamen = require("../../functions/fechaVencExamen");
+
+var _getDateNow = require("../../functions/getDateNow");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -72,18 +76,20 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
-                estado_resultado: req.body.estado_resultado,
+                estado: req.body.estado_resultado,
                 vigencia_examen: req.body.vigencia_examen,
                 fecha_resultado: req.body.fecha_resultado,
                 hora_resultado: req.body.hora_resultado,
                 observaciones: req.body.observaciones,
                 condicionantes: req.body.condicionantes,
-                archivo_resultado: req.body.archivo_resultado
+                archivo_resultado: req.body.archivo_resultado,
+                fecha_vencimiento_examen: (0, _getDateNow.getDate)((0, _fechaVencExamen.getFechaVencExam)(req.body.fecha_resultado, req.body.vigencia_examen)).substr(0, 10)
               }
             });
 
           case 6:
             result = _context2.sent;
+            // console.log(getDate(getFechaVencExam(req.body.fecha_resultado, req.body.vigencia_examen)).substr(0, 10))
             res.json(result);
 
           case 8:

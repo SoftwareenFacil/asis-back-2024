@@ -5,12 +5,12 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.getDate = getDate;
 
-function getDate() {
-  var d = new Date(),
+function getDate(fecha) {
+  var d = fecha,
       month = '' + (d.getMonth() + 1),
       day = '' + d.getDate(),
       year = d.getFullYear(),
-      hour = d.getHours().toLocaleString(),
+      hour = d.getHours() - 4,
       minutes = d.getMinutes();
   if (month.length < 2) month = '0' + month;
   if (day.length < 2) day = '0' + day; // let fecha = `${f.toISOString().slice(0, 10)} ${f.toISOString().slice(11, f.toString().length)}`

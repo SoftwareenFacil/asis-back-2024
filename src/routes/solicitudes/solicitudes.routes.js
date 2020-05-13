@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
         newSolicitud.codigo = `ASIS-SOL-${YEAR}-00001`
     }
     newSolicitud.observacion_solicitud = []
-    newSolicitud.observacion_solicitud.push({obs: nuevaObs, fecha: getDate()})
+    newSolicitud.observacion_solicitud.push({obs: nuevaObs, fecha: getDate(new Date())})
     const result = await db.collection('solicitudes').insertOne(newSolicitud);
     res.json(result)
 });
@@ -54,7 +54,7 @@ router.post('/confirmar/:id', async (req, res) => {
     const { id } = req.params
     let obs = {}
     obs.obs = solicitud.observacion_solicitud
-    obs.fecha = getDate()
+    obs.fecha = getDate(new Date())
     //obtener mail del cliente principal
     const resultSol = await db.collection('solicitudes').updateOne({ _id: ObjectID(id) },{
         $set: {

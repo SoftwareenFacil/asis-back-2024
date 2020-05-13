@@ -110,7 +110,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             db = _context3.sent;
             obs = {};
             obs.obs = datos.observacion;
-            obs.fecha = (0, _getDateNow.getDate)();
+            obs.fecha = (0, _getDateNow.getDate)(new Date());
             result = null;
             resulEva = null;
             _context3.prev = 10;

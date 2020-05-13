@@ -23,7 +23,7 @@ router.post('/evaluar/:id', async (req, res) => {
     const db = await connect();
     let obs = {}
     obs.obs = req.body.observaciones
-    obs.fecha = getDate()
+    obs.fecha = getDate(new Date())
     obs.estado = "Cargado"
     const result = await db.collection('evaluaciones').updateOne({ _id: ObjectID(id) }, {
         $set: {
@@ -48,7 +48,7 @@ router.post('/evaluado/:id', async (req, res) => {
     let estadoEvaluacion = '';
     let obs = {}
     obs.obs = req.body.observaciones
-    obs.fecha = getDate()
+    obs.fecha = getDate(new Date())
     obs.estado = req.body.estado_archivo
 
     if (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs") {

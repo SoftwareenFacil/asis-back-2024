@@ -130,7 +130,7 @@ router.post('/', /*#__PURE__*/function () {
             newSolicitud.observacion_solicitud = [];
             newSolicitud.observacion_solicitud.push({
               obs: nuevaObs,
-              fecha: (0, _getDateNow.getDate)()
+              fecha: (0, _getDateNow.getDate)(new Date())
             });
             _context3.next = 13;
             return db.collection('solicitudes').insertOne(newSolicitud);
@@ -168,7 +168,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             id = req.params.id;
             obs = {};
             obs.obs = solicitud.observacion_solicitud;
-            obs.fecha = (0, _getDateNow.getDate)(); //obtener mail del cliente principal
+            obs.fecha = (0, _getDateNow.getDate)(new Date()); //obtener mail del cliente principal
 
             _context4.next = 10;
             return db.collection('solicitudes').updateOne({

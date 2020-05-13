@@ -73,7 +73,7 @@ router.post('/evaluar/:id', /*#__PURE__*/function () {
             db = _context2.sent;
             obs = {};
             obs.obs = req.body.observaciones;
-            obs.fecha = (0, _getDateNow.getDate)();
+            obs.fecha = (0, _getDateNow.getDate)(new Date());
             obs.estado = "Cargado";
             _context2.next = 10;
             return db.collection('evaluaciones').updateOne({
@@ -124,7 +124,7 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
             estadoEvaluacion = '';
             obs = {};
             obs.obs = req.body.observaciones;
-            obs.fecha = (0, _getDateNow.getDate)();
+            obs.fecha = (0, _getDateNow.getDate)(new Date());
             obs.estado = req.body.estado_archivo;
 
             if (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs") {
