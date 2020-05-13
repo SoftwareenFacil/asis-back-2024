@@ -46,6 +46,10 @@ router.post('/evaluado/:id', async (req, res) => {
     const { id } = req.params
     const db = await connect();
     let estadoEvaluacion = '';
+    let obs = {}
+    obs.obs = req.body.observaciones
+    obs.fecha = getDate()
+    obs.estado = req.body.estado_archivo
 
     if (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs") {
 
@@ -59,10 +63,12 @@ router.post('/evaluado/:id', async (req, res) => {
         $set: {
             estado: estadoEvaluacion,
             estado_archivo: req.body.estado_archivo,
-            observaciones: req.body.observaciones,
             fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
             hora_confirmacion_examen: req.body.hora_confirmacion_examen
         },
+        $push:{
+            observaciones: obs
+        }
     },
         { sort: { codigo: 1 }, returnNewDocument: true });
 
@@ -83,10 +89,10 @@ router.post('/evaluado/:id', async (req, res) => {
             sucursal: result.value.sucursal,
             condicionantes: "",
             vigencia_examen: "",
-            observaciones: req.body.observaciones,
+            observaciones: obs,
             // archivo_respuesta_examen: req.body.archivo_resultado,
-            // fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
-            // hora_confirmacion_examen: req.body.hora_confirmacion_examen,
+            fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
+            hora_confirmacion_examen: req.body.hora_confirmacion_examen,
             estado: "En Revisión"
         });
 

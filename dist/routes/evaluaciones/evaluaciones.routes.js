@@ -110,7 +110,7 @@ router.post('/evaluar/:id', /*#__PURE__*/function () {
 
 router.post('/evaluado/:id', /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, db, estadoEvaluacion, result, codAsis, resultinsert;
+    var id, db, estadoEvaluacion, obs, result, codAsis, resultinsert;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -122,6 +122,10 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
           case 3:
             db = _context3.sent;
             estadoEvaluacion = '';
+            obs = {};
+            obs.obs = req.body.observaciones;
+            obs.fecha = (0, _getDateNow.getDate)();
+            obs.estado = req.body.estado_archivo;
 
             if (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs") {
               estadoEvaluacion = 'Evaluado';
@@ -130,16 +134,18 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
             } // console.log(result)
 
 
-            _context3.next = 8;
+            _context3.next = 12;
             return db.collection('evaluaciones').findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
                 estado: estadoEvaluacion,
                 estado_archivo: req.body.estado_archivo,
-                observaciones: req.body.observaciones,
                 fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
                 hora_confirmacion_examen: req.body.hora_confirmacion_examen
+              },
+              $push: {
+                observaciones: obs
               }
             }, {
               sort: {
@@ -148,11 +154,11 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               returnNewDocument: true
             });
 
-          case 8:
+          case 12:
             result = _context3.sent;
 
             if (!(result.ok == 1 && (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs"))) {
-              _context3.next = 18;
+              _context3.next = 22;
               break;
             }
 
@@ -160,7 +166,7 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
             codAsis = codAsis.replace('EVA', 'RES'); // let fechaVenci = CalculateFechaVenc(req.body.fecha_resultado_examen, req.body.vigencia_examen.replace(/\D/g,''));
 
             console.log('result', result.value);
-            _context3.next = 15;
+            _context3.next = 19;
             return db.collection('resultados').insertOne({
               codigo: codAsis,
               nombre_servicio: result.value.nombre_servicio,
@@ -173,23 +179,23 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               sucursal: result.value.sucursal,
               condicionantes: "",
               vigencia_examen: "",
-              observaciones: req.body.observaciones,
+              observaciones: obs,
               // archivo_respuesta_examen: req.body.archivo_resultado,
-              // fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
-              // hora_confirmacion_examen: req.body.hora_confirmacion_examen,
+              fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
+              hora_confirmacion_examen: req.body.hora_confirmacion_examen,
               estado: "En Revisión"
             });
 
-          case 15:
+          case 19:
             resultinsert = _context3.sent;
             console.log('result resultado', resultinsert);
             result = resultinsert;
 
-          case 18:
+          case 22:
             console.log('result', result);
             res.json(result);
 
-          case 20:
+          case 24:
           case "end":
             return _context3.stop();
         }

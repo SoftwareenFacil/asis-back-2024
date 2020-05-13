@@ -4,7 +4,7 @@ export function getDate(){
         day = '' + d.getDate(),
         year = d.getFullYear(),
         hour = d.getHours().toLocaleString(),
-        minutes = d.getMinutes().toLocaleString();
+        minutes = d.getMinutes();
     if (month.length < 2) 
         month = '0' + month;
     if (day.length < 2) 
