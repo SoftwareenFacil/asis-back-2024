@@ -3,7 +3,7 @@ export function getDate(fecha){
         month = '' + (d.getMonth() + 1),
         day = '' + d.getDate(),
         year = d.getFullYear(),
-        hour = d.getHours()-4,
+        hour = d.getHours(),
         minutes = d.getMinutes();
     if (month.length < 2) 
         month = '0' + month;

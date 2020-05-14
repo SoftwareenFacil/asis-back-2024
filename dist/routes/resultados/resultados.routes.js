@@ -56,11 +56,10 @@ router.get('/', /*#__PURE__*/function () {
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
-}()); //confirmar resultado
-
-router.post('/confirmar/:id', /*#__PURE__*/function () {
+}());
+router.post('/subir/:id', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var id, db, result;
+    var id, db, obs, result;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -71,28 +70,28 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
 
           case 3:
             db = _context2.sent;
-            _context2.next = 6;
+            obs = {};
+            obs.obs = req.body.observaciones;
+            obs.fecha = (0, _getDateNow.getDate)(new Date());
+            obs.estado = "Cargado";
+            _context2.next = 10;
             return db.collection('resultados').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
-                estado: req.body.estado_resultado,
-                vigencia_examen: req.body.vigencia_examen,
-                fecha_resultado: req.body.fecha_resultado,
-                hora_resultado: req.body.hora_resultado,
-                observaciones: req.body.observaciones,
-                condicionantes: req.body.condicionantes,
-                archivo_resultado: req.body.archivo_resultado,
-                fecha_vencimiento_examen: (0, _getDateNow.getDate)((0, _fechaVencExamen.getFechaVencExam)(req.body.fecha_resultado, req.body.vigencia_examen)).substr(0, 10)
+                estado_archivo: "Cargado",
+                archivo_resultado: req.body.archivo_resultado
+              },
+              $push: {
+                observaciones: obs
               }
             });
 
-          case 6:
+          case 10:
             result = _context2.sent;
-            // console.log(getDate(getFechaVencExam(req.body.fecha_resultado, req.body.vigencia_examen)).substr(0, 10))
             res.json(result);
 
-          case 8:
+          case 12:
           case "end":
             return _context2.stop();
         }
@@ -102,6 +101,117 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
 
   return function (_x3, _x4) {
     return _ref2.apply(this, arguments);
+  };
+}()); //confirmar resultado
+
+router.post('/confirmar/:id', /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
+    var id, db, result, obs;
+    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            id = req.params.id;
+            _context3.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context3.sent;
+            result = "";
+            obs = {};
+            obs.obs = req.body.observaciones;
+            obs.fecha = (0, _getDateNow.getDate)(new Date());
+
+            if (!(req.body.estado_archivo == 'Aprobado')) {
+              _context3.next = 21;
+              break;
+            }
+
+            obs.estado = req.body.estado_archivo;
+
+            if (!(req.body.estado_resultado == 'Aprobado con Obs' || req.body.estado_resultado == 'Aprobado')) {
+              _context3.next = 16;
+              break;
+            }
+
+            _context3.next = 13;
+            return db.collection('resultados').updateOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            }, {
+              $set: {
+                estado: "Revisado",
+                estado_archivo: req.body.estado_archivo,
+                estado_resultado: req.body.estado_resultado,
+                vigencia_examen: req.body.vigencia_examen,
+                fecha_resultado: req.body.fecha_resultado,
+                hora_resultado: req.body.hora_resultado,
+                condicionantes: req.body.condicionantes,
+                fecha_vencimiento_examen: (0, _getDateNow.getDate)((0, _fechaVencExamen.getFechaVencExam)(req.body.fecha_resultado, req.body.vigencia_examen)).substr(0, 10)
+              },
+              $push: {
+                observaciones: obs
+              }
+            });
+
+          case 13:
+            result = _context3.sent;
+            _context3.next = 19;
+            break;
+
+          case 16:
+            _context3.next = 18;
+            return db.collection('resultados').updateOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            }, {
+              $set: {
+                estado: "Revisado",
+                estado_archivo: req.body.estado_archivo,
+                estado_resultado: req.body.estado_resultado,
+                fecha_resultado: req.body.fecha_resultado,
+                hora_resultado: req.body.hora_resultado
+              },
+              $push: {
+                observaciones: obs
+              }
+            });
+
+          case 18:
+            result = _context3.sent;
+
+          case 19:
+            _context3.next = 25;
+            break;
+
+          case 21:
+            obs.estado = req.body.estado_archivo;
+            _context3.next = 24;
+            return db.collection('resultados').updateOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            }, {
+              $set: {
+                estado_archivo: req.body.estado_archivo
+              },
+              $push: {
+                observaciones: obs
+              }
+            });
+
+          case 24:
+            result = _context3.sent;
+
+          case 25:
+            res.json(result);
+
+          case 26:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+
+  return function (_x5, _x6) {
+    return _ref3.apply(this, arguments);
   };
 }());
 var _default = router;

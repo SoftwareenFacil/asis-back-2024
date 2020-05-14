@@ -179,11 +179,13 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               sucursal: result.value.sucursal,
               condicionantes: "",
               vigencia_examen: "",
-              observaciones: obs,
+              observaciones: [obs],
               // archivo_respuesta_examen: req.body.archivo_resultado,
               fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
               hora_confirmacion_examen: req.body.hora_confirmacion_examen,
-              estado: "En Revisión"
+              estado: "En Revisión",
+              estado_archivo: "Sin Documento",
+              estado_resultado: ""
             });
 
           case 19:
