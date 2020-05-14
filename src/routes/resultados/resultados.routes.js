@@ -24,6 +24,9 @@ router.post('/subir/:id', async (req, res) =>{
     obs.obs = req.body.observaciones
     obs.fecha = getDate(new Date())
     obs.estado = "Cargado"
+
+    console.log('datos chalo', req.body)
+
     const result = await db.collection('resultados').updateOne({_id: ObjectID(id)},{
         $set:{
             estado_archivo: "Cargado",
@@ -45,6 +48,8 @@ router.post('/confirmar/:id', async (req, res) =>{
     let obs = {}
     obs.obs = req.body.observaciones
     obs.fecha = getDate(new Date())
+
+    console.log('datos chalo', req.body)
 
     if(req.body.estado_archivo == 'Aprobado'){
         obs.estado = req.body.estado_archivo
@@ -78,6 +83,12 @@ router.post('/confirmar/:id', async (req, res) =>{
                     observaciones: obs
                 }
             });
+        }
+        if(result.result.ok){
+            //insercion de la facturación
+            result = await db.collection('facturaciones').insertOne({
+                
+            })
         }
     }
     else{

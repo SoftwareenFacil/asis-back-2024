@@ -70,7 +70,7 @@ const solicitud = [
         costo_estimado: Number,
         lugar_servicio: String,
         sucursal: String,
-        observacion_solicitud: String,
+        observacion_solicitud: Array,
         hora_solicitud: String,
         hora_servicio_solicitado: String,
         jornada: String,
@@ -99,7 +99,7 @@ const reserva = [
         nombre_servicio: String,
         lugar_servicio: String,
         sucursal: String,
-        observacion: String,
+        observacion: Array,
         estado: 'Ingresado'
     }
 ];
@@ -124,6 +124,9 @@ const evaluacion = [
         razon_social_cs: String,
         lugar_servicio: String,
         sucursal: String,
+        observaciones: Array,
+        fecha_confirmacion_examen:String,
+        hora_confirmacion_examen: String,
         estado: "Ingresado",
         estado_archivo: "Sin Documento",
         archivo_examen: Object
@@ -133,23 +136,25 @@ const evaluacion = [
 const resultado = [
     {
         _id:String,
-        id_GI_personalAsignado: String,
         codigo: String,
+        nombre_servicio: String,
+        id_GI_personalAsignado: String,
         rut_cp: String,
         razon_social_cp: String,
         rut_cs: String,
         razon_social_cs: String,
         lugar_servicio: String,
         sucursal: String,
-        observaciones: String,
-        archivo_resultado: String,
-        fecha_resultado: String,
-        hora_resultado: String,
-        estado_resultado: String,
-        vigencia_examen_meses: Number,
-        fecha_vencimiento_examen: String,
         condicionantes: String,
-        estado_examen: String,
-        archivo_respuesta_examen: Object
+        vigencia_examen: String,
+        observaciones: Array,
+        fecha_confirmacion_examen:String,
+        hora_confirmacion_examen: String,
+        estado: String,
+        estado_archivo: String,
+        estado_resultado: String,
+        archivo_resultado: Object,
+        fecha_resultado: String,
+        hora_resultado: String
     }
 ]

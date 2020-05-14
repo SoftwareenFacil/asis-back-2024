@@ -74,7 +74,8 @@ router.post('/subir/:id', /*#__PURE__*/function () {
             obs.obs = req.body.observaciones;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
             obs.estado = "Cargado";
-            _context2.next = 10;
+            console.log('datos chalo', req.body);
+            _context2.next = 11;
             return db.collection('resultados').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -87,11 +88,11 @@ router.post('/subir/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 10:
+          case 11:
             result = _context2.sent;
             res.json(result);
 
-          case 12:
+          case 13:
           case "end":
             return _context2.stop();
         }
@@ -121,20 +122,21 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             obs = {};
             obs.obs = req.body.observaciones;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
+            console.log('datos chalo', req.body);
 
             if (!(req.body.estado_archivo == 'Aprobado')) {
-              _context3.next = 21;
+              _context3.next = 26;
               break;
             }
 
             obs.estado = req.body.estado_archivo;
 
             if (!(req.body.estado_resultado == 'Aprobado con Obs' || req.body.estado_resultado == 'Aprobado')) {
-              _context3.next = 16;
+              _context3.next = 17;
               break;
             }
 
-            _context3.next = 13;
+            _context3.next = 14;
             return db.collection('resultados').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -153,13 +155,13 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 13:
+          case 14:
             result = _context3.sent;
-            _context3.next = 19;
+            _context3.next = 20;
             break;
 
-          case 16:
-            _context3.next = 18;
+          case 17:
+            _context3.next = 19;
             return db.collection('resultados').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -175,16 +177,28 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 18:
+          case 19:
             result = _context3.sent;
 
-          case 19:
-            _context3.next = 25;
+          case 20:
+            if (!result.result.ok) {
+              _context3.next = 24;
+              break;
+            }
+
+            _context3.next = 23;
+            return db.collection('facturaciones').insertOne({});
+
+          case 23:
+            result = _context3.sent;
+
+          case 24:
+            _context3.next = 30;
             break;
 
-          case 21:
+          case 26:
             obs.estado = req.body.estado_archivo;
-            _context3.next = 24;
+            _context3.next = 29;
             return db.collection('resultados').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -196,13 +210,13 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 24:
+          case 29:
             result = _context3.sent;
 
-          case 25:
+          case 30:
             res.json(result);
 
-          case 26:
+          case 31:
           case "end":
             return _context3.stop();
         }
