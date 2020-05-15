@@ -25,6 +25,9 @@ router.get('/', async (req, res) => {
 router.post('/:id', async (req, res) =>{
     const { id } = req.params
     const db = await connect();
+    obs.obs = req.body.observacion_factura
+    obs.fecha = getDate(new Date())
+    obs.estado = "Cargado"
     let result = "";
 
     result = await db.collection('facturaciones').updateOne({_id: ObjectID(id)}, {
@@ -41,40 +44,9 @@ router.post('/:id', async (req, res) =>{
             total: req.body.total
         },
         $push:{
-            observacion_factura: req.body.observacion_factura
+            observacion_factura: obs
         }
     })
-
-    // if(req.body.estado_facturacion == 'No Facturado'){
-    //     result = await db.collection('facturaciones').updateOne({_id: ObjectID(id)}, {
-    //         $set:{
-    //             estado_facturacion: req.body.estado_facturacion,
-
-    //         },
-    //         $push:{
-    //             observacion_factura: req.body.observacion_factura
-    //         }
-    //     })
-    // }
-    // else{
-    //     result = await db.collection('facturaciones').updateOne({_id: ObjectID(id)}, {
-    //         $set:{
-    //             estado_facturacion: req.body.estado_facturacion,
-    //             fecha_facturacion: req.body.fecha_facturacion,
-    //             nro_factura: req.body.nro_factura,
-    //             archivo_factura: req.body.archivo_factura,
-    //             monto_neto: req.body.monto_neto,
-    //             porcentaje_impuesto: req.body.porcentaje_impuesto,
-    //             valor_impuesto: req.body.valor_impuesto,
-    //             sub_total: req.body.sub_total,
-    //             exento: req.body.exento,
-    //             total: req.body.total
-    //         },
-    //         $push:{
-    //             observacion_factura: req.body.observacion_factura
-    //         }
-    //     })
-    // }
 
     res.json(result);
 })
@@ -125,5 +97,28 @@ router.post('/confirmaroc/:id', async (req, res) =>{
 
     res.json(result)
 })
+
+// VALIDAR FACTURA
+router.post('/validar/:id', async (req, res) =>{
+    const { id } = req.params
+    const { estado_archivo, observaciones } = req.body;
+    obs.obs = observaciones
+    obs.fecha = getDate(new Date())
+    obs.estado = estado_archivo
+    let estado = '';
+    (estado_archivo == "Rechazado")?estado = 'En Facturacion' : estado = "Facturado";
+
+    const result = await db.collection('facturaciones').updateOne({_id: ObjectID(id)}, {
+        $set:{
+            estado: estado,
+            estado_archivo: estado_archivo
+        },
+        $push:{
+            observacion_factura: obs
+        }
+    });
+
+    res.json(result)
+}) 
 
 export default router;
