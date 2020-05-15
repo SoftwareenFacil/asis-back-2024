@@ -54,7 +54,7 @@ router.post('/confirmar/:id', async (req, res) =>{
     if(req.body.estado_archivo == 'Aprobado'){
         obs.estado = req.body.estado_archivo
         if(req.body.estado_resultado == 'Aprobado con Obs' || req.body.estado_resultado == 'Aprobado'){
-            result = await db.collection('resultados').updateOne({_id: ObjectID(id)}, {
+            result = await db.collection('resultados').findOneAndUpdate({_id: ObjectID(id)}, {
                 $set:{
                     estado: "Revisado",
                     estado_archivo: req.body.estado_archivo,
@@ -71,7 +71,7 @@ router.post('/confirmar/:id', async (req, res) =>{
             });
         }
         else{
-            result = await db.collection('resultados').updateOne({_id: ObjectID(id)}, {
+            result = await db.collection('resultados').findOneAndUpdate({_id: ObjectID(id)}, {
                 $set:{
                     estado: "Revisado",
                     estado_archivo: req.body.estado_archivo,
@@ -84,10 +84,53 @@ router.post('/confirmar/:id', async (req, res) =>{
                 }
             });
         }
-        if(result.result.ok){
-            //insercion de la facturación
+        //insercion de la facturación
+        // console.log('result para sacar cod', result)
+        let codAsis = result.value.codigo;
+        let gi = await db.collection('gi').findOne({rut: result.value.rut_cp, "categoria": "Empresa/Organización"})
+        var isOC = ''
+        let estado_archivo = ''
+        console.log('gi', gi.orden_compra)
+        if(gi){
+            isOC = gi.orden_compra;
+            (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
+        }
+        else{
+            isOC = "No"
+            estado_archivo = 'No Requiere OC'
+        }
+        if(result){
             result = await db.collection('facturaciones').insertOne({
-                
+                codigo: codAsis.replace('RES', 'FAC'),
+                nombre_servicio: result.value.nombre_servicio,
+                id_GI_personalAsignado: result.value.id_GI_personalAsignado,
+                rut_cp: result.value.rut_cp,
+                razon_social_cp: result.value.razon_social_cp,
+                rut_cs: result.value.rut_cs,
+                razon_social_cs: result.value.razon_social_cs,
+                lugar_servicio: result.value.lugar_servicio,
+                sucursal: result.value.sucursal,
+                condicionantes: result.value.condicionantes,
+                vigencia_examen: result.value.vigencia_examen,
+                oc: isOC,
+                archivo_oc: null,
+                fecha_oc: "",
+                hora_oc: "",
+                nro_oc: "",
+                observacion_oc: [],
+                observacion_factura: [],
+                estado: "Ingresado",
+                estado_archivo: estado_archivo,
+                estado_facturacion: "",
+                fecha_facturacion: "",
+                nro_factura: "",
+                archivo_factura: null,
+                monto_neto: 0,
+                porcentaje_impuesto: "",
+                valor_impuesto: 0,
+                sub_total: 0,
+                exento: 0,
+                total: 0
             })
         }
     }

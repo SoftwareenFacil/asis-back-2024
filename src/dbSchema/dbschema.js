@@ -157,4 +157,40 @@ const resultado = [
         fecha_resultado: String,
         hora_resultado: String
     }
+];
+
+const facturaciones = [
+    {
+        _id: String,
+        codigo: String,
+        nombre_servicio: String,
+        id_GI_personalAsignado: String,
+        rut_cp: String,
+        razon_social_cp: String,
+        rut_cs: String,
+        razon_social_cs: String,
+        lugar_servicio: String,
+        sucursal: String,
+        condicionantes: String,
+        vigencia_examen: String,
+        oc: String,
+        archivo_oc:String,
+        fecha_oc: String,
+        hora_oc: String,
+        nro_oc: String,
+        observaciones_oc: String,
+        estado: String,
+        estado_archivo: String,
+        observaciones: Array,
+        estado_facturacion: String,
+        fecha_facturacion: String,
+        nro_factura: String,
+        archivo_factura: Object,
+        monto_neto: Number,
+        procentaje_impuesto: String,
+        valor_impuesto: Number,
+        sub_total: Number,
+        exento: Number,
+        total: Number
+    }
 ]

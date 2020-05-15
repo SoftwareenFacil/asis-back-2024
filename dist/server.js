@@ -25,6 +25,8 @@ var _evaluaciones = _interopRequireDefault(require("./routes/evaluaciones/evalua
 
 var _resultados = _interopRequireDefault(require("./routes/resultados/resultados.routes"));
 
+var _facturas = _interopRequireDefault(require("./routes/facturaciones/facturas.routes"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 //---------------------IMPORTS ROUTES
@@ -43,5 +45,6 @@ app.use('/reservas', _reservas["default"]);
 app.use('/calendario', _calendario["default"]);
 app.use('/evaluaciones', _evaluaciones["default"]);
 app.use('/resultados', _resultados["default"]);
+app.use('/facturaciones', _facturas["default"]);
 var _default = app;
 exports["default"] = _default;
