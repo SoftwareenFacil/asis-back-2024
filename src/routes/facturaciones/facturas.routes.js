@@ -13,8 +13,12 @@ import { ObjectID } from "mongodb";
 //SELECT
 router.get('/', async (req, res) => {
     const db = await connect();
-    const result = await db.collection('facturaciones').find({}).toArray();
-    res.json(result);
+    let result = await db.collection('facturaciones').find({}).toArray();
+    let empresa = await db.collection('empresa').findOne({});
+    res.json({
+        datos: result,
+        empresa: empresa
+    });
 });
 
 //INSERTAR DATOS DE FACTURACION
@@ -22,36 +26,55 @@ router.post('/:id', async (req, res) =>{
     const { id } = req.params
     const db = await connect();
     let result = "";
-    if(req.body.estado_facturacion == 'No Facturado'){
-        result = await db.collection('facturaciones').updateOne({_id: ObjectID(id)}, {
-            $set:{
-                estado_facturacion: req.body.estado_facturacion,
 
-            },
-            $push:{
-                observacion_factura: req.body.observacion_factura
-            }
-        })
-    }
-    else{
-        result = await db.collection('facturaciones').updateOne({_id: ObjectID(id)}, {
-            $set:{
-                estado_facturacion: req.body.estado_facturacion,
-                fecha_facturacion: req.body.fecha_facturacion,
-                nro_factura: req.body.nro_factura,
-                archivo_factura: req.body.archivo_factura,
-                monto_neto: req.body.monto_neto,
-                porcentaje_impuesto: req.body.porcentaje_impuesto,
-                valor_impuesto: req.body.valor_impuesto,
-                sub_total: req.body.sub_total,
-                exento: req.body.exento,
-                total: req.body.total
-            },
-            $push:{
-                observacion_factura: req.body.observacion_factura
-            }
-        })
-    }
+    result = await db.collection('facturaciones').updateOne({_id: ObjectID(id)}, {
+        $set:{
+            fecha_facturacion: req.body.fecha_facturacion,
+            estado_archivo: "Cargado",
+            nro_factura: req.body.nro_factura,
+            archivo_factura: req.body.archivo_factura,
+            monto_neto: req.body.monto_neto,
+            porcentaje_impuesto: req.body.porcentaje_impuesto,
+            valor_impuesto: req.body.valor_impuesto,
+            sub_total: req.body.sub_total,
+            exento: req.body.exento,
+            total: req.body.total
+        },
+        $push:{
+            observacion_factura: req.body.observacion_factura
+        }
+    })
+
+    // if(req.body.estado_facturacion == 'No Facturado'){
+    //     result = await db.collection('facturaciones').updateOne({_id: ObjectID(id)}, {
+    //         $set:{
+    //             estado_facturacion: req.body.estado_facturacion,
+
+    //         },
+    //         $push:{
+    //             observacion_factura: req.body.observacion_factura
+    //         }
+    //     })
+    // }
+    // else{
+    //     result = await db.collection('facturaciones').updateOne({_id: ObjectID(id)}, {
+    //         $set:{
+    //             estado_facturacion: req.body.estado_facturacion,
+    //             fecha_facturacion: req.body.fecha_facturacion,
+    //             nro_factura: req.body.nro_factura,
+    //             archivo_factura: req.body.archivo_factura,
+    //             monto_neto: req.body.monto_neto,
+    //             porcentaje_impuesto: req.body.porcentaje_impuesto,
+    //             valor_impuesto: req.body.valor_impuesto,
+    //             sub_total: req.body.sub_total,
+    //             exento: req.body.exento,
+    //             total: req.body.total
+    //         },
+    //         $push:{
+    //             observacion_factura: req.body.observacion_factura
+    //         }
+    //     })
+    // }
 
     res.json(result);
 })
