@@ -231,7 +231,6 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               observacion_factura: [],
               estado: "Ingresado",
               estado_archivo: estado_archivo,
-              estado_facturacion: "",
               fecha_facturacion: "",
               nro_factura: "",
               archivo_factura: null,
