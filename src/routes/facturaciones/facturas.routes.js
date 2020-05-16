@@ -25,6 +25,7 @@ router.get('/', async (req, res) => {
 router.post('/:id', async (req, res) =>{
     const { id } = req.params
     const db = await connect();
+    let obs = {}
     obs.obs = req.body.observacion_factura
     obs.fecha = getDate(new Date())
     obs.estado = "Cargado"
