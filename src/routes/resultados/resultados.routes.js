@@ -3,6 +3,7 @@ import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import { getFechaVencExam } from "../../functions/fechaVencExamen";
 import { getDate } from "../../functions/getDateNow";
+import { getDateEspecific } from "../../functions/getEspecificDate";
 
 const router = Router();
 
@@ -62,7 +63,7 @@ router.post('/confirmar/:id', async (req, res) =>{
                     fecha_resultado: req.body.fecha_resultado,
                     hora_resultado: req.body.hora_resultado,
                     condicionantes: req.body.condicionantes,
-                    fecha_vencimiento_examen:  getDate(getFechaVencExam(req.body.fecha_resultado, req.body.vigencia_examen)).substr(0, 10)
+                    fecha_vencimiento_examen:  getDateEspecific(getFechaVencExam(req.body.fecha_resultado, req.body.vigencia_examen)).substr(0, 10)
                 },
                 $push:{
                     observaciones: obs

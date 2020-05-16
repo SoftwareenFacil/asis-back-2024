@@ -15,6 +15,8 @@ var _fechaVencExamen = require("../../functions/fechaVencExamen");
 
 var _getDateNow = require("../../functions/getDateNow");
 
+var _getEspecificDate = require("../../functions/getEspecificDate");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -148,7 +150,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
                 fecha_resultado: req.body.fecha_resultado,
                 hora_resultado: req.body.hora_resultado,
                 condicionantes: req.body.condicionantes,
-                fecha_vencimiento_examen: (0, _getDateNow.getDate)((0, _fechaVencExamen.getFechaVencExam)(req.body.fecha_resultado, req.body.vigencia_examen)).substr(0, 10)
+                fecha_vencimiento_examen: (0, _getEspecificDate.getDateEspecific)((0, _fechaVencExamen.getFechaVencExam)(req.body.fecha_resultado, req.body.vigencia_examen)).substr(0, 10)
               },
               $push: {
                 observaciones: obs
