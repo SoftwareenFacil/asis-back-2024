@@ -56,7 +56,8 @@ router.get('/', /*#__PURE__*/function () {
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
-}());
+}()); //SUBIR ARCHIVO RESUILTADO
+
 router.post('/subir/:id', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
     var id, db, obs, result;
@@ -74,8 +75,7 @@ router.post('/subir/:id', /*#__PURE__*/function () {
             obs.obs = req.body.observaciones;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
             obs.estado = "Cargado";
-            console.log('datos chalo', req.body);
-            _context2.next = 11;
+            _context2.next = 10;
             return db.collection('resultados').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -88,11 +88,11 @@ router.post('/subir/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 11:
+          case 10:
             result = _context2.sent;
             res.json(result);
 
-          case 13:
+          case 12:
           case "end":
             return _context2.stop();
         }

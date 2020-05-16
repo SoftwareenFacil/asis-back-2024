@@ -17,6 +17,7 @@ router.get('/', async (req, res) => {
     res.json(result);
 });
 
+//SUBIR ARCHIVO RESUILTADO
 router.post('/subir/:id', async (req, res) =>{
     const { id } = req.params;
     const db = await connect();
@@ -24,8 +25,6 @@ router.post('/subir/:id', async (req, res) =>{
     obs.obs = req.body.observaciones
     obs.fecha = getDate(new Date())
     obs.estado = "Cargado"
-
-    console.log('datos chalo', req.body)
 
     const result = await db.collection('resultados').updateOne({_id: ObjectID(id)},{
         $set:{
