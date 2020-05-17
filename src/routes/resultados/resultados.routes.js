@@ -129,6 +129,7 @@ router.post('/confirmar/:id', async (req, res) =>{
                 valor_impuesto: 0,
                 sub_total: 0,
                 exento: 0,
+                descuento: 0,
                 total: 0
             })
         }

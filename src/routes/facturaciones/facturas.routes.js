@@ -42,6 +42,7 @@ router.post('/:id', async (req, res) =>{
             valor_impuesto: req.body.valor_impuesto,
             sub_total: req.body.sub_total,
             exento: req.body.exento,
+            descuento: req.body.descuento,
             total: req.body.total
         },
         $push:{
