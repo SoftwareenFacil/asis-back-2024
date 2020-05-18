@@ -18,16 +18,17 @@ router.get('/', async (req, res) =>{
 })
 
 //INGRESAR PAGO
-router.post('/pago/:id', async (req, res) =>{
+router.post('/nuevo/:id', async (req, res) =>{
     const db = await connect()
     let obj = {}
     obj.fecha_pago = req.body.fecha_pago
     obj.hora_pago = req.body.hora_pago
-    obj.local = req.body.local,
-    obj.razon_social_cp = req.body.razon_social_cp,
+    obj.sucursal = req.body.sucursal,
     obj.tipo_pago = req.body.tipo_pago,
     obj.monto = req.body.monto,
     obj.descuento = req.body.descuento
+    obj.total = req.body.total
+    obj.observaciones = req.body.observaciones
     const result = await db.collection('pagos').updateOne({_id: ObjectID(id)}, {
         $push:{
             pagos: obj

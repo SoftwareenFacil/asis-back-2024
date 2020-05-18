@@ -190,7 +190,7 @@ var pagos = [{
   lugar_servicio: String,
   sucursal: String,
   estado: String,
-  fecha_factura: String,
+  fecha_facturacion: String,
   nro_factura: String,
   credito: String,
   dias_credito: String,
@@ -199,9 +199,9 @@ var pagos = [{
     fecha_pago: String,
     hora_pago: String,
     local: String,
-    razon_social_cp: String,
     tipo_pago: String,
     monto: Number,
-    Descuento: Number
+    Descuento: Number,
+    total: Number
   }]
 }];
