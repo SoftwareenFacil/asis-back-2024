@@ -212,7 +212,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             }
 
             _context3.next = 31;
-            return db.collection('facturaciones').insertOne({
+            return db.collection('facturaciones').facturaciones({
               codigo: codAsis.replace('RES', 'FAC'),
               nombre_servicio: result.value.nombre_servicio,
               id_GI_personalAsignado: result.value.id_GI_personalAsignado,

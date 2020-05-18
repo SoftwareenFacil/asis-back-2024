@@ -193,7 +193,7 @@ const facturaciones = [
         exento: Number,
         total: Number
     }
-],
+];
 
 const pagos = [
     {

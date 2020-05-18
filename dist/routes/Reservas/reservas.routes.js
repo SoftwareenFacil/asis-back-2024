@@ -96,7 +96,8 @@ router.get('/:id', /*#__PURE__*/function () {
 
 router.post('/confirmar/:id', /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, datos, db, obs, result, resulEva, reserva, codAsis;
+    var id, datos, db, obs, result, codAsis, _reserva, gi, isOC, estado_archivo;
+
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -112,7 +113,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             obs.obs = datos.observacion;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
             result = null;
-            resulEva = null;
+            codAsis = '';
             _context3.prev = 10;
             _context3.next = 13;
             return db.collection('reservas').updateOne({
@@ -137,7 +138,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             result = _context3.sent;
 
             if (!((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == 'si' && result.result.ok == 1)) {
-              _context3.next = 23;
+              _context3.next = 24;
               break;
             }
 
@@ -147,44 +148,102 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             });
 
           case 17:
-            reserva = _context3.sent;
-            codAsis = reserva.codigo;
+            _reserva = _context3.sent;
+            codAsis = _reserva.codigo;
             codAsis = codAsis.replace('AGE', 'EVA');
             _context3.next = 22;
             return db.collection('evaluaciones').insertOne({
-              id_GI_personalAsignado: reserva.id_GI_personalAsignado,
+              id_GI_personalAsignado: _reserva.id_GI_personalAsignado,
               codigo: codAsis,
-              fecha_evaluacion: reserva.fecha_reserva,
-              fecha_evaluacion_fin: reserva.fecha_reserva_fin,
-              hora_inicio_evaluacion: reserva.hora_reserva,
-              hora_termino_evaluacion: reserva.hora_reserva_fin,
-              mes: reserva.mes,
-              anio: reserva.anio,
-              nombre_servicio: reserva.nombre_servicio,
-              rut_cp: reserva.rut_cp,
-              razon_social_cp: reserva.razon_social_cp,
-              rut_cs: reserva.rut_cs,
-              razon_social_cs: reserva.razon_social_cs,
-              lugar_servicio: reserva.lugar_servicio,
-              sucursal: reserva.sucursal,
+              fecha_evaluacion: _reserva.fecha_reserva,
+              fecha_evaluacion_fin: _reserva.fecha_reserva_fin,
+              hora_inicio_evaluacion: _reserva.hora_reserva,
+              hora_termino_evaluacion: _reserva.hora_reserva_fin,
+              mes: _reserva.mes,
+              anio: _reserva.anio,
+              nombre_servicio: _reserva.nombre_servicio,
+              rut_cp: _reserva.rut_cp,
+              razon_social_cp: _reserva.razon_social_cp,
+              rut_cs: _reserva.rut_cs,
+              razon_social_cs: _reserva.razon_social_cs,
+              lugar_servicio: _reserva.lugar_servicio,
+              sucursal: _reserva.sucursal,
               observaciones: [],
               estado_archivo: "Sin Documento",
               estado: "Ingresado"
             });
 
           case 22:
-            resulEva = _context3.sent;
+            _context3.next = 34;
+            break;
 
-          case 23:
+          case 24:
+            _context3.next = 26;
+            return db.collection('gi').findOne({
+              rut: result.value.rut_cp,
+              "categoria": "Empresa/Organización"
+            });
+
+          case 26:
+            gi = _context3.sent;
+            isOC = '';
+            estado_archivo = '';
+
+            if (gi) {
+              isOC = gi.orden_compra;
+              isOC == 'Si' ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
+            } else {
+              isOC = "No";
+              estado_archivo = 'No Requiere OC';
+            } //pasa directo a facturaciones
+
+
+            codAsis = reserva.codigo;
+            codAsis = codAsis.replace('AGE', 'FAC');
+            _context3.next = 34;
+            return db.collection('facturaciones').insertOne({
+              codigo: codAsis,
+              nombre_servicio: reserva.nombre_servicio,
+              id_GI_personalAsignado: reserva.id_GI_personalAsignado,
+              rut_cp: reserva.rut_cp,
+              razon_social_cp: reserva.razon_social_cp,
+              rut_cs: reserva.rut_cs,
+              razon_social_cs: reserva.razon_social_cs,
+              lugar_servicio: reserva.lugar_servicio,
+              sucursal: reserva.sucursal,
+              condicionantes: '',
+              vigencia_examen: '',
+              oc: isOC,
+              archivo_oc: null,
+              fecha_oc: "",
+              hora_oc: "",
+              nro_oc: "",
+              observacion_oc: [],
+              observacion_factura: [],
+              estado: "Ingresado",
+              estado_archivo: estado_archivo,
+              fecha_facturacion: "",
+              nro_factura: "",
+              archivo_factura: null,
+              monto_neto: 0,
+              porcentaje_impuesto: "",
+              valor_impuesto: 0,
+              sub_total: 0,
+              exento: 0,
+              descuento: 0,
+              total: 0
+            });
+
+          case 34:
             res.json({
               status: 200,
               message: "Reserva Confirmada"
             });
-            _context3.next = 30;
+            _context3.next = 41;
             break;
 
-          case 26:
-            _context3.prev = 26;
+          case 37:
+            _context3.prev = 37;
             _context3.t0 = _context3["catch"](10);
             console.log('error', _context3.t0);
             res.json({
@@ -193,12 +252,12 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               error: _context3.t0
             });
 
-          case 30:
+          case 41:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3, null, [[10, 26]]);
+    }, _callee3, null, [[10, 37]]);
   }));
 
   return function (_x5, _x6) {
