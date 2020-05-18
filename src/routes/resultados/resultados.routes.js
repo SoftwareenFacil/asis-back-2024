@@ -100,7 +100,7 @@ router.post('/confirmar/:id', async (req, res) =>{
             estado_archivo = 'No Requiere OC'
         }
         if(result){
-            result = await db.collection('facturaciones').insertOne({
+            result = await db.collection('facturaciones').facturaciones({
                 codigo: codAsis.replace('RES', 'FAC'),
                 nombre_servicio: result.value.nombre_servicio,
                 id_GI_personalAsignado: result.value.id_GI_personalAsignado,

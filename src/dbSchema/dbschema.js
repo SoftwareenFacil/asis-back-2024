@@ -193,4 +193,20 @@ const facturaciones = [
         exento: Number,
         total: Number
     }
+],
+
+const pagos = [
+    {
+        _id: String,
+        codigo: String,
+        nombre_servicio: String,
+        id_GI_personalAsignado: String,
+        rut_cp: String,
+        razon_social_cp: String,
+        rut_cs: String,
+        razon_social_cs: String,
+        lugar_servicio: String,
+        sucursal: String,
+        estado: String
+    }
 ]

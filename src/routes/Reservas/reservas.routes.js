@@ -36,7 +36,7 @@ router.post('/confirmar/:id', async (req, res) => {
     obs.obs = datos.observacion
     obs.fecha = getDate(new Date())
     let result = null
-    let resulEva = null
+    let codAsis = ''
     try {
         result = await db.collection('reservas').updateOne({ _id: ObjectID(id) }, {
             $set: {
@@ -57,10 +57,10 @@ router.post('/confirmar/:id', async (req, res) => {
         if (getMinusculas(datos.reqEvaluacion) == 'si' && result.result.ok == 1) {
             //insertamos la evaluacion
             const reserva = await db.collection('reservas').findOne({ _id: ObjectID(id) })
-            let codAsis = reserva.codigo;
+            codAsis = reserva.codigo;
             codAsis = codAsis.replace('AGE', 'EVA')
 
-            resulEva = await db.collection('evaluaciones').insertOne({
+            await db.collection('evaluaciones').insertOne({
                 id_GI_personalAsignado: reserva.id_GI_personalAsignado,
                 codigo: codAsis,
                 fecha_evaluacion: reserva.fecha_reserva,
@@ -80,6 +80,55 @@ router.post('/confirmar/:id', async (req, res) => {
                 estado_archivo: "Sin Documento",
                 estado: "Ingresado"
             });          
+        }
+        else{
+            //verificar si tiene OC o no el GI
+            let gi = await db.collection('gi').findOne({rut: result.value.rut_cp, "categoria": "Empresa/Organización"})
+            var isOC = ''
+            let estado_archivo = ''
+            if(gi){
+                isOC = gi.orden_compra;
+                (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
+            }
+            else{
+                isOC = "No"
+                estado_archivo = 'No Requiere OC'
+            }
+            //pasa directo a facturaciones
+            codAsis = reserva.codigo;
+            codAsis = codAsis.replace('AGE', 'FAC')
+            await db.collection('facturaciones').insertOne({
+                codigo: codAsis,
+                nombre_servicio: reserva.nombre_servicio,
+                id_GI_personalAsignado: reserva.id_GI_personalAsignado,
+                rut_cp: reserva.rut_cp,
+                razon_social_cp: reserva.razon_social_cp,
+                rut_cs: reserva.rut_cs,
+                razon_social_cs: reserva.razon_social_cs,
+                lugar_servicio: reserva.lugar_servicio,
+                sucursal: reserva.sucursal,
+                condicionantes: '',
+                vigencia_examen: '',
+                oc: isOC,
+                archivo_oc: null,
+                fecha_oc: "",
+                hora_oc: "",
+                nro_oc: "",
+                observacion_oc: [],
+                observacion_factura: [],
+                estado: "Ingresado",
+                estado_archivo: estado_archivo,
+                fecha_facturacion: "",
+                nro_factura: "",
+                archivo_factura: null,
+                monto_neto: 0,
+                porcentaje_impuesto: "",
+                valor_impuesto: 0,
+                sub_total: 0,
+                exento: 0,
+                descuento: 0,
+                total: 0
+            })
         }
 
         res.json({

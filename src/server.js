@@ -10,6 +10,7 @@ import CalendarioRoute from "./routes/Calendario/calendario.routes";
 import EvaluacionesRoute from "./routes/evaluaciones/evaluaciones.routes";
 import ResultadosRute from "./routes/resultados/resultados.routes";
 import FacturasRoute from "./routes/facturaciones/facturas.routes";
+import PagosRoute from "./routes/pagos/pagos.routes";
 
 const app = express();
 
@@ -30,5 +31,6 @@ app.use('/calendario', CalendarioRoute)
 app.use('/evaluaciones', EvaluacionesRoute)
 app.use('/resultados', ResultadosRute)
 app.use('/facturaciones', FacturasRoute)
+app.use('/pagos', PagosRoute)
 
 export default app;

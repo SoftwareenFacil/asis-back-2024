@@ -124,6 +124,7 @@ router.post('/validar/:id', async (req, res) =>{
 
     if(estado_archivo == 'Aprobado'){
         //insertar pago en modulo pago
+        
     }
 
     res.json(result)
