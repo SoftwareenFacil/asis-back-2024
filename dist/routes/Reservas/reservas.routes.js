@@ -96,8 +96,7 @@ router.get('/:id', /*#__PURE__*/function () {
 
 router.post('/confirmar/:id', /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, datos, db, obs, result, codAsis, _reserva, gi, isOC, estado_archivo;
-
+    var id, datos, db, obs, result, codAsis, reserva, gi, isOC, estado_archivo;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -136,55 +135,57 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
 
           case 13:
             result = _context3.sent;
-
-            if (!((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == 'si' && result.result.ok == 1)) {
-              _context3.next = 24;
-              break;
-            }
-
+            console.log('result', result);
             _context3.next = 17;
             return db.collection('reservas').findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
           case 17:
-            _reserva = _context3.sent;
-            codAsis = _reserva.codigo;
+            reserva = _context3.sent;
+
+            if (!((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == 'si' && result.result.ok == 1)) {
+              _context3.next = 25;
+              break;
+            }
+
+            //insertamos la evaluacion          
+            codAsis = reserva.codigo;
             codAsis = codAsis.replace('AGE', 'EVA');
-            _context3.next = 22;
+            _context3.next = 23;
             return db.collection('evaluaciones').insertOne({
-              id_GI_personalAsignado: _reserva.id_GI_personalAsignado,
+              id_GI_personalAsignado: reserva.id_GI_personalAsignado,
               codigo: codAsis,
-              fecha_evaluacion: _reserva.fecha_reserva,
-              fecha_evaluacion_fin: _reserva.fecha_reserva_fin,
-              hora_inicio_evaluacion: _reserva.hora_reserva,
-              hora_termino_evaluacion: _reserva.hora_reserva_fin,
-              mes: _reserva.mes,
-              anio: _reserva.anio,
-              nombre_servicio: _reserva.nombre_servicio,
-              rut_cp: _reserva.rut_cp,
-              razon_social_cp: _reserva.razon_social_cp,
-              rut_cs: _reserva.rut_cs,
-              razon_social_cs: _reserva.razon_social_cs,
-              lugar_servicio: _reserva.lugar_servicio,
-              sucursal: _reserva.sucursal,
+              fecha_evaluacion: reserva.fecha_reserva,
+              fecha_evaluacion_fin: reserva.fecha_reserva_fin,
+              hora_inicio_evaluacion: reserva.hora_reserva,
+              hora_termino_evaluacion: reserva.hora_reserva_fin,
+              mes: reserva.mes,
+              anio: reserva.anio,
+              nombre_servicio: reserva.nombre_servicio,
+              rut_cp: reserva.rut_cp,
+              razon_social_cp: reserva.razon_social_cp,
+              rut_cs: reserva.rut_cs,
+              razon_social_cs: reserva.razon_social_cs,
+              lugar_servicio: reserva.lugar_servicio,
+              sucursal: reserva.sucursal,
               observaciones: [],
               estado_archivo: "Sin Documento",
               estado: "Ingresado"
             });
 
-          case 22:
-            _context3.next = 34;
+          case 23:
+            _context3.next = 37;
             break;
 
-          case 24:
-            _context3.next = 26;
+          case 25:
+            _context3.next = 27;
             return db.collection('gi').findOne({
-              rut: result.value.rut_cp,
+              rut: reserva.rut_cp,
               "categoria": "Empresa/Organización"
             });
 
-          case 26:
+          case 27:
             gi = _context3.sent;
             isOC = '';
             estado_archivo = '';
@@ -200,7 +201,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
 
             codAsis = reserva.codigo;
             codAsis = codAsis.replace('AGE', 'FAC');
-            _context3.next = 34;
+            _context3.next = 35;
             return db.collection('facturaciones').insertOne({
               codigo: codAsis,
               nombre_servicio: reserva.nombre_servicio,
@@ -234,16 +235,20 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               total: 0
             });
 
-          case 34:
+          case 35:
+            result = _context3.sent;
+            console.log('result directo fac', result);
+
+          case 37:
             res.json({
               status: 200,
               message: "Reserva Confirmada"
             });
-            _context3.next = 41;
+            _context3.next = 44;
             break;
 
-          case 37:
-            _context3.prev = 37;
+          case 40:
+            _context3.prev = 40;
             _context3.t0 = _context3["catch"](10);
             console.log('error', _context3.t0);
             res.json({
@@ -252,12 +257,12 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               error: _context3.t0
             });
 
-          case 41:
+          case 44:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3, null, [[10, 37]]);
+    }, _callee3, null, [[10, 40]]);
   }));
 
   return function (_x5, _x6) {

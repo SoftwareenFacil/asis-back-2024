@@ -189,5 +189,19 @@ var pagos = [{
   razon_social_cs: String,
   lugar_servicio: String,
   sucursal: String,
-  estado: String
+  estado: String,
+  fecha_factura: String,
+  nro_factura: String,
+  credito: String,
+  dias_credito: String,
+  fecha_pago: String,
+  pagos: [{
+    fecha_pago: String,
+    hora_pago: String,
+    local: String,
+    razon_social_cp: String,
+    tipo_pago: String,
+    monto: Number,
+    Descuento: Number
+  }]
 }];

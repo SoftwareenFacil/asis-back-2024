@@ -3,6 +3,7 @@ import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import { getFechaVencExam } from "../../functions/fechaVencExamen";
 import { getDate } from "../../functions/getDateNow";
+import { getFechaPago } from "../../functions/calculateFechaPago";
 
 const router = Router();
 
@@ -112,7 +113,7 @@ router.post('/validar/:id', async (req, res) =>{
     let estado = '';
     (estado_archivo == "Rechazado")?estado = 'En Facturacion' : estado = "Facturado";
 
-    const result = await db.collection('facturaciones').updateOne({_id: ObjectID(id)}, {
+    let result = await db.collection('facturaciones').findOneAndUpdate({_id: ObjectID(id)}, {
         $set:{
             estado: estado,
             estado_archivo: estado_archivo
@@ -124,7 +125,28 @@ router.post('/validar/:id', async (req, res) =>{
 
     if(estado_archivo == 'Aprobado'){
         //insertar pago en modulo pago
-        
+        let codAsis = result.value.codigo;
+        let gi = await db.collection('gi').findOne({rut: result.value.rut_cp})
+        result = await db.collection('pagos').insertOne({
+            codigo: codAsis.replace('FAC', 'PAG'),
+            nombre_servicio: result.value.nombre_servicio,
+            id_GI_personalAsignado: result.value.id_GI_personalAsignado,
+            rut_cp: result.value.rut_cp,
+            razon_social_cp: result.value.razon_social_cp,
+            rut_cs: result.value.rut_cs,
+            razon_social_cs: result.value.razon_social_cs,
+            lugar_servicio: result.value.lugar_servicio,
+            sucursal: result.value.sucursal,
+            estado: "No Pagado",
+            fecha_facturacion: result.value.fecha_facturacion,
+            nro_factura: result.value.nro_factura,
+            credito: gi.credito,
+            dias_credito: gi.dias_credito,
+            fecha_pago: getFechaPago(result.value.fecha_facturacion, Number(gi.dias_credito)),
+            pagos: []
+        });
+
+        console.log('result pago insert', result)
     }
 
     res.json(result)

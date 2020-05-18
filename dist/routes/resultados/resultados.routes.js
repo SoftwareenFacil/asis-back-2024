@@ -123,10 +123,9 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             result = "";
             obs = {};
             obs.obs = req.body.observaciones;
-            obs.fecha = (0, _getDateNow.getDate)(new Date());
-            console.log('datos chalo', req.body);
+            obs.fecha = (0, _getDateNow.getDate)(new Date()); // console.log('datos chalo', req.body)
 
-            if (!(req.body.estado_archivo == 'Aprobado')) {
+            if (!(req.body.estado_resultado == 'Aprobado')) {
               _context3.next = 34;
               break;
             }
@@ -134,11 +133,11 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             obs.estado = req.body.estado_archivo;
 
             if (!(req.body.estado_resultado == 'Aprobado con Obs' || req.body.estado_resultado == 'Aprobado')) {
-              _context3.next = 17;
+              _context3.next = 16;
               break;
             }
 
-            _context3.next = 14;
+            _context3.next = 13;
             return db.collection('resultados').findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -157,13 +156,13 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 14:
+          case 13:
             result = _context3.sent;
-            _context3.next = 20;
+            _context3.next = 19;
             break;
 
-          case 17:
-            _context3.next = 19;
+          case 16:
+            _context3.next = 18;
             return db.collection('resultados').findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -179,20 +178,20 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 19:
+          case 18:
             result = _context3.sent;
 
-          case 20:
+          case 19:
             //insercion de la facturación
             // console.log('result para sacar cod', result)
             codAsis = result.value.codigo;
-            _context3.next = 23;
+            _context3.next = 22;
             return db.collection('gi').findOne({
               rut: result.value.rut_cp,
               "categoria": "Empresa/Organización"
             });
 
-          case 23:
+          case 22:
             gi = _context3.sent;
             isOC = '';
             estado_archivo = '';
@@ -206,13 +205,15 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               estado_archivo = 'No Requiere OC';
             }
 
+            console.log('resultado', result);
+
             if (!result) {
               _context3.next = 32;
               break;
             }
 
             _context3.next = 31;
-            return db.collection('facturaciones').facturaciones({
+            return db.collection('facturaciones').insertOne({
               codigo: codAsis.replace('RES', 'FAC'),
               nombre_servicio: result.value.nombre_servicio,
               id_GI_personalAsignado: result.value.id_GI_personalAsignado,

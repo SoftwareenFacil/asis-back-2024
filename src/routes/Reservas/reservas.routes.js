@@ -53,10 +53,11 @@ router.post('/confirmar/:id', async (req, res) => {
                 observacion: obs
             }
         });
+        console.log('result', result)
+        const reserva = await db.collection('reservas').findOne({ _id: ObjectID(id) })
         // console.log('result modified', result.result.ok)
         if (getMinusculas(datos.reqEvaluacion) == 'si' && result.result.ok == 1) {
-            //insertamos la evaluacion
-            const reserva = await db.collection('reservas').findOne({ _id: ObjectID(id) })
+            //insertamos la evaluacion          
             codAsis = reserva.codigo;
             codAsis = codAsis.replace('AGE', 'EVA')
 
@@ -83,7 +84,7 @@ router.post('/confirmar/:id', async (req, res) => {
         }
         else{
             //verificar si tiene OC o no el GI
-            let gi = await db.collection('gi').findOne({rut: result.value.rut_cp, "categoria": "Empresa/Organización"})
+            let gi = await db.collection('gi').findOne({rut: reserva.rut_cp, "categoria": "Empresa/Organización"})
             var isOC = ''
             let estado_archivo = ''
             if(gi){
@@ -97,7 +98,7 @@ router.post('/confirmar/:id', async (req, res) => {
             //pasa directo a facturaciones
             codAsis = reserva.codigo;
             codAsis = codAsis.replace('AGE', 'FAC')
-            await db.collection('facturaciones').insertOne({
+            result = await db.collection('facturaciones').insertOne({
                 codigo: codAsis,
                 nombre_servicio: reserva.nombre_servicio,
                 id_GI_personalAsignado: reserva.id_GI_personalAsignado,
@@ -129,6 +130,8 @@ router.post('/confirmar/:id', async (req, res) => {
                 descuento: 0,
                 total: 0
             })
+
+            console.log('result directo fac', result)
         }
 
         res.json({

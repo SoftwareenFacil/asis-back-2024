@@ -49,9 +49,9 @@ router.post('/confirmar/:id', async (req, res) =>{
     obs.obs = req.body.observaciones
     obs.fecha = getDate(new Date())
 
-    console.log('datos chalo', req.body)
+    // console.log('datos chalo', req.body)
 
-    if(req.body.estado_archivo == 'Aprobado'){
+    if(req.body.estado_resultado == 'Aprobado'){
         obs.estado = req.body.estado_archivo
         if(req.body.estado_resultado == 'Aprobado con Obs' || req.body.estado_resultado == 'Aprobado'){
             result = await db.collection('resultados').findOneAndUpdate({_id: ObjectID(id)}, {
@@ -99,8 +99,9 @@ router.post('/confirmar/:id', async (req, res) =>{
             isOC = "No"
             estado_archivo = 'No Requiere OC'
         }
+        console.log('resultado', result)
         if(result){
-            result = await db.collection('facturaciones').facturaciones({
+            result = await db.collection('facturaciones').insertOne({
                 codigo: codAsis.replace('RES', 'FAC'),
                 nombre_servicio: result.value.nombre_servicio,
                 id_GI_personalAsignado: result.value.id_GI_personalAsignado,
