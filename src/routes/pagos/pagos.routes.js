@@ -20,6 +20,7 @@ router.get('/', async (req, res) =>{
 //INGRESAR PAGO
 router.post('/nuevo/:id', async (req, res) =>{
     const db = await connect()
+    const { id } = req.params
     let obj = {}
     obj.fecha_pago = req.body.fecha_pago
     obj.hora_pago = req.body.hora_pago
