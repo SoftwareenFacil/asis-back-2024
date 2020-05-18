@@ -127,6 +127,7 @@ router.post('/validar/:id', async (req, res) =>{
         //insertar pago en modulo pago
         let codAsis = result.value.codigo;
         let gi = await db.collection('gi').findOne({rut: result.value.rut_cp})
+        let servicio = await db.collection('solicitudes').findOne({codigo: codAsis.replace('FAC', 'SOL')})
         result = await db.collection('pagos').insertOne({
             codigo: codAsis.replace('FAC', 'PAG'),
             nombre_servicio: result.value.nombre_servicio,
@@ -142,6 +143,7 @@ router.post('/validar/:id', async (req, res) =>{
             nro_factura: result.value.nro_factura,
             credito: gi.credito,
             dias_credito: gi.dias_credito,
+            valor_servicio: servicio.precio,
             fecha_pago: getFechaPago(result.value.fecha_facturacion, Number(gi.dias_credito)),
             pagos: []
         });
