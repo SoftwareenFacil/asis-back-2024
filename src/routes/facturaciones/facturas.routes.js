@@ -68,7 +68,8 @@ router.post('/subiroc/:id', async (req, res) =>{
             fecha_oc: req.body.fecha_oc,
             hora_oc: req.body.hora_oc,
             nro_oc: req.body.nro_oc,
-            estado_archivo: "Cargado"
+            estado_archivo: "Cargado",
+            estado: "En Revisión",
         },
         $push:{
             observacion_oc: obs
