@@ -144,7 +144,7 @@ router.post('/validar/:id', async (req, res) =>{
             nro_factura: result.value.nro_factura,
             credito: gi.credito,
             dias_credito: gi.dias_credito,
-            valor_servicio: servicio.precio,
+            valor_servicio: Number(servicio.precio),
             valor_cancelado: 0,
             fecha_pago: getFechaPago(result.value.fecha_facturacion, Number(gi.dias_credito)),
             pagos: []
