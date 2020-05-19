@@ -30,11 +30,23 @@ router.post('/nuevo/:id', async (req, res) =>{
     obj.descuento = req.body.descuento
     obj.total = req.body.total
     obj.observaciones = req.body.observaciones
-    const result = await db.collection('pagos').updateOne({_id: ObjectID(id)}, {
+    let result = await db.collection('pagos').findOneAndUpdate({_id: ObjectID(id)}, {
+        $inc: {
+            valor_cancelado: obj.monto
+        },    
         $push:{
             pagos: obj
         }
     });
+
+    console.log('valores', result.value)
+    if(result.value.valor_cancelado > 0 && result.value.valor_cancelado < result.value.valor_servicio){
+        result = await db.collection('pagos').updateOne({_id: ObjectID(id)}, {
+            $set:{
+                estado: "Pago Parcial"
+            }
+        })
+    }
 
     res.json(result)
 })
