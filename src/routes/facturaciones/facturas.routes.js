@@ -156,6 +156,8 @@ router.post('/validar/:id', async (req, res) =>{
                 codigo: codAsis.replace('FAC', 'COB'),
                 nombre_servicio: result.value.nombre_servicio,
                 categoria_cliente: gi.categoria,
+                fecha_facturacion: result.value.fecha_facturacion,
+                dias_credito: gi.dias_credito,
                 rut_cp: result.value.rut_cp,
                 razon_social_cp: result.value.razon_social_cp,
                 rut_cs: result.value.rut_cs,
@@ -164,6 +166,7 @@ router.post('/validar/:id', async (req, res) =>{
                 sucursal: result.value.sucursal,
                 estado: "Vencido",
                 valor_servicio: Number(servicio.precio),
+                valor_cancelado: 0,
                 valor_deuda: Number(servicio.precio)
             })
         }

@@ -236,6 +236,9 @@ const cobranza = [
         codigo: String,
         nombre_servicio: String,
         categoria_cliente: String,
+        fecha_facturacion: String,
+        dias_credito: String,
+        valor_servicio: Number,
         rut_cp: String,
         razon_social_cp: String,
         rut_cs: String,
@@ -243,7 +246,7 @@ const cobranza = [
         lugar_servicio: String,
         sucursal: String,
         estado: String,
-        valor_servicio: Number,
+        valor_cancelado: Number,
         valor_deuda: Number
     }
 ]
