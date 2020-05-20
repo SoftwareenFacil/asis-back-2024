@@ -37,8 +37,9 @@ router.post('/nuevo/:id', async (req, res) =>{
         },    
         $push:{
             pagos: obj
-        }
-    });
+        },
+        
+    }, {returnOriginal: false});
 
     console.log('valores', result.value)
     if(result.value.valor_cancelado > 0 && result.value.valor_cancelado < result.value.valor_servicio){
