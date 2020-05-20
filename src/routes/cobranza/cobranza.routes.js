@@ -33,6 +33,9 @@ router.post('/envio/:id', async (req, res) =>{
     obj.estado = "Enviado"
 
     const result = await db.collection('cobranza').updateOne({_id: ObjectID(id)}, {
+        $set:{
+            estado: "En Cobranza"
+        },  
         $push:{
             cartas_cobranza: obj
         }
