@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
-import { getFechaVencExam } from "../../functions/fechaVencExamen";
+import { getMinusculas } from "../../functions/changeToMiniscula";
 import { getDate } from "../../functions/getDateNow";
 import { getFechaPago } from "../../functions/calculateFechaPago";
 
@@ -127,9 +127,9 @@ router.post('/validar/:id', async (req, res) =>{
     if(estado_archivo == 'Aprobado'){
         //insertar pago en modulo pago
         let codAsis = result.value.codigo;
-        let gi = await db.collection('gi').findOne({rut: result.value.rut_cp})
+        let gi = await db.collection('gi').findOne({rut: result.value.rut_cp, razon_social: result.value.razon_social_cp})
         let servicio = await db.collection('solicitudes').findOne({codigo: codAsis.replace('FAC', 'SOL')})
-        result = await db.collection('pagos').insertOne({
+        await db.collection('pagos').insertOne({
             codigo: codAsis.replace('FAC', 'PAG'),
             nombre_servicio: result.value.nombre_servicio,
             id_GI_personalAsignado: result.value.id_GI_personalAsignado,
@@ -150,7 +150,24 @@ router.post('/validar/:id', async (req, res) =>{
             pagos: []
         });
 
-        console.log('result pago insert', result)
+        //si no tiene dias credito , pasa directo a cobranza
+        if(getMinusculas(gi.credito) == "no"){
+            result = await db.collection('cobranza').insertOne({
+                codigo: codAsis.replace('FAC', 'COB'),
+                nombre_servicio: result.value.nombre_servicio,
+                categoria_cliente: gi.categoria,
+                rut_cp: result.value.rut_cp,
+                razon_social_cp: result.value.razon_social_cp,
+                rut_cs: result.value.rut_cs,
+                razon_social_cs: result.value.razon_social_cs,
+                lugar_servicio: result.value.lugar_servicio,
+                sucursal: result.value.sucursal,
+                estado: "Vencido",
+                valor_servicio: Number(servicio.precio),
+                valor_deuda: Number(servicio.precio)
+            })
+        }
+
     }
 
     res.json(result)

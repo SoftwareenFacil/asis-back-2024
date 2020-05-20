@@ -194,6 +194,8 @@ var pagos = [{
   nro_factura: String,
   credito: String,
   dias_credito: String,
+  valor_servicio: Number,
+  valor_cancelado: Number,
   fecha_pago: String,
   pagos: [{
     fecha_pago: String,
@@ -204,4 +206,19 @@ var pagos = [{
     Descuento: Number,
     total: Number
   }]
+}];
+var cobranza = [{
+  _id: String,
+  codigo: String,
+  nombre_servicio: String,
+  categoria_cliente: String,
+  rut_cp: String,
+  razon_social_cp: String,
+  rut_cs: String,
+  razon_social_cs: String,
+  lugar_servicio: String,
+  sucursal: String,
+  estado: String,
+  valor_servicio: Number,
+  valor_deuda: Number
 }];
