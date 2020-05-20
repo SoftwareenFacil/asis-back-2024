@@ -21,4 +21,24 @@ router.post('/buscar', async (req, res) => {
     res.json(result)
 })
 
+router.post('/envio/:id', async (req, res) =>{
+    const { id } = req.params
+    const db = await connect()
+    let obj = {}
+    obj.fecha_creacion_carta = req.body.fecha_creacion_carta
+    obj.hora_creacion_carta = req.body.hora_creacion_carta
+    obj.fecha_envio_carta = req.body.fecha_envio_carta
+    obj.hora_envio_carta = req.body.hora_envio_carta
+    obj.observacion = req.body.observacion
+    obj.estado = "Enviado"
+
+    const result = await db.collection('cobranza').updateOne({_id: ObjectID(id)}, {
+        $push:{
+            cartas_cobranza: obj
+        }
+    });
+
+    res.json(result)
+})
+
 export default router;

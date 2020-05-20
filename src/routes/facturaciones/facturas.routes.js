@@ -167,7 +167,8 @@ router.post('/validar/:id', async (req, res) =>{
                 estado: "Vencido",
                 valor_servicio: Number(servicio.precio),
                 valor_cancelado: 0,
-                valor_deuda: Number(servicio.precio)
+                valor_deuda: Number(servicio.precio),
+                cartas_cobranza: []
             })
         }
 

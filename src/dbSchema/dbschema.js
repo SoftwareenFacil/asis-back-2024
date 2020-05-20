@@ -247,6 +247,9 @@ const cobranza = [
         sucursal: String,
         estado: String,
         valor_cancelado: Number,
-        valor_deuda: Number
+        valor_deuda: Number,
+        cartas_cobranza: [
+            Object
+        ]
     }
 ]
