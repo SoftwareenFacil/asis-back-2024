@@ -195,16 +195,16 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             gi = _context3.sent;
             isOC = '';
             estado_archivo = '';
-            console.log('gi', gi.orden_compra);
+            console.log('gi', gi.orden_compra); // if(gi){
+            //     isOC = gi.orden_compra;
+            //     (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
+            // }
+            // else{
+            //     isOC = "No"
+            //     estado_archivo = 'No Requiere OC'
+            // }
 
-            if (gi) {
-              isOC = gi.orden_compra;
-              isOC == 'Si' ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
-            } else {
-              isOC = "No";
-              estado_archivo = 'No Requiere OC';
-            }
-
+            estado_archivo = "Sin Documento";
             console.log('resultado', result);
 
             if (!result) {
