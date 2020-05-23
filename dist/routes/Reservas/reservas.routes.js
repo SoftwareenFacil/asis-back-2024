@@ -96,7 +96,7 @@ router.get("/:id", /*#__PURE__*/function () {
 
 router.post("/confirmar/:id", /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, datos, db, obs, result, codAsis, reserva, gi, isOC, estado_archivo;
+    var id, datos, db, obs, result, codAsis, reserva, gi, isOC, estado_archivo, estado;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -176,7 +176,7 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
             });
 
           case 23:
-            _context3.next = 36;
+            _context3.next = 37;
             break;
 
           case 25:
@@ -190,6 +190,7 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
             gi = _context3.sent;
             isOC = "";
             estado_archivo = "";
+            estado = "";
 
             if (gi) {
               isOC = gi.orden_compra;
@@ -208,7 +209,7 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
 
             codAsis = reserva.codigo;
             codAsis = codAsis.replace("AGE", "FAC");
-            _context3.next = 35;
+            _context3.next = 36;
             return db.collection("facturaciones").insertOne({
               codigo: codAsis,
               nombre_servicio: reserva.nombre_servicio,
@@ -229,7 +230,7 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               nro_oc: "",
               observacion_oc: [],
               observacion_factura: [],
-              estado: "Ingresado",
+              estado: estado,
               estado_archivo: estado_archivo,
               fecha_facturacion: "",
               nro_factura: "",
@@ -243,19 +244,19 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               total: 0
             });
 
-          case 35:
+          case 36:
             result = _context3.sent;
 
-          case 36:
+          case 37:
             res.json({
               status: 200,
               message: "Reserva Confirmada"
             });
-            _context3.next = 43;
+            _context3.next = 44;
             break;
 
-          case 39:
-            _context3.prev = 39;
+          case 40:
+            _context3.prev = 40;
             _context3.t0 = _context3["catch"](10);
             console.log("error", _context3.t0);
             res.json({
@@ -264,12 +265,12 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               error: _context3.t0
             });
 
-          case 43:
+          case 44:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3, null, [[10, 39]]);
+    }, _callee3, null, [[10, 40]]);
   }));
 
   return function (_x5, _x6) {

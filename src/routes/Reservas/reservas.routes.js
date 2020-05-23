@@ -95,7 +95,8 @@ router.post("/confirmar/:id", async (req, res) => {
         .findOne({ rut: reserva.rut_cp, categoria: "Empresa/Organización" });
       var isOC = "";
       let estado_archivo = "";
-      
+      let estado = "";
+
       if (gi) {
         isOC = gi.orden_compra;
         if (isOC == "Si") {
@@ -131,7 +132,7 @@ router.post("/confirmar/:id", async (req, res) => {
         nro_oc: "",
         observacion_oc: [],
         observacion_factura: [],
-        estado: "Ingresado",
+        estado: estado,
         estado_archivo: estado_archivo,
         fecha_facturacion: "",
         nro_factura: "",
