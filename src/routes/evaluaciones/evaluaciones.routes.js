@@ -87,7 +87,7 @@ router.post('/evaluado/:id', async (req, res) => {
             razon_social_cs: result.value.razon_social_cs,
             lugar_servicio: result.value.lugar_servicio,
             sucursal: result.value.sucursal,
-            condicionantes: "",
+            condicionantes: [],
             vigencia_examen: "",
             observaciones: [],
             // archivo_respuesta_examen: req.body.archivo_resultado,
