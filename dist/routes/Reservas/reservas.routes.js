@@ -207,6 +207,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               codigo: codAsis,
               nombre_servicio: reserva.nombre_servicio,
               id_GI_personalAsignado: reserva.id_GI_personalAsignado,
+              faena_seleccionada_cp: reserva.faena_seleccionada_cp,
               rut_cp: reserva.rut_cp,
               razon_social_cp: reserva.razon_social_cp,
               rut_cs: reserva.rut_cs,
