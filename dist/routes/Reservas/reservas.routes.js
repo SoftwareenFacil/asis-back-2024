@@ -175,7 +175,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             });
 
           case 23:
-            _context3.next = 37;
+            _context3.next = 36;
             break;
 
           case 25:
@@ -188,16 +188,16 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
           case 27:
             gi = _context3.sent;
             isOC = '';
-            estado_archivo = '';
+            estado_archivo = ''; // if(gi){
+            //     isOC = gi.orden_compra;
+            //     (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
+            // }
+            // else{
+            //     isOC = "No"
+            //     estado_archivo = 'No Requiere OC'
+            // }
 
-            if (gi) {
-              isOC = gi.orden_compra;
-              isOC == 'Si' ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
-            } else {
-              isOC = "No";
-              estado_archivo = 'No Requiere OC';
-            } //pasa directo a facturaciones
-
+            estado_archivo = "Sin Documento"; //pasa directo a facturaciones
 
             codAsis = reserva.codigo;
             codAsis = codAsis.replace('AGE', 'FAC');
@@ -237,18 +237,17 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
 
           case 35:
             result = _context3.sent;
-            console.log('result directo fac', result);
 
-          case 37:
+          case 36:
             res.json({
               status: 200,
               message: "Reserva Confirmada"
             });
-            _context3.next = 44;
+            _context3.next = 43;
             break;
 
-          case 40:
-            _context3.prev = 40;
+          case 39:
+            _context3.prev = 39;
             _context3.t0 = _context3["catch"](10);
             console.log('error', _context3.t0);
             res.json({
@@ -257,12 +256,12 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               error: _context3.t0
             });
 
-          case 44:
+          case 43:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3, null, [[10, 40]]);
+    }, _callee3, null, [[10, 39]]);
   }));
 
   return function (_x5, _x6) {

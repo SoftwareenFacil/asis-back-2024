@@ -87,14 +87,15 @@ router.post('/confirmar/:id', async (req, res) => {
             let gi = await db.collection('gi').findOne({rut: reserva.rut_cp, "categoria": "Empresa/Organización"})
             var isOC = ''
             let estado_archivo = ''
-            if(gi){
-                isOC = gi.orden_compra;
-                (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
-            }
-            else{
-                isOC = "No"
-                estado_archivo = 'No Requiere OC'
-            }
+            // if(gi){
+            //     isOC = gi.orden_compra;
+            //     (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
+            // }
+            // else{
+            //     isOC = "No"
+            //     estado_archivo = 'No Requiere OC'
+            // }
+            estado_archivo = "Sin Documento"
             //pasa directo a facturaciones
             codAsis = reserva.codigo;
             codAsis = codAsis.replace('AGE', 'FAC')
@@ -131,7 +132,7 @@ router.post('/confirmar/:id', async (req, res) => {
                 total: 0
             })
 
-            console.log('result directo fac', result)
+            // console.log('result directo fac', result)
         }
 
         res.json({

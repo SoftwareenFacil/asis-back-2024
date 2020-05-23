@@ -90,7 +90,8 @@ router.post('/confirmar/:id', async (req, res) =>{
         let gi = await db.collection('gi').findOne({rut: result.value.rut_cp, "categoria": "Empresa/Organización"})
         var isOC = ''
         let estado_archivo = ''
-        console.log('gi', gi.orden_compra)
+        let estado = ''
+        // console.log('gi', gi.orden_compra)
         // if(gi){
         //     isOC = gi.orden_compra;
         //     (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
@@ -99,8 +100,24 @@ router.post('/confirmar/:id', async (req, res) =>{
         //     isOC = "No"
         //     estado_archivo = 'No Requiere OC'
         // }
-        estado_archivo = "Sin Documento";
-        console.log('resultado', result)
+        if(gi){
+            isOC = gi.orden_compra;
+            if(isOC == 'Si'){
+                estado_archivo = 'Sin Documento',
+                estado = 'Ingresado'
+            }
+            else{
+                estado = 'En Facturacion',
+                estado_archivo = 'Sin Documento'
+            }
+            // (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
+        }
+        else{
+            isOC = "No"
+            estado = 'En Facturacion',
+            estado_archivo = 'Sin Documento'
+        }
+        // console.log('resultado', result)
         if(result){
             result = await db.collection('facturaciones').insertOne({
                 codigo: codAsis.replace('RES', 'FAC'),
@@ -121,7 +138,7 @@ router.post('/confirmar/:id', async (req, res) =>{
                 nro_oc: "",
                 observacion_oc: [],
                 observacion_factura: [],
-                estado: "Ingresado",
+                estado: estado,
                 estado_archivo: estado_archivo,
                 fecha_facturacion: "",
                 nro_factura: "",

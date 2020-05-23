@@ -109,7 +109,7 @@ router.post('/subir/:id', /*#__PURE__*/function () {
 
 router.post('/confirmar/:id', /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, db, result, obs, codAsis, gi, isOC, estado_archivo;
+    var id, db, result, obs, codAsis, gi, isOC, estado_archivo, estado;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -126,7 +126,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             obs.fecha = (0, _getDateNow.getDate)(new Date()); // console.log('datos chalo', req.body)
 
             if (!(req.body.estado_resultado == 'Aprobado')) {
-              _context3.next = 34;
+              _context3.next = 33;
               break;
             }
 
@@ -195,7 +195,8 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             gi = _context3.sent;
             isOC = '';
             estado_archivo = '';
-            console.log('gi', gi.orden_compra); // if(gi){
+            estado = ''; // console.log('gi', gi.orden_compra)
+            // if(gi){
             //     isOC = gi.orden_compra;
             //     (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
             // }
@@ -204,15 +205,27 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             //     estado_archivo = 'No Requiere OC'
             // }
 
-            estado_archivo = "Sin Documento";
-            console.log('resultado', result);
+            if (gi) {
+              isOC = gi.orden_compra;
+
+              if (isOC == 'Si') {
+                estado_archivo = 'Sin Documento', estado = 'Ingresado';
+              } else {
+                estado = 'En Facturacion', estado_archivo = 'Sin Documento';
+              } // (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
+
+            } else {
+              isOC = "No";
+              estado = 'En Facturacion', estado_archivo = 'Sin Documento';
+            } // console.log('resultado', result)
+
 
             if (!result) {
-              _context3.next = 32;
+              _context3.next = 31;
               break;
             }
 
-            _context3.next = 31;
+            _context3.next = 30;
             return db.collection('facturaciones').insertOne({
               codigo: codAsis.replace('RES', 'FAC'),
               nombre_servicio: result.value.nombre_servicio,
@@ -232,7 +245,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               nro_oc: "",
               observacion_oc: [],
               observacion_factura: [],
-              estado: "Ingresado",
+              estado: estado,
               estado_archivo: estado_archivo,
               fecha_facturacion: "",
               nro_factura: "",
@@ -246,16 +259,16 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               total: 0
             });
 
-          case 31:
+          case 30:
             result = _context3.sent;
 
-          case 32:
-            _context3.next = 38;
+          case 31:
+            _context3.next = 37;
             break;
 
-          case 34:
+          case 33:
             obs.estado = req.body.estado_archivo;
-            _context3.next = 37;
+            _context3.next = 36;
             return db.collection('resultados').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -267,13 +280,13 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 37:
+          case 36:
             result = _context3.sent;
 
-          case 38:
+          case 37:
             res.json(result);
 
-          case 39:
+          case 38:
           case "end":
             return _context3.stop();
         }
