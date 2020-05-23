@@ -85,6 +85,7 @@ router.post('/confirmar/:id', async (req, res) => {
                 id_GI_Principal: resp.id_GI_Principal,
                 id_GI_Secundario: resp.id_GI_Secundario,
                 id_GI_personalAsignado: resp.id_GI_PersonalAsignado,
+                faena_seleccionada_cp: resp.faena_seleccionada_cp,
                 rut_cp: resp.rut_CP,
                 razon_social_cp: resp.razon_social_CP,
                 rut_cs: resp.rut_cs,
