@@ -27,7 +27,7 @@ var router = (0, _express.Router)();
 var YEAR = (0, _getYearActual.getYear)(); //database connection
 
 //SELECT
-router.get('/', /*#__PURE__*/function () {
+router.get("/", /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
     var db, result;
     return regeneratorRuntime.wrap(function _callee$(_context) {
@@ -40,7 +40,7 @@ router.get('/', /*#__PURE__*/function () {
           case 2:
             db = _context.sent;
             _context.next = 5;
-            return db.collection('reservas').find({}).toArray();
+            return db.collection("reservas").find({}).toArray();
 
           case 5:
             result = _context.sent;
@@ -57,9 +57,9 @@ router.get('/', /*#__PURE__*/function () {
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
-}()); //SELECT ONE 
+}()); //SELECT ONE
 
-router.get('/:id', /*#__PURE__*/function () {
+router.get("/:id", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
     var id, db, result;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
@@ -73,7 +73,7 @@ router.get('/:id', /*#__PURE__*/function () {
           case 3:
             db = _context2.sent;
             _context2.next = 6;
-            return db.collection('reservas').findOne({
+            return db.collection("reservas").findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
@@ -94,7 +94,7 @@ router.get('/:id', /*#__PURE__*/function () {
   };
 }()); //CONFIRMAR RESERVA
 
-router.post('/confirmar/:id', /*#__PURE__*/function () {
+router.post("/confirmar/:id", /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
     var id, datos, db, obs, result, codAsis, reserva, gi, isOC, estado_archivo;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
@@ -112,10 +112,10 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             obs.obs = datos.observacion;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
             result = null;
-            codAsis = '';
+            codAsis = "";
             _context3.prev = 10;
             _context3.next = 13;
-            return db.collection('reservas').updateOne({
+            return db.collection("reservas").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
@@ -135,25 +135,25 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
 
           case 13:
             result = _context3.sent;
-            console.log('result', result);
+            console.log("result", result);
             _context3.next = 17;
-            return db.collection('reservas').findOne({
+            return db.collection("reservas").findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
           case 17:
             reserva = _context3.sent;
 
-            if (!((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == 'si' && result.result.ok == 1)) {
+            if (!((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == "si" && result.result.ok == 1)) {
               _context3.next = 25;
               break;
             }
 
-            //insertamos la evaluacion          
+            //insertamos la evaluacion
             codAsis = reserva.codigo;
-            codAsis = codAsis.replace('AGE', 'EVA');
+            codAsis = codAsis.replace("AGE", "EVA");
             _context3.next = 23;
-            return db.collection('evaluaciones').insertOne({
+            return db.collection("evaluaciones").insertOne({
               id_GI_personalAsignado: reserva.id_GI_personalAsignado,
               codigo: codAsis,
               faena_seleccionada_cp: reserva.faena_seleccionada_cp,
@@ -181,29 +181,35 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
 
           case 25:
             _context3.next = 27;
-            return db.collection('gi').findOne({
+            return db.collection("gi").findOne({
               rut: reserva.rut_cp,
-              "categoria": "Empresa/Organización"
+              categoria: "Empresa/Organización"
             });
 
           case 27:
             gi = _context3.sent;
-            isOC = '';
-            estado_archivo = ''; // if(gi){
-            //     isOC = gi.orden_compra;
-            //     (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
-            // }
-            // else{
-            //     isOC = "No"
-            //     estado_archivo = 'No Requiere OC'
-            // }
+            isOC = "";
+            estado_archivo = "";
 
-            estado_archivo = "Sin Documento"; //pasa directo a facturaciones
+            if (gi) {
+              isOC = gi.orden_compra;
+
+              if (isOC == "Si") {
+                estado_archivo = "Sin Documento", estado = "Ingresado";
+              } else {
+                estado = "En Facturacion", estado_archivo = "Sin Documento";
+              } // (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
+
+            } else {
+              isOC = "No";
+              estado = "En Facturacion", estado_archivo = "Sin Documento";
+            } //pasa directo a facturaciones
+
 
             codAsis = reserva.codigo;
-            codAsis = codAsis.replace('AGE', 'FAC');
+            codAsis = codAsis.replace("AGE", "FAC");
             _context3.next = 35;
-            return db.collection('facturaciones').insertOne({
+            return db.collection("facturaciones").insertOne({
               codigo: codAsis,
               nombre_servicio: reserva.nombre_servicio,
               id_GI_personalAsignado: reserva.id_GI_personalAsignado,
@@ -214,8 +220,8 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               razon_social_cs: reserva.razon_social_cs,
               lugar_servicio: reserva.lugar_servicio,
               sucursal: reserva.sucursal,
-              condicionantes: '',
-              vigencia_examen: '',
+              condicionantes: "",
+              vigencia_examen: "",
               oc: isOC,
               archivo_oc: null,
               fecha_oc: "",
@@ -251,7 +257,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
           case 39:
             _context3.prev = 39;
             _context3.t0 = _context3["catch"](10);
-            console.log('error', _context3.t0);
+            console.log("error", _context3.t0);
             res.json({
               status: 500,
               message: "No se pudo concretar la confirmacion de la reserva",
