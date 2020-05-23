@@ -124,6 +124,7 @@ router.post('/confirmar/:id', async (req, res) =>{
                 nombre_servicio: result.value.nombre_servicio,
                 id_GI_personalAsignado: result.value.id_GI_personalAsignado,
                 faena_seleccionada_cp: result.value.faena_seleccionada_cp,
+                valor_servicio: result.value.valor_servicio,
                 rut_cp: result.value.rut_cp,
                 razon_social_cp: result.value.razon_social_cp,
                 rut_cs: result.value.rut_cs,

@@ -70,6 +70,7 @@ router.post("/confirmar/:id", async (req, res) => {
       await db.collection("evaluaciones").insertOne({
         id_GI_personalAsignado: reserva.id_GI_personalAsignado,
         codigo: codAsis,
+        valor_servicio: reserva.valor_servicio,
         faena_seleccionada_cp: reserva.faena_seleccionada_cp,
         fecha_evaluacion: reserva.fecha_reserva,
         fecha_evaluacion_fin: reserva.fecha_reserva_fin,
@@ -117,6 +118,7 @@ router.post("/confirmar/:id", async (req, res) => {
         nombre_servicio: reserva.nombre_servicio,
         id_GI_personalAsignado: reserva.id_GI_personalAsignado,
         faena_seleccionada_cp: reserva.faena_seleccionada_cp,
+        valor_servicio: reserva.valor_servicio,
         rut_cp: reserva.rut_cp,
         razon_social_cp: reserva.razon_social_cp,
         rut_cs: reserva.rut_cs,
