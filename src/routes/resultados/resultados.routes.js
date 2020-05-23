@@ -51,7 +51,7 @@ router.post('/confirmar/:id', async (req, res) =>{
 
     // console.log('datos chalo', req.body)
 
-    if(req.body.estado_resultado == 'Aprobado'){
+    if(req.body.estado_archivo == 'Aprobado'){
         obs.estado = req.body.estado_archivo
         if(req.body.estado_resultado == 'Aprobado con Obs' || req.body.estado_resultado == 'Aprobado'){
             result = await db.collection('resultados').findOneAndUpdate({_id: ObjectID(id)}, {
