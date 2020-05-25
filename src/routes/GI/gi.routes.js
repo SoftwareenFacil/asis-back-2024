@@ -44,7 +44,7 @@ router.post('/', async (req, res) => {
     else{
         newGi.codigo = `ASIS-GI-${YEAR}-00001`
     }
-    console.log(newGi)
+    /* console.log(newGi) */
     const result = await db.collection('gi').insertOne(newGi);
     res.json(result)
 });

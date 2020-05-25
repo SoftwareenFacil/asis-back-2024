@@ -31,6 +31,10 @@ var _pagos = _interopRequireDefault(require("./routes/pagos/pagos.routes"));
 
 var _cobranza = _interopRequireDefault(require("./routes/cobranza/cobranza.routes"));
 
+var _gastos = _interopRequireDefault(require("./routes/gastos/gastos.routes"));
+
+var _salidas = _interopRequireDefault(require("./routes/salidas/salidas.routes"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 //---------------------IMPORTS ROUTES
@@ -52,5 +56,7 @@ app.use('/resultados', _resultados["default"]);
 app.use('/facturaciones', _facturas["default"]);
 app.use('/pagos', _pagos["default"]);
 app.use('/cobranza', _cobranza["default"]);
+app.use('/gastos', _gastos["default"]);
+app.use('/salidas', _salidas["default"]);
 var _default = app;
 exports["default"] = _default;
