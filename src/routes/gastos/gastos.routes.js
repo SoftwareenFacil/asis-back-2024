@@ -30,6 +30,7 @@ router.post('/', async (req, res) =>{
     }
     
     newGasto.fecha = req.body.fecha
+    newGasto.fecha_registro = req.body.fecha_registro
     newGasto.categoria_general = req.body.categoria_general
     newGasto.subcategoria_uno = req.body.subcategoria_uno
     newGasto.subcategoria_dos = req.body.subcategoria_dos
