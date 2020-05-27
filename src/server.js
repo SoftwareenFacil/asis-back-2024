@@ -12,6 +12,8 @@ import ResultadosRute from "./routes/resultados/resultados.routes";
 import FacturasRoute from "./routes/facturaciones/facturas.routes";
 import PagosRoute from "./routes/pagos/pagos.routes";
 import CobranzaRoute from "./routes/cobranza/cobranza.routes";
+import GastosRoute from "./routes/gastos/gastos.routes";
+import SalidasRoutes from "./routes/salidas/salidas.routes";
 
 const app = express();
 
@@ -34,5 +36,7 @@ app.use('/resultados', ResultadosRute)
 app.use('/facturaciones', FacturasRoute)
 app.use('/pagos', PagosRoute)
 app.use('/cobranza', CobranzaRoute)
+app.use('/gastos', GastosRoute)
+app.use('/salidas', SalidasRoutes)
 
 export default app;

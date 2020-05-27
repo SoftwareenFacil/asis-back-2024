@@ -143,16 +143,17 @@ router.post('/', /*#__PURE__*/function () {
             } else {
               newGi.codigo = "ASIS-GI-".concat(YEAR, "-00001");
             }
+            /* console.log(newGi) */
 
-            console.log(newGi);
-            _context3.next = 11;
+
+            _context3.next = 10;
             return db.collection('gi').insertOne(newGi);
 
-          case 11:
+          case 10:
             result = _context3.sent;
             res.json(result);
 
-          case 13:
+          case 12:
           case "end":
             return _context3.stop();
         }

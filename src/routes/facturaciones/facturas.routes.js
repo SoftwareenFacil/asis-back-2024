@@ -129,10 +129,13 @@ router.post('/validar/:id', async (req, res) =>{
         let codAsis = result.value.codigo;
         let gi = await db.collection('gi').findOne({rut: result.value.rut_cp, razon_social: result.value.razon_social_cp})
         let servicio = await db.collection('solicitudes').findOne({codigo: codAsis.replace('FAC', 'SOL')})
+
         await db.collection('pagos').insertOne({
             codigo: codAsis.replace('FAC', 'PAG'),
             nombre_servicio: result.value.nombre_servicio,
             id_GI_personalAsignado: result.value.id_GI_personalAsignado,
+            faena_seleccionada_cp: result.value.faena_seleccionada_cp,
+            valor_servicio: result.value.valor_servicio,
             rut_cp: result.value.rut_cp,
             razon_social_cp: result.value.razon_social_cp,
             rut_cs: result.value.rut_cs,
@@ -152,9 +155,12 @@ router.post('/validar/:id', async (req, res) =>{
 
         //si no tiene dias credito , pasa directo a cobranza
         if(getMinusculas(gi.credito) == "no"){
+
             result = await db.collection('cobranza').insertOne({
                 codigo: codAsis.replace('FAC', 'COB'),
                 nombre_servicio: result.value.nombre_servicio,
+                faena_seleccionada_cp: result.value.faena_seleccionada_cp,
+                valor_servicio: result.value.valor_servicio,
                 categoria_cliente: gi.categoria,
                 fecha_facturacion: result.value.fecha_facturacion,
                 dias_credito: gi.dias_credito,

@@ -235,6 +235,7 @@ const cobranza = [
         _id: String,
         codigo: String,
         nombre_servicio: String,
+        faena_seleccionada_cp: String,
         categoria_cliente: String,
         fecha_facturacion: String,
         dias_credito: String,
@@ -248,8 +249,96 @@ const cobranza = [
         estado: String,
         valor_cancelado: Number,
         valor_deuda: Number,
+        valor_servicio: Number,
         cartas_cobranza: [
             Object
         ]
+    }
+];
+
+const gastos = [
+    {
+        _id: String,
+        codigo: String,
+        fecha: String,
+        categoria_general: String,
+        subcategoria_uno: String,
+        subcategoria_dos: String,
+        descripcion_gasto: String,
+        rut_proveedor: String,
+        razon_social_proveedor: String,
+        requiere_servicio: String,
+        id_servicio: String,
+        servicio: String,
+        tipo_registro: String,
+        tipo_documento: String,
+        nro_documento: String,
+        medio_pago: String,
+        institucion_bancaria: String,
+        inventario: String,
+        cantidad_factor: Number,
+        precio_unitario: Number,
+        monto_neto: Number,
+        impuesto: Number,
+        monto_exento: Number,
+        monto_total: Number,
+        observaciones: String,
+        archivo_adjunto: Object,
+        entradas:[
+            {
+                nombre_proveedor: String,
+                categoria_general: String,
+                subcategoria_uno: String,
+                subcategoria_dos: String,
+                subcategoria_tres: String,
+                codigo_categoria_tres: String,
+                detalle: String,
+                cantidad: Number,
+                costo_unitario: Number,
+                costo_total: Number
+            }
+        ]
+    }
+];
+
+const salidas = [
+    {
+        _id: String,
+        codigo: String,
+        fecha: String,
+        tipo_salida: String,
+        nro_documento: String,
+        usuario: String,
+        categoria_general: String,
+        subcategoria_uno: String,
+        subcategoria_dos: String,
+        subcategoria_tres: String,
+        codigo_categoria_tres: String,
+        descripcion: String,
+        motivo_salida: String,
+        cantidad: Number,
+        costo_unitario: Number,
+        costo_total: Number,
+        precio_venta_unitario: Number,
+        ingreso_total: Number
+    }
+];
+
+const existencia = [
+    {
+        _id: String,
+        codigo: String,
+        categoria_general: String,
+        subcategoria_uno: String,
+        subcategoria_dos: String,
+        subcategoria_tres: String,
+        codigo_categoria_tres: String,
+        descripcion: String,
+        entradas: String,
+        salidas: String,
+        existencia: String,
+        costo_total: Number,
+        costo_unitario_promedio: Number,
+        estado: String
     }
 ]
