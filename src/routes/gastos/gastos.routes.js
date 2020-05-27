@@ -63,21 +63,21 @@ router.post('/', async (req, res) =>{
 router.post('/entrada/:id', async (req, res) =>{
     const { id } = req.params
     const db = await connect()
-    let obj = {}
-    obj.nombre_proveedor = req.body.nombre_proveedor
-    obj.categoria_general = req.body.categoria_general
-    obj.subcategoria_uno = req.body.subcategoria_uno
-    obj.subcategoria_dos = req.body.subcategoria_dos
-    obj.subcategoria_tres = req.body.subcategoria_tres
-    obj.codigo_categoria_tres = req.body.codigo_categoria_tres
-    obj.detalle = req.body.detalle
-    obj.cantidad = req.body.cantidad
-    obj.costo_unitario = req.body.costo_unitario
-    obj.costo_total = req.body.costo_total
+    // let obj = {}
+    // obj.nombre_proveedor = req.body.nombre_proveedor
+    // obj.categoria_general = req.body.categoria_general
+    // obj.subcategoria_uno = req.body.subcategoria_uno
+    // obj.subcategoria_dos = req.body.subcategoria_dos
+    // obj.subcategoria_tres = req.body.subcategoria_tres
+    // obj.codigo_categoria_tres = req.body.codigo_categoria_tres
+    // obj.detalle = req.body.detalle
+    // obj.cantidad = req.body.cantidad
+    // obj.costo_unitario = req.body.costo_unitario
+    // obj.costo_total = req.body.costo_total
 
     const result = await db.collection('gastos').updateOne({_id: ObjectID(id)},{
-        $push:{
-            entradas: obj
+        $set:{
+            entradas: req.body.entradas
         }
     });
 
