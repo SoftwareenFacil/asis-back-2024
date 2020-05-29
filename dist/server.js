@@ -35,6 +35,8 @@ var _gastos = _interopRequireDefault(require("./routes/gastos/gastos.routes"));
 
 var _salidas = _interopRequireDefault(require("./routes/salidas/salidas.routes"));
 
+var _existencia = _interopRequireDefault(require("./routes/existencia/existencia.routes"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 //---------------------IMPORTS ROUTES
@@ -58,5 +60,6 @@ app.use('/pagos', _pagos["default"]);
 app.use('/cobranza', _cobranza["default"]);
 app.use('/gastos', _gastos["default"]);
 app.use('/salidas', _salidas["default"]);
+app.use('/existencia', _existencia["default"]);
 var _default = app;
 exports["default"] = _default;
