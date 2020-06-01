@@ -105,7 +105,7 @@ router.post('/confirmaroc/:id', async (req, res) =>{
 // VALIDAR FACTURA
 router.post('/validar/:id', async (req, res) =>{
     const { id } = req.params
-    const { estado_archivo, observaciones } = req.body;
+    const { estado_archivo, observaciones, nro_nota_credito, fecha_nota_credito, monto_nota_credito, factura_anular, archivo_adjunto } = req.body;
     const db = await connect()
     let obs = {}
     obs.obs = observaciones
@@ -117,7 +117,11 @@ router.post('/validar/:id', async (req, res) =>{
     let result = await db.collection('facturaciones').findOneAndUpdate({_id: ObjectID(id)}, {
         $set:{
             estado: estado,
-            estado_archivo: estado_archivo
+            estado_archivo: estado_archivo,
+            nro_nota_credito: nro_nota_credito,
+            fecha_nota_credito: fecha_nota_credito,
+            monto_nota_credito: monto_nota_credito,
+            factura_anular: factura_anular
         },
         $push:{
             observacion_factura: obs
