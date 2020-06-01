@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
-import CalculateExistencia from "../../functions/calculateExistencia";
+import calculateExistencia from "../../functions/calculateExistencia";
+import getFinalExistencia from "../../functions/getFinalToExistencia";
 const router = Router();
 
 const YEAR = getYear();
@@ -9,7 +10,7 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import calculateExistencia from "../../functions/calculateExistencia";
+
 
 // SELECT
 router.get("/", async (req, res) => {
@@ -106,21 +107,9 @@ router.post("/entrada/:id", async (req, res) => {
 
     result = await db.collection("prexistencia").find({}).toArray();
 
-    result = calculateExistencia(result, "entrada");
+    result = calculateExistencia(result);
 
-    result.forEach(objeto => {
-        objeto.costo_unitario_promedio = Math.round((objeto.costo_total / objeto.entradas), 0)
-        objeto.existencia = objeto.entradas - objeto.salidas;
-        if(objeto.existencia === 0){
-            objeto.estado = 'Sin Stock'          
-        }
-        else if(objeto.existencia === 1){
-            objeto.estado = 'Adquirir Stock'
-        }
-        else{
-            objeto.estado = 'Stock al Día'
-        }
-    });
+    result = getFinalExistencia(result)
     //limpiar existencia a 0 para recargarla con los nuevos datos
     await db.collection('existencia').deleteMany({})
     //insertar cada objeto como document en collection existencia 

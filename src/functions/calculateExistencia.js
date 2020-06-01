@@ -1,9 +1,11 @@
-export default function calculateExistencia(result, tipo){
+export default function calculateExistencia(result){
     let resultado = result;
+    let tipo = '';
     let array = [];
     let obj = {};
 
     resultado.forEach(objGeneral => {
+        tipo = objGeneral.tipo
         objGeneral.datos.forEach(objParticular => {
             if(array.length === 0){
                 obj.categoria_general = objParticular.categoria_general,
@@ -27,9 +29,9 @@ export default function calculateExistencia(result, tipo){
                             if(tipo === 'entrada'){
                                 array[index].entradas = array[index].entradas + objParticular.cantidad
                             }else{
-                                array[index].salidas = array[index].entradas + objParticular.cantidad
+                                array[index].salidas = array[index].salidas + objParticular.cantidad
                             }
-                            array[index].costo_total += objParticular.costo_total
+                            array[index].costo_total = array[index].costo_total + objParticular.costo_total
                         }
                     });
                 }else{
@@ -40,7 +42,7 @@ export default function calculateExistencia(result, tipo){
                     obj.codigo_categoria_tres = objParticular.codigo_categoria_tres,
                     obj.entradas = 0,
                     obj.salidas = 0,
-                    tipo === 'entrada'? obj.entradas = objParticular.cantidad : obj.objParticular.cantidad;
+                    tipo === 'entrada'? obj.entradas = objParticular.cantidad : obj.salidas = objParticular.cantidad;
                     obj.existencia = 0,
                     obj.costo_total = objParticular.costo_total,
                     obj.costo_unitario_promedio = 0,
