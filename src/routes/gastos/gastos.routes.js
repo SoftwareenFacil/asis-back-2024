@@ -81,13 +81,13 @@ router.post("/entrada/:id", async (req, res) => {
 
     result = await db.collection("prexistencia").find({ id: id }).toArray();
 
-    if (result.length > 0) {
-      if (req.body.length > 0) {
+    if (result) {
+      if (req.body.entradas.length > 0) {
         result = await db.collection("prexistencia").updateOne(
           { id: id },
           {
             $set: {
-              datos: req.body,
+              datos: req.body.entradas,
             },
           }
         );
@@ -95,11 +95,11 @@ router.post("/entrada/:id", async (req, res) => {
         result = await db.collection("prexistencia").deleteOne({ id: id });
       }
     } else {
-      if (req.body.length > 0) {
+      if (req.body.entradas.length > 0) {
         let objInsert = {
           id: id,
           tipo: "entrada",
-          datos: req.body,
+          datos: req.body.entradas,
         };
         result = await db.collection("prexistencia").insertOne(objInsert);
       }
