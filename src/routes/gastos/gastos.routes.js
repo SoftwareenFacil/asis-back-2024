@@ -81,7 +81,7 @@ router.post("/entrada/:id", async (req, res) => {
 
     result = await db.collection("prexistencia").find({ id: id }).toArray();
 
-    if (result) {
+    if (result.length > 0) {
       if (req.body.entradas.length > 0) {
         result = await db.collection("prexistencia").updateOne(
           { id: id },
