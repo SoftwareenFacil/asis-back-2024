@@ -165,8 +165,8 @@ router.post("/confirmar/:id", async (req, res) => {
 //CONFIRMACION MASIVA DE RESERVAS
 router.post("/confirmar", async (req, res) => {
   const db = await connect();
+  
   let new_array = [];
-
   let obs = {};
   obs.obs = req.body[0].observacion;
   obs.fecha = getDate(new Date());
