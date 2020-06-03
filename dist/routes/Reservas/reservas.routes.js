@@ -135,24 +135,23 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
 
           case 13:
             result = _context3.sent;
-            console.log("result", result);
-            _context3.next = 17;
+            _context3.next = 16;
             return db.collection("reservas").findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
-          case 17:
+          case 16:
             reserva = _context3.sent;
 
             if (!((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == "si" && result.result.ok == 1)) {
-              _context3.next = 25;
+              _context3.next = 24;
               break;
             }
 
             //insertamos la evaluacion
             codAsis = reserva.codigo;
             codAsis = codAsis.replace("AGE", "EVA");
-            _context3.next = 23;
+            _context3.next = 22;
             return db.collection("evaluaciones").insertOne({
               id_GI_personalAsignado: reserva.id_GI_personalAsignado,
               codigo: codAsis,
@@ -176,18 +175,18 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               estado: "Ingresado"
             });
 
-          case 23:
-            _context3.next = 37;
+          case 22:
+            _context3.next = 36;
             break;
 
-          case 25:
-            _context3.next = 27;
+          case 24:
+            _context3.next = 26;
             return db.collection("gi").findOne({
               rut: reserva.rut_cp,
               categoria: "Empresa/Organización"
             });
 
-          case 27:
+          case 26:
             gi = _context3.sent;
             isOC = "";
             estado_archivo = "";
@@ -200,8 +199,7 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
                 estado_archivo = "Sin Documento", estado = "Ingresado";
               } else {
                 estado = "En Facturacion", estado_archivo = "Sin Documento";
-              } // (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
-
+              }
             } else {
               isOC = "No";
               estado = "En Facturacion", estado_archivo = "Sin Documento";
@@ -210,7 +208,7 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
 
             codAsis = reserva.codigo;
             codAsis = codAsis.replace("AGE", "FAC");
-            _context3.next = 36;
+            _context3.next = 35;
             return db.collection("facturaciones").insertOne({
               codigo: codAsis,
               nombre_servicio: reserva.nombre_servicio,
@@ -246,19 +244,19 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               total: 0
             });
 
-          case 36:
+          case 35:
             result = _context3.sent;
 
-          case 37:
+          case 36:
             res.json({
               status: 200,
               message: "Reserva Confirmada"
             });
-            _context3.next = 44;
+            _context3.next = 43;
             break;
 
-          case 40:
-            _context3.prev = 40;
+          case 39:
+            _context3.prev = 39;
             _context3.t0 = _context3["catch"](10);
             console.log("error", _context3.t0);
             res.json({
@@ -267,16 +265,203 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               error: _context3.t0
             });
 
-          case 44:
+          case 43:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3, null, [[10, 40]]);
+    }, _callee3, null, [[10, 39]]);
   }));
 
   return function (_x5, _x6) {
     return _ref3.apply(this, arguments);
+  };
+}()); //CONFIRMACION MASIVA DE RESERVAS
+
+router.post("/confirmar", /*#__PURE__*/function () {
+  var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
+    var db, new_array, obs, result, resp, codigoAsis, arrayReservas, resultEva, arrayIDsCP, isOC, estado_archivo, estado, GIs, resultFac;
+    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            _context4.next = 2;
+            return (0, _database.connect)();
+
+          case 2:
+            db = _context4.sent;
+            new_array = [];
+            obs = {};
+            obs.obs = req.body[0].observacion;
+            obs.fecha = (0, _getDateNow.getDate)(new Date());
+            req.body[1].ids.forEach(function (element) {
+              new_array.push((0, _mongodb.ObjectID)(element));
+            }); // Se editan las reservas de forma masiva
+
+            result = db.collection("reservas").updateMany({
+              _id: {
+                $in: new_array
+              }
+            }, {
+              $set: {
+                fecha_reserva: req.body[0].fecha_reserva,
+                fecha_reserva_fin: req.body[0].fecha_reserva_fin,
+                hora_reserva: req.body[0].hora_reserva,
+                hora_reserva_fin: req.body[0].hora_reserva_fin,
+                id_GI_personalAsignado: req.body[0].id_GI_profesional_asignado,
+                sucursal: req.body[0].sucursal,
+                estado: "Reservado",
+                reqEvaluacion: (0, _changeToMiniscula.getMinusculas)(req.body[0].reqEvaluacion)
+              },
+              $push: {
+                observacion: obs
+              }
+            });
+            resp = "";
+            codigoAsis = "";
+            arrayReservas = []; // Se insertan las evaluaciones o las facturaciones dependiendo del caso
+
+            _context4.next = 14;
+            return db.collection("reservas").find({
+              _id: {
+                $in: new_array
+              }
+            }).toArray();
+
+          case 14:
+            resp = _context4.sent;
+
+            if (!((0, _changeToMiniscula.getMinusculas)(req.body[0].reqEvaluacion) === "si" && result)) {
+              _context4.next = 23;
+              break;
+            }
+
+            resp.forEach(function (element) {
+              codigoAsis = element.codigo;
+              codigoAsis = codigoAsis.replace("AGE", "EVA");
+              arrayReservas.push({
+                id_GI_personalAsignado: element.id_GI_personalAsignado,
+                codigo: codigoAsis,
+                valor_servicio: element.valor_servicio,
+                faena_seleccionada_cp: element.faena_seleccionada_cp,
+                fecha_evaluacion: element.fecha_reserva,
+                fecha_evaluacion_fin: element.fecha_reserva_fin,
+                hora_inicio_evaluacion: element.hora_reserva,
+                hora_termino_evaluacion: element.hora_reserva_fin,
+                mes: element.mes,
+                anio: element.anio,
+                nombre_servicio: element.nombre_servicio,
+                rut_cp: element.rut_cp,
+                razon_social_cp: element.razon_social_cp,
+                rut_cs: element.rut_cs,
+                razon_social_cs: element.razon_social_cs,
+                lugar_servicio: element.lugar_servicio,
+                sucursal: element.sucursal,
+                observaciones: [],
+                estado_archivo: "Sin Documento",
+                estado: "Ingresado"
+              });
+            });
+            _context4.next = 19;
+            return db.collection("evaluaciones").insertMany(arrayReservas);
+
+          case 19:
+            resultEva = _context4.sent;
+            res.json(resultEva);
+            _context4.next = 36;
+            break;
+
+          case 23:
+            arrayIDsCP = [];
+            isOC = "";
+            estado_archivo = "";
+            estado = "";
+            resp.forEach(function (element) {
+              arrayIDsCP.push((0, _mongodb.ObjectID)(element.id_GI_Principal));
+            });
+            _context4.next = 30;
+            return db.collection("gi").find({
+              _id: {
+                $in: arrayIDsCP
+              },
+              categoria: "Empresa/Organización"
+            }).toArray();
+
+          case 30:
+            GIs = _context4.sent;
+            resp.forEach(function (element) {
+              codigoAsis = element.codigo;
+              codigoAsis = codigoAsis.replace("AGE", "FAC"); // gi = GIs.map((gi) => gi._id === element.id_GI_Principal);
+
+              var gi = GIs.find(function (gi) {
+                return gi._id.toString() === element.id_GI_Principal;
+              });
+
+              if (gi) {
+                isOC = gi.orden_compra;
+
+                if (isOC == "Si") {
+                  estado_archivo = "Sin Documento", estado = "Ingresado";
+                } else {
+                  estado = "En Facturacion", estado_archivo = "Sin Documento";
+                }
+              } else {
+                isOC = "No";
+                estado = "En Facturacion", estado_archivo = "Sin Documento";
+              }
+
+              arrayReservas.push({
+                codigo: codigoAsis,
+                nombre_servicio: element.nombre_servicio,
+                id_GI_personalAsignado: element.id_GI_personalAsignado,
+                faena_seleccionada_cp: element.faena_seleccionada_cp,
+                valor_servicio: element.valor_servicio,
+                rut_cp: element.rut_cp,
+                razon_social_cp: element.razon_social_cp,
+                rut_cs: element.rut_cs,
+                razon_social_cs: element.razon_social_cs,
+                lugar_servicio: element.lugar_servicio,
+                sucursal: element.sucursal,
+                condicionantes: "",
+                vigencia_examen: "",
+                oc: isOC,
+                archivo_oc: null,
+                fecha_oc: "",
+                hora_oc: "",
+                nro_oc: "",
+                observacion_oc: [],
+                observacion_factura: [],
+                estado: estado,
+                estado_archivo: estado_archivo,
+                fecha_facturacion: "",
+                nro_factura: "",
+                archivo_factura: null,
+                monto_neto: 0,
+                porcentaje_impuesto: "",
+                valor_impuesto: 0,
+                sub_total: 0,
+                exento: 0,
+                descuento: 0,
+                total: 0
+              });
+            });
+            _context4.next = 34;
+            return db.collection("facturaciones").insertMany(arrayReservas);
+
+          case 34:
+            resultFac = _context4.sent;
+            res.json(resultFac);
+
+          case 36:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, _callee4);
+  }));
+
+  return function (_x7, _x8) {
+    return _ref4.apply(this, arguments);
   };
 }());
 var _default = router;

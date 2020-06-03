@@ -56,11 +56,9 @@ router.post("/confirmar/:id", async (req, res) => {
         },
       }
     );
-    console.log("result", result);
     const reserva = await db
       .collection("reservas")
       .findOne({ _id: ObjectID(id) });
-    // console.log('result modified', result.result.ok)
 
     if (getMinusculas(datos.reqEvaluacion) == "si" && result.result.ok == 1) {
       //insertamos la evaluacion
@@ -105,7 +103,6 @@ router.post("/confirmar/:id", async (req, res) => {
         } else {
           (estado = "En Facturacion"), (estado_archivo = "Sin Documento");
         }
-        // (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
       } else {
         isOC = "No";
         (estado = "En Facturacion"), (estado_archivo = "Sin Documento");
@@ -162,6 +159,160 @@ router.post("/confirmar/:id", async (req, res) => {
       message: "No se pudo concretar la confirmacion de la reserva",
       error: err,
     });
+  }
+});
+
+//CONFIRMACION MASIVA DE RESERVAS
+router.post("/confirmar", async (req, res) => {
+  const db = await connect();
+  let new_array = [];
+
+  let obs = {};
+  obs.obs = req.body[0].observacion;
+  obs.fecha = getDate(new Date());
+
+  req.body[1].ids.forEach((element) => {
+    new_array.push(ObjectID(element));
+  });
+
+  // Se editan las reservas de forma masiva
+  const result = db.collection("reservas").updateMany(
+    { _id: { $in: new_array } },
+    {
+      $set: {
+        fecha_reserva: req.body[0].fecha_reserva,
+        fecha_reserva_fin: req.body[0].fecha_reserva_fin,
+        hora_reserva: req.body[0].hora_reserva,
+        hora_reserva_fin: req.body[0].hora_reserva_fin,
+        id_GI_personalAsignado: req.body[0].id_GI_profesional_asignado,
+        sucursal: req.body[0].sucursal,
+        estado: "Reservado",
+        reqEvaluacion: getMinusculas(req.body[0].reqEvaluacion),
+      },
+      $push: {
+        observacion: obs,
+      },
+    }
+  );
+
+  let resp = "";
+  let codigoAsis = "";
+  let arrayReservas = [];
+
+  // Se insertan las evaluaciones o las facturaciones dependiendo del caso
+  resp = await db
+    .collection("reservas")
+    .find({ _id: { $in: new_array } })
+    .toArray();
+
+  if (getMinusculas(req.body[0].reqEvaluacion) === "si" && result) {
+    resp.forEach((element) => {
+      codigoAsis = element.codigo;
+      codigoAsis = codigoAsis.replace("AGE", "EVA");
+      arrayReservas.push({
+        id_GI_personalAsignado: element.id_GI_personalAsignado,
+        codigo: codigoAsis,
+        valor_servicio: element.valor_servicio,
+        faena_seleccionada_cp: element.faena_seleccionada_cp,
+        fecha_evaluacion: element.fecha_reserva,
+        fecha_evaluacion_fin: element.fecha_reserva_fin,
+        hora_inicio_evaluacion: element.hora_reserva,
+        hora_termino_evaluacion: element.hora_reserva_fin,
+        mes: element.mes,
+        anio: element.anio,
+        nombre_servicio: element.nombre_servicio,
+        rut_cp: element.rut_cp,
+        razon_social_cp: element.razon_social_cp,
+        rut_cs: element.rut_cs,
+        razon_social_cs: element.razon_social_cs,
+        lugar_servicio: element.lugar_servicio,
+        sucursal: element.sucursal,
+        observaciones: [],
+        estado_archivo: "Sin Documento",
+        estado: "Ingresado",
+      });
+    });
+
+    const resultEva = await db
+      .collection("evaluaciones")
+      .insertMany(arrayReservas);
+
+    res.json(resultEva);
+  } else {
+    let arrayIDsCP = [];
+    let isOC = "";
+    let estado_archivo = "";
+    let estado = "";
+
+    resp.forEach((element) => {
+      arrayIDsCP.push(ObjectID(element.id_GI_Principal));
+    });
+
+    let GIs = await db
+      .collection("gi")
+      .find({ _id: { $in: arrayIDsCP }, categoria: "Empresa/Organización" })
+      .toArray();
+
+    resp.forEach((element) => {
+      codigoAsis = element.codigo;
+      codigoAsis = codigoAsis.replace("AGE", "FAC");
+      // gi = GIs.map((gi) => gi._id === element.id_GI_Principal);
+      const gi = GIs.find(gi => (gi._id).toString() === element.id_GI_Principal)
+
+      if (gi) {
+        isOC = gi.orden_compra;
+        if (isOC == "Si") {
+          (estado_archivo = "Sin Documento"), (estado = "Ingresado");
+        } else {
+          (estado = "En Facturacion"), (estado_archivo = "Sin Documento");
+        }
+      } else {
+        isOC = "No";
+        (estado = "En Facturacion"), (estado_archivo = "Sin Documento");
+      }
+
+      arrayReservas.push({
+        codigo: codigoAsis,
+        nombre_servicio: element.nombre_servicio,
+        id_GI_personalAsignado: element.id_GI_personalAsignado,
+        faena_seleccionada_cp: element.faena_seleccionada_cp,
+        valor_servicio: element.valor_servicio,
+        rut_cp: element.rut_cp,
+        razon_social_cp: element.razon_social_cp,
+        rut_cs: element.rut_cs,
+        razon_social_cs: element.razon_social_cs,
+        lugar_servicio: element.lugar_servicio,
+        sucursal: element.sucursal,
+        condicionantes: "",
+        vigencia_examen: "",
+        oc: isOC,
+        archivo_oc: null,
+        fecha_oc: "",
+        hora_oc: "",
+        nro_oc: "",
+        observacion_oc: [],
+        observacion_factura: [],
+        estado: estado,
+        estado_archivo: estado_archivo,
+        fecha_facturacion: "",
+        nro_factura: "",
+        archivo_factura: null,
+        monto_neto: 0,
+        porcentaje_impuesto: "",
+        valor_impuesto: 0,
+        sub_total: 0,
+        exento: 0,
+        descuento: 0,
+        total: 0,
+      });
+
+    });
+
+    const resultFac = await db
+      .collection("facturaciones")
+      .insertMany(arrayReservas);
+
+    res.json(resultFac);
   }
 });
 

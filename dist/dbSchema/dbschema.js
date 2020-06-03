@@ -5,49 +5,49 @@ var _ref;
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var gi = [{
-  _id: '33443444434545464TGFG67STG36FTD63G',
-  codigo: 'ASIS-GI-00001',
-  rut: '76.325.648-8',
-  razon_social: 'Asociacion Chilena de Seguridad',
-  nombre_fantasia: 'ACHS',
+  _id: "33443444434545464TGFG67STG36FTD63G",
+  codigo: "ASIS-GI-00001",
+  rut: "76.325.648-8",
+  razon_social: "Asociacion Chilena de Seguridad",
+  nombre_fantasia: "ACHS",
   rubro_principal: String,
   actividad_principal: String,
   rubro_secundario: String,
   actividad_secundaria: String,
-  grupo_interes: 'cliente',
-  categoria: 'Empresa/Organizacion',
-  categoria_empresa: 'Gran Empresa',
-  categoria_cliente: 'frecuente',
-  genero: 'no aplca',
-  fecha_inic_nac: '1910-02-17',
-  nivel_educacional: 'no aplica',
-  contacto: '25418458',
-  contacto_2: '0',
-  email_central: 'archcontacto@arch.cl',
-  email_encargado: ' ',
-  profesion_oficio: ' seguridad',
-  cargo: 'gerente general',
-  licencia_conducion: '',
-  clase_licencia: ['A1', 'A2'],
-  ley_aplicable: '94125',
-  fecha_venc_licencia: '2022-05-21',
-  direccion: ' direccion detallada de la ARCH ',
-  localidad: 'San Bernardo',
-  comuna: 'San Bernardo',
-  sector: 'Urbano',
-  nacionalidad: 'Chilena',
-  pais_origen: 'Chile',
-  credito: 'Si',
-  dias_credito: '90',
-  orden_compra: 'Si',
+  grupo_interes: "cliente",
+  categoria: "Empresa/Organizacion",
+  categoria_empresa: "Gran Empresa",
+  categoria_cliente: "frecuente",
+  genero: "no aplca",
+  fecha_inic_nac: "1910-02-17",
+  nivel_educacional: "no aplica",
+  contacto: "25418458",
+  contacto_2: "0",
+  email_central: "archcontacto@arch.cl",
+  email_encargado: " ",
+  profesion_oficio: " seguridad",
+  cargo: "gerente general",
+  licencia_conducion: "",
+  clase_licencia: ["A1", "A2"],
+  ley_aplicable: "94125",
+  fecha_venc_licencia: "2022-05-21",
+  direccion: " direccion detallada de la ARCH ",
+  localidad: "San Bernardo",
+  comuna: "San Bernardo",
+  sector: "Urbano",
+  nacionalidad: "Chilena",
+  pais_origen: "Chile",
+  credito: "Si",
+  dias_credito: "90",
+  orden_compra: "Si",
   estado_civil: String,
   grupo_sanguineo: String,
   usa_lente_optico: String,
   usa_lente_contacto: String,
   usa_audifonos: String,
-  id_GI_org_perteneciente: '78wf783fg3gf3f3fg783r',
-  razon_social_org_perteneciente: 'Empresas Altamirano SpA',
-  url_file_adjunto: 'src/files/7464563736463gfbce.pdf'
+  id_GI_org_perteneciente: "78wf783fg3gf3f3fg783r",
+  razon_social_org_perteneciente: "Empresas Altamirano SpA",
+  url_file_adjunto: "src/files/7464563736463gfbce.pdf"
 }];
 var solicitud = [{
   _id: String,
@@ -75,7 +75,7 @@ var solicitud = [{
   hora_solicitud: String,
   hora_servicio_solicitado: String,
   jornada: String,
-  estado: 'Ingresado'
+  estado: "Ingresado"
 }];
 var reserva = [{
   _id: String,
@@ -98,7 +98,7 @@ var reserva = [{
   lugar_servicio: String,
   sucursal: String,
   observacion: Array,
-  estado: 'Ingresado'
+  estado: "Ingresado"
 }];
 var evaluacion = [{
   _id: String,
@@ -290,15 +290,29 @@ var salidas = [{
   precio_venta_unitario: Number,
   ingreso_total: Number
 }];
+var prexistencia = [data[{
+  id: String,
+  tipo: String,
+  datos: [{
+    nombre_proveedor: String,
+    categoria_general: String,
+    subcategoria_uno: String,
+    subcategoria_dos: String,
+    subcategoria_tres: String,
+    codigo_categoria_tres: String,
+    detalle: String,
+    cantidad: Number,
+    costo_unitario: Number,
+    costo_total: Number
+  }]
+}]];
 var existencia = [{
   _id: String,
-  codigo: String,
   categoria_general: String,
   subcategoria_uno: String,
   subcategoria_dos: String,
   subcategoria_tres: String,
   codigo_categoria_tres: String,
-  descripcion: String,
   entradas: String,
   salidas: String,
   existencia: String,
