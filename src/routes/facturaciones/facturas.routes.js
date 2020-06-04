@@ -88,7 +88,6 @@ router.post("/subiroc/:id", async (req, res) => {
 //SUBIR OC MASIVO
 router.post("/oc/subiroc/many", async (req, res) => {
   const db = await connect();
-  console.log("entra aqui");
   let new_array = [];
 
   let obs = {};
@@ -132,12 +131,49 @@ router.post("/confirmaroc/:id", async (req, res) => {
   req.body.estado_archivo == "Aprobado"
     ? (estado = "En Facturacion")
     : (estado = "Ingresado");
+
   const result = await db.collection("facturaciones").updateOne(
     { _id: ObjectID(id) },
     {
       $set: {
         estado: estado,
         estado_archivo: req.body.estado_archivo,
+      },
+      $push: {
+        observacion_oc: obs,
+      },
+    }
+  );
+
+  res.json(result);
+});
+
+//CONFIRMAR OC MASIVO
+router.post("/oc/confirmaroc/many", async (req, res) => {
+  const db = await connect();
+
+  let new_array = [];
+
+  let obs = {};
+  obs.obs = req.body[0].observaciones;
+  obs.fecha = getDate(new Date());
+  obs.estado = req.body[0].estado_archivo;
+
+  let estado = "";
+  req.body[0].estado_archivo == "Aprobado"
+    ? (estado = "En Facturacion")
+    : (estado = "Ingresado");
+
+  req.body[1].ids.forEach((element) => {
+    new_array.push(ObjectID(element));
+  });
+
+  const result = await db.collection("facturaciones").updateMany(
+    { _id: { $in: new_array } },
+    {
+      $set: {
+        estado: estado,
+        estado_archivo: req.body[0].estado_archivo,
       },
       $push: {
         observacion_oc: obs,
