@@ -13,12 +13,12 @@ router.get("/", async (req, res) => {
 });
 
 //INSERT TEST
-router.post("/", async (req, res) =>{
-  const db = await connect();
-  const data = req.body
-  const result = await db.collection('catGenerales').insertOne({data});
+// router.post("/", async (req, res) =>{
+//   const db = await connect();
+//   const data = req.body
+//   const result = await db.collection('catGenerales').insertOne({data});
 
-  res.json(result)
-})
+//   res.json(result)
+// })
 
 export default router;
