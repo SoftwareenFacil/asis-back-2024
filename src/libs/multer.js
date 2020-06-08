@@ -1,5 +1,5 @@
 import multer from "multer";
-import uuid from "uuid/v4";
+import uuid from "uuid";
 import path from "path";
 
 const storage = multer.diskStorage({
