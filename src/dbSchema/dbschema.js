@@ -359,3 +359,28 @@ const existencia = [
     estado: String,
   },
 ];
+
+const catGenerales = [
+  {
+    _id: String,
+    categoria_general: String,
+    subcategoria_uno: [
+      {
+        nombre: String,
+        subcategoria_dos:[
+          {
+            nombre: String,
+            inventario: Boolean,
+            sub_cat_tres: [
+              {
+                codigo: String,
+                nombre: String,
+                cantMaxima: Number
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

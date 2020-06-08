@@ -3,6 +3,7 @@ import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import { getMinusculas } from "../../functions/changeToMiniscula";
 import { getDate } from "../../functions/getDateNow";
+import multer from "../../libs/multer";
 
 const router = Router();
 
@@ -27,8 +28,17 @@ router.get("/:id", async (req, res) => {
   res.json(result);
 });
 
+// ------------------------------------------TEST------------------------------
+router.post("/confirmar/:id", multer.single('archivo'), async (req, res) =>{
+  console.log('archivo', req.file)
+  const datos = req.body
+  console.log('data', datos.fecha_reserva)
+  // const { id } = req.params
+
+})
+
 //CONFIRMAR RESERVA
-router.post("/confirmar/:id", async (req, res) => {
+router.post("/confirmar/:id", multer.single('archivo'), async (req, res) => {
   const { id } = req.params;
   const datos = req.body;
   const db = await connect();
@@ -50,6 +60,7 @@ router.post("/confirmar/:id", async (req, res) => {
           sucursal: datos.sucursal,
           estado: "Reservado",
           reqEvaluacion: getMinusculas(datos.reqEvaluacion),
+          archivo: req.file
         },
         $push: {
           observacion: obs,

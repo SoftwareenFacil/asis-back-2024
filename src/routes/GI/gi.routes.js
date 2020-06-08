@@ -1,6 +1,8 @@
 import { Router } from "express";
 import {calculate} from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
+import multer from "../../libs/multer";
+
 const router = Router();
 
 const YEAR = getYear();
@@ -22,7 +24,7 @@ router.post('/:rut', async (req, res) =>{
     const verificador = req.body.verificador;
     const db = await connect();
     let result = ""
-    console.log('verificador', verificador)
+    // console.log('verificador', verificador)
     if(verificador == 1){
         result = await db.collection('gi').findOne({rut: rut, categoria: "Empresa/Organización"});
     }
@@ -31,6 +33,14 @@ router.post('/:rut', async (req, res) =>{
     }
     
     res.json(result)
+})
+router.post('/test/file', multer.single('archivo'), async (req, res) =>{
+    const { nombre } = req.body;
+    console.log(req.file)
+    console.log(nombre)
+    res.json({
+        message: 'archivo subido satisfactoriamente'
+    })
 })
 
 //INSERT
