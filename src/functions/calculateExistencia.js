@@ -17,6 +17,7 @@ export default function calculateExistencia(result){
                 obj.salidas = 0,
                 tipo === 'entrada'? obj.entradas = objParticular.cantidad : obj.salidas = objParticular.cantidad;
                 obj.existencia = 0,
+                obj.cantMaxima = objParticular.cant_maxima_categoria_tres;
                 obj.costo_total = objParticular.costo_total,
                 obj.costo_unitario_promedio = 0,
                 obj.estado = ''
@@ -44,6 +45,7 @@ export default function calculateExistencia(result){
                     obj.salidas = 0,
                     tipo === 'entrada'? obj.entradas = objParticular.cantidad : obj.salidas = objParticular.cantidad;
                     obj.existencia = 0,
+                    obj.cantMaxima = objParticular.cant_maxima_categoria_tres;
                     obj.costo_total = objParticular.costo_total,
                     obj.costo_unitario_promedio = 0,
                     obj.estado = ''
