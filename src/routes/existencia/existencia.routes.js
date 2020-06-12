@@ -30,6 +30,7 @@ router.post('/consultar', async (req, res) =>{
     else{
         res.json({
             cupos_disponibles: result.entradas - result.salidas,
+            costo_unitario_promedio: result.costo_unitario_promedio
         })
     }
 })
