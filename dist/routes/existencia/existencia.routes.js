@@ -83,6 +83,7 @@ router.post('/consultar', /*#__PURE__*/function () {
               });
             } else {
               res.json({
+                isOK: true,
                 cupos_disponibles: result.existencia,
                 costo_unitario_promedio: result.costo_unitario_promedio
               });

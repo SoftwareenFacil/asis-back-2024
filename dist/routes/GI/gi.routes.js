@@ -11,6 +11,8 @@ var _NewCode = require("../../functions/NewCode");
 
 var _getYearActual = require("../../functions/getYearActual");
 
+var _excelToJson = _interopRequireDefault(require("../../functions/excelToJson"));
+
 var _multer = _interopRequireDefault(require("../../libs/multer"));
 
 var _database = require("../../database");
@@ -27,7 +29,7 @@ var router = (0, _express.Router)();
 var YEAR = (0, _getYearActual.getYear)(); //database connection
 
 // SELECT
-router.get('/', /*#__PURE__*/function () {
+router.get("/", /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
     var db, result;
     return regeneratorRuntime.wrap(function _callee$(_context) {
@@ -40,7 +42,7 @@ router.get('/', /*#__PURE__*/function () {
           case 2:
             db = _context.sent;
             _context.next = 5;
-            return db.collection('gi').find({}).toArray();
+            return db.collection("gi").find({}).toArray();
 
           case 5:
             result = _context.sent;
@@ -59,7 +61,7 @@ router.get('/', /*#__PURE__*/function () {
   };
 }()); //SELECT BY RUT
 
-router.post('/:rut', /*#__PURE__*/function () {
+router.post("/:rut", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
     var rut, verificador, db, result;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
@@ -81,7 +83,7 @@ router.post('/:rut', /*#__PURE__*/function () {
             }
 
             _context2.next = 9;
-            return db.collection('gi').findOne({
+            return db.collection("gi").findOne({
               rut: rut,
               categoria: "Empresa/Organización"
             });
@@ -98,7 +100,7 @@ router.post('/:rut', /*#__PURE__*/function () {
             }
 
             _context2.next = 15;
-            return db.collection('gi').findOne({
+            return db.collection("gi").findOne({
               rut: rut,
               categoria: "Persona Natural"
             });
@@ -122,7 +124,7 @@ router.post('/:rut', /*#__PURE__*/function () {
   };
 }()); //TEST PARA RECIBIR FILES
 
-router.post('/test/file', _multer["default"].single('archivo'), /*#__PURE__*/function () {
+router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
     var nombre;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
@@ -133,7 +135,7 @@ router.post('/test/file', _multer["default"].single('archivo'), /*#__PURE__*/fun
             console.log(req.file);
             console.log(nombre);
             res.json({
-              message: 'archivo subido satisfactoriamente'
+              message: "archivo subido satisfactoriamente"
             });
 
           case 4:
@@ -149,7 +151,7 @@ router.post('/test/file', _multer["default"].single('archivo'), /*#__PURE__*/fun
   };
 }()); //INSERT
 
-router.post('/', /*#__PURE__*/function () {
+router.post("/", /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
     var db, newGi, items, result;
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
@@ -163,7 +165,7 @@ router.post('/', /*#__PURE__*/function () {
             db = _context4.sent;
             newGi = req.body;
             _context4.next = 6;
-            return db.collection('gi').find({}).toArray();
+            return db.collection("gi").find({}).toArray();
 
           case 6:
             items = _context4.sent;
@@ -177,7 +179,7 @@ router.post('/', /*#__PURE__*/function () {
 
 
             _context4.next = 10;
-            return db.collection('gi').insertOne(newGi);
+            return db.collection("gi").insertOne(newGi);
 
           case 10:
             result = _context4.sent;
@@ -196,7 +198,7 @@ router.post('/', /*#__PURE__*/function () {
   };
 }()); //DELETE
 
-router["delete"]('/:id', /*#__PURE__*/function () {
+router["delete"]("/:id", /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
     var id, db, result;
     return regeneratorRuntime.wrap(function _callee5$(_context5) {
@@ -210,7 +212,7 @@ router["delete"]('/:id', /*#__PURE__*/function () {
           case 3:
             db = _context5.sent;
             _context5.next = 6;
-            return db.collection('gi').deleteOne({
+            return db.collection("gi").deleteOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 

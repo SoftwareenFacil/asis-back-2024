@@ -11,4 +11,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 
 function getJsonFromExcel(file) {
   var wb = _xlsx["default"].readFile(file);
+
+  return wb.SheetNames;
 }

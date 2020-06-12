@@ -29,6 +29,7 @@ router.post('/consultar', async (req, res) =>{
     }
     else{
         res.json({
+            isOK: true,
             cupos_disponibles: result.existencia,
             costo_unitario_promedio: result.costo_unitario_promedio
         })
