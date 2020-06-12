@@ -19,7 +19,7 @@ router.get('/', async (req, res) =>{
 //CONSULTAR POR ENTRADAS PARA INSERCION DE SALIDAS
 router.post('/consultar', async (req, res) =>{
     const db = await connect()
-    const {code, salidas} = req.body
+    const {code} = req.body
     const result = await db.collection('existencia').findOne({codigo_categoria_tres: code})
     if(result == null){
         res.json({
@@ -29,7 +29,7 @@ router.post('/consultar', async (req, res) =>{
     }
     else{
         res.json({
-            cupos_disponibles: result.entradas - result.salidas,
+            cupos_disponibles: result.existencia,
             costo_unitario_promedio: result.costo_unitario_promedio
         })
     }

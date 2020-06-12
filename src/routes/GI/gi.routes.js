@@ -34,6 +34,7 @@ router.post('/:rut', async (req, res) =>{
     
     res.json(result)
 })
+//TEST PARA RECIBIR FILES
 router.post('/test/file', multer.single('archivo'), async (req, res) =>{
     const { nombre } = req.body;
     console.log(req.file)

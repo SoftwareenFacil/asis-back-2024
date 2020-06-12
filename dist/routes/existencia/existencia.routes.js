@@ -57,8 +57,7 @@ router.get('/', /*#__PURE__*/function () {
 
 router.post('/consultar', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var db, _req$body, code, salidas, result;
-
+    var db, code, result;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -68,7 +67,7 @@ router.post('/consultar', /*#__PURE__*/function () {
 
           case 2:
             db = _context2.sent;
-            _req$body = req.body, code = _req$body.code, salidas = _req$body.salidas;
+            code = req.body.code;
             _context2.next = 6;
             return db.collection('existencia').findOne({
               codigo_categoria_tres: code
@@ -84,7 +83,7 @@ router.post('/consultar', /*#__PURE__*/function () {
               });
             } else {
               res.json({
-                cupos_disponibles: result.entradas - result.salidas,
+                cupos_disponibles: result.existencia,
                 costo_unitario_promedio: result.costo_unitario_promedio
               });
             }

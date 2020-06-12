@@ -120,7 +120,8 @@ router.post('/:rut', /*#__PURE__*/function () {
   return function (_x3, _x4) {
     return _ref2.apply(this, arguments);
   };
-}());
+}()); //TEST PARA RECIBIR FILES
+
 router.post('/test/file', _multer["default"].single('archivo'), /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
     var nombre;
