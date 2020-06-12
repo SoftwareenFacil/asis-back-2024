@@ -28,20 +28,9 @@ router.post('/consultar', async (req, res) =>{
         })
     }
     else{
-        if((result.entradas - result.salidas) < salidas){
-            res.json({
-                message: "La cantidad de salidas a insertar supera las entradas en el sistema",
-                isOk: false,
-                cupos_disponibles: result.entradas - result.salidas,
-                salida_ingresada: salidas
-            })
-        }
-        else{
-            res.json({
-                message: "Cantidad aceptada para ingreso",
-                isOk: true
-            })
-        }
+        res.json({
+            cupos_disponibles: result.entradas - result.salidas,
+        })
     }
 })
 

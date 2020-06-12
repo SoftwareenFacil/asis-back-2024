@@ -53,6 +53,52 @@ router.get('/', /*#__PURE__*/function () {
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
+}()); //CONSULTAR POR ENTRADAS PARA INSERCION DE SALIDAS
+
+router.post('/consultar', /*#__PURE__*/function () {
+  var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
+    var db, _req$body, code, salidas, result;
+
+    return regeneratorRuntime.wrap(function _callee2$(_context2) {
+      while (1) {
+        switch (_context2.prev = _context2.next) {
+          case 0:
+            _context2.next = 2;
+            return (0, _database.connect)();
+
+          case 2:
+            db = _context2.sent;
+            _req$body = req.body, code = _req$body.code, salidas = _req$body.salidas;
+            _context2.next = 6;
+            return db.collection('existencia').findOne({
+              codigo_categoria_tres: code
+            });
+
+          case 6:
+            result = _context2.sent;
+
+            if (result == null) {
+              res.json({
+                message: "La Subcategoria 3 consultada no existe en la existencia del sistema",
+                isOK: false
+              });
+            } else {
+              res.json({
+                cupos_disponibles: result.entradas - result.salidas
+              });
+            }
+
+          case 8:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+
+  return function (_x3, _x4) {
+    return _ref2.apply(this, arguments);
+  };
 }());
 var _default = router;
 exports["default"] = _default;

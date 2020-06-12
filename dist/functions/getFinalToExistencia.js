@@ -17,15 +17,23 @@ function getFinalExistencia(result) {
       objeto.existencia = objeto.entradas - objeto.salidas;
     } else {
       objeto.existencia = 0;
-    }
+    } //calculo para porcentaje de existencia (stock) -> entradas/cantMaxima
+
 
     if (objeto.existencia === 0) {
-      objeto.estado = 'Sin Stock';
-    } else if (objeto.existencia === 1) {
-      objeto.estado = 'Adquirir Stock';
+      objeto.estado = "Sin Stock";
+    } else if (Math.round(objeto.existencia / objeto.cantMaxima * 100, 0) < 25) {
+      objeto.estado = "Adquirir Stock";
     } else {
-      objeto.estado = 'Stock al Día';
-    }
+      objeto.estado = "Stock al Día";
+    } // if (objeto.existencia === 0) {
+    //   objeto.estado = "Sin Stock";
+    // } else if (objeto.existencia === 1) {
+    //   objeto.estado = "Adquirir Stock";
+    // } else {
+    //   objeto.estado = "Stock al Día";
+    // }
+
   });
   return result;
 }
