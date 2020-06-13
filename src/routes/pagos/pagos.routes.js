@@ -31,6 +31,7 @@ router.post('/nuevo/:id', async (req, res) =>{
     obj.total = req.body.total
     obj.observaciones = req.body.observaciones
     obj.institucion_bancaria = req.body.institucion_bancaria
+    obj.archivo_adjunto = req.body.archivo_adjunto
     let result = await db.collection('pagos').findOneAndUpdate({_id: ObjectID(id)}, {
         $inc: {
             valor_cancelado: obj.total
@@ -41,7 +42,7 @@ router.post('/nuevo/:id', async (req, res) =>{
         
     }, {returnOriginal: false});
 
-    //-- sacamos el codigo de apgos y lo transformamos a cobranza para buscar si existe
+    //-- sacamos el codigo de pagos y lo transformamos a cobranza para buscar si existe
     let codigoPAG = result.value.codigo;
     let codigoCOB = codigoPAG.replace('PAG', 'COB')
     //--
@@ -77,6 +78,45 @@ router.post('/nuevo/:id', async (req, res) =>{
             }
         })
     }
+
+    res.json(result)
+})
+
+//INGRESO MASIVO DE PAGOS
+router.post('/nuevo/many/:id', async (req, res) =>{
+    const db = await connect()
+    const { id } = req.params
+    let pagos = req.body
+    let obj = {}
+    let array = []
+    let valorAcumulado = 0
+    
+    pagos.forEach(element => {
+        obj.fecha_pago = element.fecha_pago
+        obj.hora_pago = element.hora_pago
+        obj.sucursal = element.sucursal,
+        obj.tipo_pago = element.tipo_pago,
+        obj.monto = element.monto,
+        obj.descuento = element.descuento
+        obj.total = element.total
+        obj.observaciones = element.observaciones
+        obj.institucion_bancaria = element.institucion_bancaria
+
+        valorAcumulado = valorAcumulado + element.total
+
+        array.push(obj)
+        obj = {}
+    });
+
+    let result = await db.collection('pagos').findOneAndUpdate({_id: ObjectID(id)}, {
+        $inc: {
+            valor_cancelado: obj.total
+        },    
+        $set:{
+            pagos: array
+        },
+        
+    }, {returnOriginal: false});
 
     res.json(result)
 })

@@ -26,11 +26,10 @@ function calculateExistencia(result) {
             if (element.codigo_categoria_tres === objParticular.codigo_categoria_tres) {
               if (tipo === 'entrada') {
                 array[index].entradas = array[index].entradas + objParticular.cantidad;
+                array[index].costo_total = array[index].costo_total + objParticular.costo_total;
               } else {
                 array[index].salidas = array[index].salidas + objParticular.cantidad;
               }
-
-              array[index].costo_total = array[index].costo_total + objParticular.costo_total;
             }
           });
         } else {

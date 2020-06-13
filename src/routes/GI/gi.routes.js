@@ -1,7 +1,10 @@
 import { Router } from "express";
 import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
-import excelToJson from "../../functions/excelToJson";
+import excelToJson from "../../functions/insertManyGis/excelToJson";
+import getEmpresasGI from "../../functions/insertManyGis/getEmpresasGI";
+import getPersonasGI from "../../functions/insertManyGis/getPersonasGI";
+import eliminateDuplicated from "../../functions/insertManyGis/eliminateDuplicated";
 import multer from "../../libs/multer";
 
 const router = Router();
@@ -41,11 +44,28 @@ router.post("/:rut", async (req, res) => {
 //TEST PARA RECIBIR FILES
 router.post("/test/file", multer.single("archivo"), async (req, res) => {
   const { nombre } = req.body;
-  console.log(req.file);
-  console.log(nombre);
-  res.json({
-    message: "archivo subido satisfactoriamente",
-  });
+  const data = excelToJson(req.file.path)
+  if(data.length > 0){
+    // console.log(data)
+    let empresas = await getEmpresasGI(data)
+    let personas = await getPersonasGI(data)
+
+    empresas = eliminateDuplicated(empresas, "Rut")
+    personas = eliminateDuplicated(personas, "Rut")
+
+    // res.json({
+    //   empresas: empresas,
+    //   personas: personas
+    // })
+  }
+  else{
+      res.json({
+          message: "EL archivo ingresado no es un archivo excel válido"
+      })
+  }
+//   res.json({
+//     message: "archivo subido satisfactoriamente",
+//   });
 });
 
 //INSERT

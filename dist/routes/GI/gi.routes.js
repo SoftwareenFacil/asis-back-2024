@@ -11,7 +11,13 @@ var _NewCode = require("../../functions/NewCode");
 
 var _getYearActual = require("../../functions/getYearActual");
 
-var _excelToJson = _interopRequireDefault(require("../../functions/excelToJson"));
+var _excelToJson = _interopRequireDefault(require("../../functions/insertManyGis/excelToJson"));
+
+var _getEmpresasGI = _interopRequireDefault(require("../../functions/insertManyGis/getEmpresasGI"));
+
+var _getPersonasGI = _interopRequireDefault(require("../../functions/insertManyGis/getPersonasGI"));
+
+var _eliminateDuplicated = _interopRequireDefault(require("../../functions/insertManyGis/eliminateDuplicated"));
 
 var _multer = _interopRequireDefault(require("../../libs/multer"));
 
@@ -126,19 +132,44 @@ router.post("/:rut", /*#__PURE__*/function () {
 
 router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var nombre;
+    var nombre, data, empresas, personas;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
             nombre = req.body.nombre;
-            console.log(req.file);
-            console.log(nombre);
+            data = (0, _excelToJson["default"])(req.file.path);
+
+            if (!(data.length > 0)) {
+              _context3.next = 13;
+              break;
+            }
+
+            _context3.next = 5;
+            return (0, _getEmpresasGI["default"])(data);
+
+          case 5:
+            empresas = _context3.sent;
+            _context3.next = 8;
+            return (0, _getPersonasGI["default"])(data);
+
+          case 8:
+            personas = _context3.sent;
+            empresas = (0, _eliminateDuplicated["default"])(empresas, "Rut");
+            personas = (0, _eliminateDuplicated["default"])(personas, "Rut"); // res.json({
+            //   empresas: empresas,
+            //   personas: personas
+            // })
+
+            _context3.next = 14;
+            break;
+
+          case 13:
             res.json({
-              message: "archivo subido satisfactoriamente"
+              message: "EL archivo ingresado no es un archivo excel válido"
             });
 
-          case 4:
+          case 14:
           case "end":
             return _context3.stop();
         }
