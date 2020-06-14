@@ -47,8 +47,7 @@ router.get('/', /*#__PURE__*/function () {
             reservas = _context.sent;
             totalDatos = [];
             totalDatos.push(solicitudes);
-            totalDatos.push(reservas); // console.log('total datos', totalDatos)
-
+            totalDatos.push(reservas);
             res.json(totalDatos);
 
           case 13:

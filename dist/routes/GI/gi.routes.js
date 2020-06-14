@@ -81,7 +81,7 @@ router.post("/:rut", /*#__PURE__*/function () {
 
           case 4:
             db = _context2.sent;
-            result = ""; // console.log('verificador', verificador)
+            result = "";
 
             if (!(verificador == 1)) {
               _context2.next = 12;
@@ -156,11 +156,7 @@ router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/fun
           case 8:
             personas = _context3.sent;
             empresas = (0, _eliminateDuplicated["default"])(empresas, "Rut");
-            personas = (0, _eliminateDuplicated["default"])(personas, "Rut"); // res.json({
-            //   empresas: empresas,
-            //   personas: personas
-            // })
-
+            personas = (0, _eliminateDuplicated["default"])(personas, "Rut");
             _context3.next = 14;
             break;
 
@@ -206,8 +202,6 @@ router.post("/", /*#__PURE__*/function () {
             } else {
               newGi.codigo = "ASIS-GI-".concat(YEAR, "-00001");
             }
-            /* console.log(newGi) */
-
 
             _context4.next = 10;
             return db.collection("gi").insertOne(newGi);

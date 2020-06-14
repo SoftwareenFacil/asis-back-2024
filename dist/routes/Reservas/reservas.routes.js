@@ -105,11 +105,9 @@ router.post("/confirmar/:id", _multer["default"].single('archivo'), /*#__PURE__*
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
-            console.log('archivo', req.file);
-            datos = req.body;
-            console.log('data', datos.fecha_reserva); // const { id } = req.params
+            datos = req.body; // const { id } = req.params
 
-          case 3:
+          case 1:
           case "end":
             return _context3.stop();
         }
@@ -281,20 +279,19 @@ router.post("/confirmar/:id", _multer["default"].single('archivo'), /*#__PURE__*
               status: 200,
               message: "Reserva Confirmada"
             });
-            _context4.next = 43;
+            _context4.next = 42;
             break;
 
           case 39:
             _context4.prev = 39;
             _context4.t0 = _context4["catch"](10);
-            console.log("error", _context4.t0);
             res.json({
               status: 500,
               message: "No se pudo concretar la confirmacion de la reserva",
               error: _context4.t0
             });
 
-          case 43:
+          case 42:
           case "end":
             return _context4.stop();
         }

@@ -58,7 +58,6 @@ router.post('/evaluado/:id', async (req, res) => {
     else {
         estadoEvaluacion = 'Ingresado'
     }
-    // console.log(result)
     let result = await db.collection('evaluaciones').findOneAndUpdate({ _id: ObjectID(id) }, {
         $set: {
             estado: estadoEvaluacion,
@@ -75,8 +74,6 @@ router.post('/evaluado/:id', async (req, res) => {
     if (result.ok == 1 && (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs")) {
         let codAsis = result.value.codigo;
         codAsis = codAsis.replace('EVA', 'RES')
-        // let fechaVenci = CalculateFechaVenc(req.body.fecha_resultado_examen, req.body.vigencia_examen.replace(/\D/g,''));
-        console.log('result', result.value)
         const resultinsert = await db.collection('resultados').insertOne({
             codigo: codAsis,
             nombre_servicio: result.value.nombre_servicio,
@@ -92,7 +89,6 @@ router.post('/evaluado/:id', async (req, res) => {
             condicionantes: [],
             vigencia_examen: "",
             observaciones: [],
-            // archivo_respuesta_examen: req.body.archivo_resultado,
             fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
             hora_confirmacion_examen: req.body.hora_confirmacion_examen,
             estado: "En Revisión",
@@ -100,11 +96,9 @@ router.post('/evaluado/:id', async (req, res) => {
             estado_resultado: ""
         });
 
-        console.log('result resultado', resultinsert)
         result = resultinsert
     }
 
-    console.log('result', result)
     res.json(result)
 });
 

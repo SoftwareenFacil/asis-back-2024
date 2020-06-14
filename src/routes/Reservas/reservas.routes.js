@@ -30,9 +30,9 @@ router.get("/:id", async (req, res) => {
 
 // ------------------------------------------TEST------------------------------
 router.post("/confirmar/:id", multer.single('archivo'), async (req, res) =>{
-  console.log('archivo', req.file)
+
   const datos = req.body
-  console.log('data', datos.fecha_reserva)
+
   // const { id } = req.params
 
 })
@@ -156,7 +156,6 @@ router.post("/confirmar/:id", multer.single('archivo'), async (req, res) => {
         total: 0,
       });
 
-      // console.log('result directo fac', result)
     }
 
     res.json({
@@ -164,7 +163,7 @@ router.post("/confirmar/:id", multer.single('archivo'), async (req, res) => {
       message: "Reserva Confirmada",
     });
   } catch (err) {
-    console.log("error", err);
+
     res.json({
       status: 500,
       message: "No se pudo concretar la confirmacion de la reserva",

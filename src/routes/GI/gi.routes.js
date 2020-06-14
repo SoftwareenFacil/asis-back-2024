@@ -28,7 +28,7 @@ router.post("/:rut", async (req, res) => {
   const verificador = req.body.verificador;
   const db = await connect();
   let result = "";
-  // console.log('verificador', verificador)
+
   if (verificador == 1) {
     result = await db
       .collection("gi")
@@ -46,17 +46,13 @@ router.post("/test/file", multer.single("archivo"), async (req, res) => {
   const { nombre } = req.body;
   const data = excelToJson(req.file.path)
   if(data.length > 0){
-    // console.log(data)
+
     let empresas = await getEmpresasGI(data)
     let personas = await getPersonasGI(data)
 
     empresas = eliminateDuplicated(empresas, "Rut")
     personas = eliminateDuplicated(personas, "Rut")
 
-    // res.json({
-    //   empresas: empresas,
-    //   personas: personas
-    // })
   }
   else{
       res.json({
@@ -78,7 +74,7 @@ router.post("/", async (req, res) => {
   } else {
     newGi.codigo = `ASIS-GI-${YEAR}-00001`;
   }
-  /* console.log(newGi) */
+
   const result = await db.collection("gi").insertOne(newGi);
   res.json(result);
 });

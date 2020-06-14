@@ -123,7 +123,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             result = "";
             obs = {};
             obs.obs = req.body.observaciones;
-            obs.fecha = (0, _getDateNow.getDate)(new Date()); // console.log('datos chalo', req.body)
+            obs.fecha = (0, _getDateNow.getDate)(new Date());
 
             if (!(req.body.estado_archivo == 'Aprobado')) {
               _context3.next = 33;
@@ -183,7 +183,6 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
 
           case 19:
             //insercion de la facturación
-            // console.log('result para sacar cod', result)
             codAsis = result.value.codigo;
             _context3.next = 22;
             return db.collection('gi').findOne({
@@ -195,8 +194,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             gi = _context3.sent;
             isOC = '';
             estado_archivo = '';
-            estado = ''; // console.log('gi', gi.orden_compra)
-            // if(gi){
+            estado = ''; // if(gi){
             //     isOC = gi.orden_compra;
             //     (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
             // }
@@ -217,8 +215,7 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
             } else {
               isOC = "No";
               estado = 'En Facturacion', estado_archivo = 'Sin Documento';
-            } // console.log('resultado', result)
-
+            }
 
             if (!result) {
               _context3.next = 31;

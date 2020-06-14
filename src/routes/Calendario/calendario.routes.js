@@ -18,7 +18,6 @@ router.get('/', async (req, res) => {
     let totalDatos = []
     totalDatos.push(solicitudes)
     totalDatos.push(reservas)
-    // console.log('total datos', totalDatos)
     res.json(totalDatos);
 })
 

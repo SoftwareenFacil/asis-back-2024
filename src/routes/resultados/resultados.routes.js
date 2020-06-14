@@ -49,7 +49,6 @@ router.post('/confirmar/:id', async (req, res) =>{
     obs.obs = req.body.observaciones
     obs.fecha = getDate(new Date())
 
-    // console.log('datos chalo', req.body)
 
     if(req.body.estado_archivo == 'Aprobado'){
         obs.estado = req.body.estado_archivo
@@ -85,13 +84,11 @@ router.post('/confirmar/:id', async (req, res) =>{
             });
         }
         //insercion de la facturación
-        // console.log('result para sacar cod', result)
         let codAsis = result.value.codigo;
         let gi = await db.collection('gi').findOne({rut: result.value.rut_cp, "categoria": "Empresa/Organización"})
         var isOC = ''
         let estado_archivo = ''
         let estado = ''
-        // console.log('gi', gi.orden_compra)
         // if(gi){
         //     isOC = gi.orden_compra;
         //     (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
@@ -117,7 +114,7 @@ router.post('/confirmar/:id', async (req, res) =>{
             estado = 'En Facturacion',
             estado_archivo = 'Sin Documento'
         }
-        // console.log('resultado', result)
+
         if(result){
             result = await db.collection('facturaciones').insertOne({
                 codigo: codAsis.replace('RES', 'FAC'),

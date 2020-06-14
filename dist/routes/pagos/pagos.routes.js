@@ -26,7 +26,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 var router = (0, _express.Router)(); //database connection
 
 //SELECT
-router.get('/', /*#__PURE__*/function () {
+router.get("/", /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
     var db, result;
     return regeneratorRuntime.wrap(function _callee$(_context) {
@@ -39,7 +39,7 @@ router.get('/', /*#__PURE__*/function () {
           case 2:
             db = _context.sent;
             _context.next = 5;
-            return db.collection('pagos').find({}).toArray();
+            return db.collection("pagos").find({}).toArray();
 
           case 5:
             result = _context.sent;
@@ -58,7 +58,7 @@ router.get('/', /*#__PURE__*/function () {
   };
 }()); //INGRESAR PAGO
 
-router.post('/nuevo/:id', /*#__PURE__*/function () {
+router.post("/nuevo/:id", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
     var db, id, obj, result, codigoPAG, codigoCOB;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
@@ -80,7 +80,7 @@ router.post('/nuevo/:id', /*#__PURE__*/function () {
             obj.institucion_bancaria = req.body.institucion_bancaria;
             obj.archivo_adjunto = req.body.archivo_adjunto;
             _context2.next = 14;
-            return db.collection('pagos').findOneAndUpdate({
+            return db.collection("pagos").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $inc: {
@@ -97,17 +97,15 @@ router.post('/nuevo/:id', /*#__PURE__*/function () {
             result = _context2.sent;
             //-- sacamos el codigo de pagos y lo transformamos a cobranza para buscar si existe
             codigoPAG = result.value.codigo;
-            codigoCOB = codigoPAG.replace('PAG', 'COB'); //--
-
-            console.log('valores', result.value);
+            codigoCOB = codigoPAG.replace("PAG", "COB"); //--
 
             if (!(result.value.valor_cancelado > 0 && result.value.valor_cancelado < result.value.valor_servicio)) {
-              _context2.next = 24;
+              _context2.next = 23;
               break;
             }
 
-            _context2.next = 21;
-            return db.collection('pagos').updateOne({
+            _context2.next = 20;
+            return db.collection("pagos").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
@@ -115,19 +113,19 @@ router.post('/nuevo/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 21:
+          case 20:
             result = _context2.sent;
-            _context2.next = 28;
+            _context2.next = 27;
             break;
 
-          case 24:
+          case 23:
             if (!(result.value.valor_cancelado === result.value.valor_servicio)) {
-              _context2.next = 28;
+              _context2.next = 27;
               break;
             }
 
-            _context2.next = 27;
-            return db.collection('pagos').updateOne({
+            _context2.next = 26;
+            return db.collection("pagos").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
@@ -135,12 +133,12 @@ router.post('/nuevo/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 27:
+          case 26:
             result = _context2.sent;
 
-          case 28:
-            _context2.next = 30;
-            return db.collection('cobranza').findOneAndUpdate({
+          case 27:
+            _context2.next = 29;
+            return db.collection("cobranza").findOneAndUpdate({
               codigo: codigoCOB
             }, {
               $inc: {
@@ -151,16 +149,16 @@ router.post('/nuevo/:id', /*#__PURE__*/function () {
               returnOriginal: false
             });
 
-          case 30:
+          case 29:
             result = _context2.sent;
 
             if (!(result.value.valor_deuda === 0)) {
-              _context2.next = 35;
+              _context2.next = 34;
               break;
             }
 
-            _context2.next = 34;
-            return db.collection('cobranza').updateOne({
+            _context2.next = 33;
+            return db.collection("cobranza").updateOne({
               codigo: codigoCOB
             }, {
               $set: {
@@ -168,13 +166,13 @@ router.post('/nuevo/:id', /*#__PURE__*/function () {
               }
             });
 
-          case 34:
+          case 33:
             result = _context2.sent;
 
-          case 35:
+          case 34:
             res.json(result);
 
-          case 36:
+          case 35:
           case "end":
             return _context2.stop();
         }
@@ -187,9 +185,9 @@ router.post('/nuevo/:id', /*#__PURE__*/function () {
   };
 }()); //INGRESO MASIVO DE PAGOS
 
-router.post('/nuevo/many/:id', /*#__PURE__*/function () {
+router.post("/many", /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var db, id, pagos, obj, array, valorAcumulado, result;
+    var db, new_array, result, codesCobranza;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -199,46 +197,101 @@ router.post('/nuevo/many/:id', /*#__PURE__*/function () {
 
           case 2:
             db = _context3.sent;
-            id = req.params.id;
-            pagos = req.body;
-            obj = {};
-            array = [];
-            valorAcumulado = 0;
-            pagos.forEach(function (element) {
-              obj.fecha_pago = element.fecha_pago;
-              obj.hora_pago = element.hora_pago;
-              obj.sucursal = element.sucursal, obj.tipo_pago = element.tipo_pago, obj.monto = element.monto, obj.descuento = element.descuento;
-              obj.total = element.total;
-              obj.observaciones = element.observaciones;
-              obj.institucion_bancaria = element.institucion_bancaria;
-              valorAcumulado = valorAcumulado + element.total;
-              array.push(obj);
-              obj = {};
+            new_array = []; //   let pagos = req.body[0];
+            //   let obj = {};
+            //   let array = [];
+            //   obj.fecha_pago = element.fecha_pago;
+            //   obj.hora_pago = element.hora_pago;
+            //   obj.sucursal = element.sucursal;
+            //   obj.tipo_pago = element.tipo_pago;
+            //   obj.monto = element.monto;
+            //   obj.descuento = element.descuento;
+            //   obj.total = element.total;
+            //   obj.observaciones = element.observaciones;
+            //   obj.institucion_bancaria = element.institucion_bancaria;
+            //   array.push(obj);
+            //   obj = {};
+
+            req.body[1].ids.forEach(function (element) {
+              new_array.push((0, _mongodb.ObjectID)(element));
             });
-            _context3.next = 11;
-            return db.collection('pagos').findOneAndUpdate({
-              _id: (0, _mongodb.ObjectID)(id)
-            }, {
-              $inc: {
-                valor_cancelado: obj.total
-              },
-              $set: {
-                pagos: array
+            _context3.prev = 5;
+            _context3.next = 8;
+            return db.collection("pagos").find({
+              _id: {
+                $in: new_array
               }
-            }, {
-              returnOriginal: false
+            }).forEach(function (c) {
+              db.collection("pagos").updateOne({
+                _id: c._id
+              }, {
+                $push: {
+                  pagos: {
+                    fecha_pago: req.body[0].fecha_pago,
+                    hora_pago: req.body[0].hora_pago,
+                    sucursal: req.body[0].sucursal,
+                    monto: c.valor_servicio - c.valor_cancelado,
+                    descuento: req.body[0].descuento,
+                    total: c.valor_servicio - c.valor_cancelado,
+                    observaciones: req.body[0].observaciones,
+                    institucion_bancaria: req.body[0].institucion_bancaria
+                  }
+                },
+                $set: {
+                  valor_cancelado: c.valor_servicio,
+                  estado: "Pagado"
+                }
+              });
             });
 
-          case 11:
+          case 8:
             result = _context3.sent;
-            res.json(result);
+            //pasar los codigos de pago a cobranza
+            codesCobranza = req.body[2].codes;
+            codesCobranza = codesCobranza.map(function (e) {
+              return e = e.replace("PAG", "COB");
+            });
+            _context3.next = 13;
+            return db.collection("cobranza").find({
+              codigo: {
+                $in: codesCobranza
+              }
+            }).forEach(function (c) {
+              db.collection("cobranza").updateOne({
+                codigo: c.codigo
+              }, {
+                $set: {
+                  valor_cancelado: c.valor_servicio,
+                  valor_deuda: 0,
+                  estado: "Al Dia"
+                }
+              });
+            });
 
           case 13:
+            result = _context3.sent;
+            res.json({
+              message: "Pagos realizados satisfactoriamente",
+              isOK: true
+            });
+            _context3.next = 20;
+            break;
+
+          case 17:
+            _context3.prev = 17;
+            _context3.t0 = _context3["catch"](5);
+            res.json({
+              message: "ha ocurrido un error",
+              err: _context3.t0,
+              isOK: false
+            });
+
+          case 20:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3);
+    }, _callee3, null, [[5, 17]]);
   }));
 
   return function (_x5, _x6) {

@@ -131,8 +131,7 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               estadoEvaluacion = 'Evaluado';
             } else {
               estadoEvaluacion = 'Ingresado';
-            } // console.log(result)
-
+            }
 
             _context3.next = 12;
             return db.collection('evaluaciones').findOneAndUpdate({
@@ -158,15 +157,13 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
             result = _context3.sent;
 
             if (!(result.ok == 1 && (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs"))) {
-              _context3.next = 22;
+              _context3.next = 20;
               break;
             }
 
             codAsis = result.value.codigo;
-            codAsis = codAsis.replace('EVA', 'RES'); // let fechaVenci = CalculateFechaVenc(req.body.fecha_resultado_examen, req.body.vigencia_examen.replace(/\D/g,''));
-
-            console.log('result', result.value);
-            _context3.next = 19;
+            codAsis = codAsis.replace('EVA', 'RES');
+            _context3.next = 18;
             return db.collection('resultados').insertOne({
               codigo: codAsis,
               nombre_servicio: result.value.nombre_servicio,
@@ -182,7 +179,6 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               condicionantes: [],
               vigencia_examen: "",
               observaciones: [],
-              // archivo_respuesta_examen: req.body.archivo_resultado,
               fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
               hora_confirmacion_examen: req.body.hora_confirmacion_examen,
               estado: "En Revisión",
@@ -190,16 +186,14 @@ router.post('/evaluado/:id', /*#__PURE__*/function () {
               estado_resultado: ""
             });
 
-          case 19:
+          case 18:
             resultinsert = _context3.sent;
-            console.log('result resultado', resultinsert);
             result = resultinsert;
 
-          case 22:
-            console.log('result', result);
+          case 20:
             res.json(result);
 
-          case 24:
+          case 21:
           case "end":
             return _context3.stop();
         }
