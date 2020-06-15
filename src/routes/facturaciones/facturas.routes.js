@@ -16,9 +16,11 @@ router.get("/", async (req, res) => {
   const db = await connect();
   let result = await db.collection("facturaciones").find({}).toArray();
   let empresa = await db.collection("empresa").findOne({});
+  let gi = await db.collection("gi").findOne({rut: result.rut_cp})
   res.json({
     datos: result,
     empresa: empresa,
+    gi: gi_cp
   });
 });
 
