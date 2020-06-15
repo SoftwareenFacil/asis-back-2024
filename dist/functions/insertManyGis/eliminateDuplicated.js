@@ -6,16 +6,20 @@ Object.defineProperty(exports, "__esModule", {
 exports["default"] = eliminateDuplicated;
 
 function eliminateDuplicated(arr, prop) {
-  var nuevoArray = [];
-  var lookup = {};
-
-  for (var i in arr) {
-    lookup[arr[i][prop]] = arr[i];
-  }
-
-  for (i in lookup) {
-    nuevoArray.push(lookup[i]);
-  }
-
-  return nuevoArray;
+  // let nuevoArray = [];
+  // let lookup  = {};
+  // for (let i in arr) {
+  //     lookup[arr[i][prop]] = arr[i];
+  // }
+  // for (i in lookup) {
+  //     nuevoArray.push(lookup[i]);
+  // }
+  var result = Array.from(new Set(arr.map(function (e) {
+    return e.Rut;
+  }))).map(function (Rut) {
+    return arr.find(function (s) {
+      return s.Rut === Rut;
+    });
+  });
+  return result;
 }

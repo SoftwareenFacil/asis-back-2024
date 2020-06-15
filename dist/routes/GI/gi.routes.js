@@ -19,6 +19,26 @@ var _getPersonasGI = _interopRequireDefault(require("../../functions/insertManyG
 
 var _eliminateDuplicated = _interopRequireDefault(require("../../functions/insertManyGis/eliminateDuplicated"));
 
+var _verificateGrupoInteres = _interopRequireDefault(require("../../functions/insertManyGis/verificateGrupoInteres"));
+
+var _verificateCatEmpresa = _interopRequireDefault(require("../../functions/insertManyGis/verificateCatEmpresa"));
+
+var _verificateCatPersona = _interopRequireDefault(require("../../functions/insertManyGis/verificateCatPersona"));
+
+var _verificateCatCliente = _interopRequireDefault(require("../../functions/insertManyGis/verificateCatCliente"));
+
+var _verificateCredito = _interopRequireDefault(require("../../functions/insertManyGis/verificateCredito"));
+
+var _verificateFechaInicio = _interopRequireDefault(require("../../functions/insertManyGis/verificateFechaInicio"));
+
+var _verificateDiasCredito = _interopRequireDefault(require("../../functions/insertManyGis/verificateDiasCredito"));
+
+var _verificateOrdenCompra = _interopRequireDefault(require("../../functions/insertManyGis/verificateOrdenCompra"));
+
+var _createJsonGiForInsert = _interopRequireDefault(require("../../functions/insertManyGis/createJsonGiForInsert"));
+
+var _addCodeGI = _interopRequireDefault(require("../../functions/insertManyGis/addCodeGI"));
+
 var _multer = _interopRequireDefault(require("../../libs/multer"));
 
 var _database = require("../../database");
@@ -128,44 +148,19 @@ router.post("/:rut", /*#__PURE__*/function () {
   return function (_x3, _x4) {
     return _ref2.apply(this, arguments);
   };
-}()); //TEST PARA RECIBIR FILES
+}()); //TEST PARA GONZALO PASA SUBIR ARCHIVO
 
-router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+router.post("/test/gonzalo", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var nombre, data, empresas, personas;
+    var data;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
-            nombre = req.body.nombre;
-            data = (0, _excelToJson["default"])(req.file.path);
+            data = req.file;
+            res.json(data);
 
-            if (!(data.length > 0)) {
-              _context3.next = 13;
-              break;
-            }
-
-            _context3.next = 5;
-            return (0, _getEmpresasGI["default"])(data);
-
-          case 5:
-            empresas = _context3.sent;
-            _context3.next = 8;
-            return (0, _getPersonasGI["default"])(data);
-
-          case 8:
-            personas = _context3.sent;
-            empresas = (0, _eliminateDuplicated["default"])(empresas, "Rut");
-            personas = (0, _eliminateDuplicated["default"])(personas, "Rut");
-            _context3.next = 14;
-            break;
-
-          case 13:
-            res.json({
-              message: "EL archivo ingresado no es un archivo excel válido"
-            });
-
-          case 14:
+          case 2:
           case "end":
             return _context3.stop();
         }
@@ -176,26 +171,126 @@ router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/fun
   return function (_x5, _x6) {
     return _ref3.apply(this, arguments);
   };
-}()); //INSERT
+}()); //TEST PARA RECIBIR FILES
 
-router.post("/", /*#__PURE__*/function () {
+router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
-    var db, newGi, items, result;
+    var nombre, db, data, empresas, personas, lastGi, arrayGIs, result;
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
           case 0:
-            _context4.next = 2;
+            nombre = req.body.nombre;
+            _context4.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context4.sent;
+            data = (0, _excelToJson["default"])(req.file.path);
+            _context4.prev = 5;
+
+            if (!(data.length > 0)) {
+              _context4.next = 36;
+              break;
+            }
+
+            _context4.next = 9;
+            return (0, _getEmpresasGI["default"])(data);
+
+          case 9:
+            empresas = _context4.sent;
+            _context4.next = 12;
+            return (0, _getPersonasGI["default"])(data);
+
+          case 12:
+            personas = _context4.sent;
+            empresas = (0, _eliminateDuplicated["default"])(empresas, "Rut");
+            personas = (0, _eliminateDuplicated["default"])(personas, "Rut");
+            empresas = (0, _verificateGrupoInteres["default"])(empresas);
+            personas = (0, _verificateGrupoInteres["default"])(personas);
+            empresas = (0, _verificateCatEmpresa["default"])(empresas);
+            personas = (0, _verificateCatPersona["default"])(personas);
+            empresas = (0, _verificateCatCliente["default"])(empresas);
+            personas = (0, _verificateCatCliente["default"])(personas);
+            empresas = (0, _verificateCredito["default"])(empresas); // personas = verificateCredito(personas)
+
+            empresas = (0, _verificateDiasCredito["default"])(empresas); // personas = verificateDiasCredito(personas)
+            // empresas = verificateFechaInicio(empresas)
+            // personas = verificateFechaInicio(personas)
+
+            empresas = (0, _verificateOrdenCompra["default"])(empresas);
+            console.log(empresas.length + "/" + personas.length);
+            _context4.next = 27;
+            return db.collection("gi").find({}).sort({
+              "codigo": -1
+            }).limit(1).toArray();
+
+          case 27:
+            lastGi = _context4.sent;
+            arrayGIs = (0, _createJsonGiForInsert["default"])(empresas, personas);
+            arrayGIs = (0, _addCodeGI["default"])(arrayGIs, lastGi[0], YEAR);
+            _context4.next = 32;
+            return db.collection("gi").insertMany(arrayGIs);
+
+          case 32:
+            result = _context4.sent;
+            res.json({
+              message: "Ha finalizado la inserción masiva",
+              isOK: true,
+              renegados: []
+            });
+            _context4.next = 37;
+            break;
+
+          case 36:
+            res.json({
+              message: "EL archivo ingresado no es un archivo excel válido"
+            });
+
+          case 37:
+            _context4.next = 42;
+            break;
+
+          case 39:
+            _context4.prev = 39;
+            _context4.t0 = _context4["catch"](5);
+            res.json({
+              message: "Algo ha salido mal",
+              isOK: false,
+              error: _context4.t0
+            });
+
+          case 42:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, _callee4, null, [[5, 39]]);
+  }));
+
+  return function (_x7, _x8) {
+    return _ref4.apply(this, arguments);
+  };
+}()); //INSERT
+
+router.post("/", /*#__PURE__*/function () {
+  var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
+    var db, newGi, items, result;
+    return regeneratorRuntime.wrap(function _callee5$(_context5) {
+      while (1) {
+        switch (_context5.prev = _context5.next) {
+          case 0:
+            _context5.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context4.sent;
+            db = _context5.sent;
             newGi = req.body;
-            _context4.next = 6;
+            _context5.next = 6;
             return db.collection("gi").find({}).toArray();
 
           case 6:
-            items = _context4.sent;
+            items = _context5.sent;
 
             if (items.length > 0) {
               newGi.codigo = "ASIS-GI-".concat(YEAR, "-").concat((0, _NewCode.calculate)(items[items.length - 1]));
@@ -203,49 +298,14 @@ router.post("/", /*#__PURE__*/function () {
               newGi.codigo = "ASIS-GI-".concat(YEAR, "-00001");
             }
 
-            _context4.next = 10;
+            _context5.next = 10;
             return db.collection("gi").insertOne(newGi);
 
           case 10:
-            result = _context4.sent;
-            res.json(result);
-
-          case 12:
-          case "end":
-            return _context4.stop();
-        }
-      }
-    }, _callee4);
-  }));
-
-  return function (_x7, _x8) {
-    return _ref4.apply(this, arguments);
-  };
-}()); //DELETE
-
-router["delete"]("/:id", /*#__PURE__*/function () {
-  var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
-    var id, db, result;
-    return regeneratorRuntime.wrap(function _callee5$(_context5) {
-      while (1) {
-        switch (_context5.prev = _context5.next) {
-          case 0:
-            id = req.params.id;
-            _context5.next = 3;
-            return (0, _database.connect)();
-
-          case 3:
-            db = _context5.sent;
-            _context5.next = 6;
-            return db.collection("gi").deleteOne({
-              _id: (0, _mongodb.ObjectID)(id)
-            });
-
-          case 6:
             result = _context5.sent;
             res.json(result);
 
-          case 8:
+          case 12:
           case "end":
             return _context5.stop();
         }
@@ -255,6 +315,41 @@ router["delete"]("/:id", /*#__PURE__*/function () {
 
   return function (_x9, _x10) {
     return _ref5.apply(this, arguments);
+  };
+}()); //DELETE
+
+router["delete"]("/:id", /*#__PURE__*/function () {
+  var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
+    var id, db, result;
+    return regeneratorRuntime.wrap(function _callee6$(_context6) {
+      while (1) {
+        switch (_context6.prev = _context6.next) {
+          case 0:
+            id = req.params.id;
+            _context6.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context6.sent;
+            _context6.next = 6;
+            return db.collection("gi").deleteOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            });
+
+          case 6:
+            result = _context6.sent;
+            res.json(result);
+
+          case 8:
+          case "end":
+            return _context6.stop();
+        }
+      }
+    }, _callee6);
+  }));
+
+  return function (_x11, _x12) {
+    return _ref6.apply(this, arguments);
   };
 }());
 var _default = router;

@@ -1,14 +1,19 @@
 export default function eliminateDuplicated(arr, prop) {
-    var nuevoArray = [];
-    var lookup  = {};
+    // let nuevoArray = [];
+    // let lookup  = {};
 
-    for (var i in arr) {
-        lookup[arr[i][prop]] = arr[i];
-    }
+    // for (let i in arr) {
+    //     lookup[arr[i][prop]] = arr[i];
+    // }
 
-    for (i in lookup) {
-        nuevoArray.push(lookup[i]);
-    }
+    // for (i in lookup) {
+    //     nuevoArray.push(lookup[i]);
+    // }
 
-    return nuevoArray;
+    const result = Array.from(new Set(arr.map(e => e.Rut)))
+        .map(Rut =>{
+            return arr.find(s => s.Rut === Rut)
+        })
+
+    return result;
 }
