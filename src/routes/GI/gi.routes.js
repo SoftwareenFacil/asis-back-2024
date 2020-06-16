@@ -85,7 +85,10 @@ router.put("/:id", async (req, res) =>{
   const { id } = req.params
   const updatedGI = req.body
   const db = await connect()
-  const result = await db.collection('gi').updateOne({_id: ObjectID(id)}, {updatedGI})
+  let result = await db.collection("gi").findOne({_id: ObjectID(id)})
+  updatedGI.codigo = result.codigo
+  console.log(result.codigo)
+  result = await db.collection('gi').replaceOne({_id: ObjectID(id)}, updatedGI)
   res.json(result)
 })
 
