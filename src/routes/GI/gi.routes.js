@@ -85,7 +85,7 @@ router.put("/:id", async (req, res) =>{
   const { id } = req.params
   const updatedGI = req.body
   const db = await connect()
-  const result = await db.collection('gi').updateOne({_id: ObjectID(id)}, updatedGI)
+  const result = await db.collection('gi').updateOne({_id: ObjectID(id)}, {updatedGI})
   res.json(result)
 })
 

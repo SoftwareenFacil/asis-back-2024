@@ -264,7 +264,9 @@ router.put("/:id", /*#__PURE__*/function () {
             _context5.next = 7;
             return db.collection('gi').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
-            }, updatedGI);
+            }, {
+              updatedGI: updatedGI
+            });
 
           case 7:
             result = _context5.sent;
