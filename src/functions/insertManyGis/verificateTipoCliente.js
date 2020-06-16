@@ -1,7 +1,7 @@
-export default function getPersonasGI(data){
+export default function verificateTipoCliente(data){
     let result = [{newdata: []}, {renegados: []}]
     result[0].newdata = data.filter(function(e){
-        if(e.TipoCliente === 'Persona Natural'){
+        if(e.TipoCliente === 'Persona Natural' || e.TipoCliente === 'Empresa/Organizacion'){
             return true
         }
         else{
@@ -9,5 +9,6 @@ export default function getPersonasGI(data){
             return false
         }
     })
+
     return result
 }

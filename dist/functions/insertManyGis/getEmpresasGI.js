@@ -6,8 +6,18 @@ Object.defineProperty(exports, "__esModule", {
 exports["default"] = getEmpresasGI;
 
 function getEmpresasGI(data) {
-  var empresas = data.filter(function (gi) {
-    return gi.TipoCliente === 'Empresa/Organizacion';
+  var result = [{
+    newdata: []
+  }, {
+    renegados: []
+  }];
+  result[0].newdata = data.filter(function (e) {
+    if (e.TipoCliente === 'Empresa/Organizacion') {
+      return true;
+    } else {
+      result[1].renegados.push(e);
+      return false;
+    }
   });
-  return empresas;
+  return result;
 }

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import excelToJson from "../../functions/insertManyGis/excelToJson";
+import validateTipoCliente from "../../functions/insertManyGis/verificateTipoCliente";
 import getEmpresasGI from "../../functions/insertManyGis/getEmpresasGI";
 import getPersonasGI from "../../functions/insertManyGis/getPersonasGI";
 import eliminateDuplicated from "../../functions/insertManyGis/eliminateDuplicated";
@@ -25,13 +26,31 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
+import verificateTipoCliente from "../../functions/insertManyGis/verificateTipoCliente";
 
 // SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("gi").find({}).toArray();
+  let result = await db.collection("gi").find({}).count();
+  if(result > 40){
+    //hay que paginarlos de 40 en 40
+    let num_pag = 20
+    let skip_page = (num_pag-1)*40
+    let num_pages = parseInt((result.length/40)+1)
+    result = await db.collection("gi").find().skip(skip_page).limit(40)
+  }
+  else{
+    result = await db.collection("gi").find({}).toArray();
+  }
   res.json(result);
 });
+
+//SELECT ONLY EMPRESAS
+router.get('/empresas', async (req, res) =>{
+  const db = await connect()
+  const result = await db.collection("gi").find({categoria: "Empresa/Organización"}).toArray()
+  res.json(result)
+})
 
 //SELECT BY RUT
 router.post("/:rut", async (req, res) => {
@@ -53,6 +72,23 @@ router.post("/:rut", async (req, res) => {
   res.json(result);
 });
 
+//SELECT BY ID
+router.get("/:id", async (req, res) =>{
+  const { id } = req.params
+  const db = await connect()
+  const result = await db.collection('gi').findOne({_id: ObjectID(id)})
+  res.json(result)
+})
+
+//UPDATE
+router.put("/:id", async (req, res) =>{
+  const { id } = req.params
+  const updatedGI = req.body
+  const db = await connect()
+  const result = await db.collection('gi').updateOne({_id: ObjectID(id)}, updatedGI)
+  res.json(result)
+})
+
 //TEST PARA GONZALO PASA SUBIR ARCHIVO
 router.post("/test/gonzalo", multer.single("archivo"), async (req, res) =>{
   const data = req.file
@@ -64,12 +100,27 @@ router.post("/test/file", multer.single("archivo"), async (req, res) => {
   const { nombre } = req.body;
   const db = await connect()
   const data = excelToJson(req.file.path)
+  let array_general_empresas = []
+  let array_general_personas = []
+  let array_general = []
+  let renegados = []
   
   try {
     if(data.length > 0){
 
-      let empresas = await getEmpresasGI(data)
-      let personas = await getPersonasGI(data)
+
+      array_general = verificateTipoCliente(data)
+      array_general[1].renegados.forEach(element => {
+        renegados.push(element)
+      });
+
+      array_general_empresas = getEmpresasGI(array_general[0].newdata)
+      let empresas = array_general_empresas[0].newdata
+
+      array_general_personas = getPersonasGI(array_general[0].newdata)
+      let personas = array_general_personas[0].newdata
+
+      console.log(array_general_personas[0].newdata)
   
       empresas = eliminateDuplicated(empresas, "Rut")
       personas = eliminateDuplicated(personas, "Rut")
@@ -84,18 +135,12 @@ router.post("/test/file", multer.single("archivo"), async (req, res) => {
       personas = verificateCatCliente(personas)
   
       empresas = verificateCredito(empresas)
-      // personas = verificateCredito(personas)
       empresas = verificateDiasCredito(empresas)
-      // personas = verificateDiasCredito(personas)
-  
-      // empresas = verificateFechaInicio(empresas)
-      // personas = verificateFechaInicio(personas)
 
       empresas = verificateOrdenCompra(empresas)
 
-      console.log(empresas.length+"/"+personas.length)
-
       const lastGi = await db.collection("gi").find({}).sort({"codigo": -1}).limit(1).toArray();
+      console.log(lastGi)
 
       let arrayGIs = createJsonGIs(empresas, personas)
 
@@ -145,5 +190,27 @@ router.delete("/:id", async (req, res) => {
   const result = await db.collection("gi").deleteOne({ _id: ObjectID(id) });
   res.json(result);
 });
+
+
+
+
+
+//para programar solamente limpiar toda la db
+router.delete("/", async (req, res) =>{
+  const db = await connect();
+  let result = await db.collection("gi").drop();
+  // await db.collection("cobranza").drop();
+  // await db.collection("evaluaciones").drop();
+  // await db.collection("existencia").drop();
+  // await db.collection("facturaciones").drop();
+  // await db.collection("gastos").drop();
+  // await db.collection("pagos").drop();
+  // await db.collection("prexistencia").drop();
+  // await db.collection("reservas").drop();
+  // await db.collection("resultados").drop();
+  // await db.collection("salidas").drop();
+  // await db.collection("solicitudes").drop();
+  res.json({message: "listo"});
+})
 
 export default router;
