@@ -129,7 +129,7 @@ router.get('/empresas', /*#__PURE__*/function () {
             db = _context2.sent;
             _context2.next = 5;
             return db.collection("gi").find({
-              categoria: "Empresa/Organización"
+              categoria: "Empresa/Organizacion"
             }).toArray();
 
           case 5:

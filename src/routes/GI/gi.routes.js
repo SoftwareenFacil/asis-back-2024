@@ -48,7 +48,7 @@ router.get("/", async (req, res) => {
 //SELECT ONLY EMPRESAS
 router.get('/empresas', async (req, res) =>{
   const db = await connect()
-  const result = await db.collection("gi").find({categoria: "Empresa/Organización"}).toArray()
+  const result = await db.collection("gi").find({categoria: "Empresa/Organizacion"}).toArray()
   res.json(result)
 })
 
