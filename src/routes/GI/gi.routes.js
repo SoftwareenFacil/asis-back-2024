@@ -62,7 +62,7 @@ router.post("/:rut", async (req, res) => {
   if (verificador == 1) {
     result = await db
       .collection("gi")
-      .findOne({ rut: rut, categoria: "Empresa/Organización" });
+      .findOne({ rut: rut, categoria: "Empresa/Organizacion" });
   } else if (verificador == 2) {
     result = await db
       .collection("gi")
