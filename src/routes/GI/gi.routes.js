@@ -32,25 +32,45 @@ import verificateTipoCliente from "../../functions/insertManyGis/verificateTipoC
 router.get("/", async (req, res) => {
   const db = await connect();
   let result = await db.collection("gi").find({}).count();
-  if(result > 40){
+  if (result > 40) {
     //hay que paginarlos de 40 en 40
-    let num_pag = 20
-    let skip_page = (num_pag-1)*40
-    let num_pages = parseInt((result.length/40)+1)
-    result = await db.collection("gi").find().skip(skip_page).limit(40)
-  }
-  else{
+    let num_pag = 20;
+    let skip_page = (num_pag - 1) * 40;
+    let num_pages = parseInt(result.length / 40 + 1);
+    result = await db.collection("gi").find().skip(skip_page).limit(40);
+  } else {
     result = await db.collection("gi").find({}).toArray();
   }
   res.json(result);
 });
 
+// SELECT GI PAGINATED
+router.get("/pagination", async (req, res) => {
+  const { pageNumber, nPerPage } = req.body;
+  const db = await connect();
+  try {
+    const result = await db
+      .collection("gi")
+      .find()
+      .skip(pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0)
+      .limit(nPerPage)
+      .toArray();
+    console.log(result)
+    res.json(result);
+  } catch (error) {
+    res.json(error);
+  }
+});
+
 //SELECT ONLY EMPRESAS
-router.get('/empresas', async (req, res) =>{
-  const db = await connect()
-  const result = await db.collection("gi").find({categoria: "Empresa/Organizacion"}).toArray()
-  res.json(result)
-})
+router.get("/empresas", async (req, res) => {
+  const db = await connect();
+  const result = await db
+    .collection("gi")
+    .find({ categoria: "Empresa/Organizacion" })
+    .toArray();
+  res.json(result);
+});
 
 //SELECT BY RUT
 router.post("/:rut", async (req, res) => {
@@ -73,101 +93,105 @@ router.post("/:rut", async (req, res) => {
 });
 
 //SELECT BY ID
-router.get("/:id", async (req, res) =>{
-  const { id } = req.params
-  const db = await connect()
-  const result = await db.collection('gi').findOne({_id: ObjectID(id)})
-  res.json(result)
-})
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+  const result = await db.collection("gi").findOne({ _id: ObjectID(id) });
+  res.json(result);
+});
 
 //UPDATE
-router.put("/:id", async (req, res) =>{
-  const { id } = req.params
-  const updatedGI = req.body
-  const db = await connect()
-  let result = await db.collection("gi").findOne({_id: ObjectID(id)})
-  updatedGI.codigo = result.codigo
-  console.log(result.codigo)
-  result = await db.collection('gi').replaceOne({_id: ObjectID(id)}, updatedGI)
-  res.json(result)
-})
+router.put("/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedGI = req.body;
+  const db = await connect();
+  let result = await db.collection("gi").findOne({ _id: ObjectID(id) });
+  updatedGI.codigo = result.codigo;
+  console.log(result.codigo);
+  result = await db
+    .collection("gi")
+    .replaceOne({ _id: ObjectID(id) }, updatedGI);
+  res.json(result);
+});
 
 //TEST PARA GONZALO PASA SUBIR ARCHIVO
-router.post("/test/gonzalo", multer.single("archivo"), async (req, res) =>{
-  const data = req.file
-  res.json(data)
-})
+router.post("/test/gonzalo", multer.single("archivo"), async (req, res) => {
+  const data = req.file;
+  res.json(data);
+});
 
 //TEST PARA RECIBIR FILES
 router.post("/test/file", multer.single("archivo"), async (req, res) => {
   const { nombre } = req.body;
-  const db = await connect()
-  const data = excelToJson(req.file.path)
-  let array_general_empresas = []
-  let array_general_personas = []
-  let array_general = []
-  let renegados = []
-  
+  const db = await connect();
+  const data = excelToJson(req.file.path);
+  let array_general_empresas = [];
+  let array_general_personas = [];
+  let array_general = [];
+  let renegados = [];
+
   try {
-    if(data.length > 0){
-
-
-      array_general = verificateTipoCliente(data)
-      array_general[1].renegados.forEach(element => {
-        renegados.push(element)
+    if (data.length > 0) {
+      array_general = verificateTipoCliente(data);
+      array_general[1].renegados.forEach((element) => {
+        renegados.push(element);
       });
 
-      array_general_empresas = getEmpresasGI(array_general[0].newdata)
-      let empresas = array_general_empresas[0].newdata
+      array_general_empresas = getEmpresasGI(array_general[0].newdata);
+      let empresas = array_general_empresas[0].newdata;
 
-      array_general_personas = getPersonasGI(array_general[0].newdata)
-      let personas = array_general_personas[0].newdata
+      array_general_personas = getPersonasGI(array_general[0].newdata);
+      let personas = array_general_personas[0].newdata;
 
-      console.log(array_general_personas[0].newdata)
-  
-      empresas = eliminateDuplicated(empresas, "Rut")
-      personas = eliminateDuplicated(personas, "Rut")
-  
-      empresas = verificateGrupoInteres(empresas)
-      personas = verificateGrupoInteres(personas)
-  
-      empresas = verificateCatEmpresa(empresas)
-      personas = verificateCatPersona(personas)
-  
-      empresas = verificateCatCliente(empresas)
-      personas = verificateCatCliente(personas)
-  
-      empresas = verificateCredito(empresas)
-      empresas = verificateDiasCredito(empresas)
+      console.log(array_general_personas[0].newdata);
 
-      empresas = verificateOrdenCompra(empresas)
+      empresas = eliminateDuplicated(empresas, "Rut");
+      personas = eliminateDuplicated(personas, "Rut");
 
-      const lastGi = await db.collection("gi").find({}).sort({"codigo": -1}).limit(1).toArray();
-      console.log(lastGi)
+      empresas = verificateGrupoInteres(empresas);
+      personas = verificateGrupoInteres(personas);
 
-      let arrayGIs = createJsonGIs(empresas, personas)
+      empresas = verificateCatEmpresa(empresas);
+      personas = verificateCatPersona(personas);
 
-      arrayGIs = addCodeGI(arrayGIs, lastGi[0], YEAR)
+      empresas = verificateCatCliente(empresas);
+      personas = verificateCatCliente(personas);
 
-      const result = await db.collection("gi").insertMany(arrayGIs)
-  
+      empresas = verificateCredito(empresas);
+      empresas = verificateDiasCredito(empresas);
+
+      empresas = verificateOrdenCompra(empresas);
+
+      const lastGi = await db
+        .collection("gi")
+        .find({})
+        .sort({ codigo: -1 })
+        .limit(1)
+        .toArray();
+      console.log(lastGi);
+
+      let arrayGIs = createJsonGIs(empresas, personas);
+
+      arrayGIs = addCodeGI(arrayGIs, lastGi[0], YEAR);
+
+      const result = await db.collection("gi").insertMany(arrayGIs);
+
       res.json({
         message: "Ha finalizado la inserción masiva",
         isOK: true,
-        renegados: []
-      })
-    }
-    else{
-        res.json({
-            message: "EL archivo ingresado no es un archivo excel válido"
-        })
+        renegados: [],
+      });
+    } else {
+      res.json({
+        message: "EL archivo ingresado no es un archivo excel válido",
+      });
     }
   } catch (err) {
     res.json({
       message: "Algo ha salido mal",
       isOK: false,
-      error: err
-    })
+      error: err,
+    });
   }
 });
 
@@ -194,12 +218,8 @@ router.delete("/:id", async (req, res) => {
   res.json(result);
 });
 
-
-
-
-
 //para programar solamente limpiar toda la db
-router.delete("/", async (req, res) =>{
+router.delete("/", async (req, res) => {
   const db = await connect();
   let result = await db.collection("gi").drop();
   // await db.collection("cobranza").drop();
@@ -213,7 +233,7 @@ router.delete("/", async (req, res) =>{
   // await db.collection("resultados").drop();
   // await db.collection("salidas").drop();
   // await db.collection("solicitudes").drop();
-  res.json({message: "listo"});
-})
+  res.json({ message: "listo" });
+});
 
 export default router;
