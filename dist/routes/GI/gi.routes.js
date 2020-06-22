@@ -89,7 +89,7 @@ router.get("/", /*#__PURE__*/function () {
   };
 }()); // SELECT GI PAGINATED
 
-router.get("/pagination", /*#__PURE__*/function () {
+router.post("/pagination", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
     var _req$body, pageNumber, nPerPage, db, result;
 

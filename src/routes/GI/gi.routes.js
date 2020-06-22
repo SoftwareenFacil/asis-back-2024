@@ -36,7 +36,7 @@ router.get("/", async (req, res) => {
 });
 
 // SELECT GI PAGINATED
-router.get("/pagination", async (req, res) => {
+router.post("/pagination", async (req, res) => {
   const { pageNumber, nPerPage } = req.body;
   const db = await connect();
   try {
