@@ -59,7 +59,7 @@ var YEAR = (0, _getYearActual.getYear)(); //database connection
 // SELECT
 router.get("/", /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
-    var db, result, num_pag, skip_page, num_pages;
+    var db, result;
     return regeneratorRuntime.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -70,39 +70,13 @@ router.get("/", /*#__PURE__*/function () {
           case 2:
             db = _context.sent;
             _context.next = 5;
-            return db.collection("gi").find({}).count();
+            return db.collection("gi").find().toArray();
 
           case 5:
             result = _context.sent;
-
-            if (!(result > 40)) {
-              _context.next = 15;
-              break;
-            }
-
-            //hay que paginarlos de 40 en 40
-            num_pag = 20;
-            skip_page = (num_pag - 1) * 40;
-            num_pages = parseInt(result.length / 40 + 1);
-            _context.next = 12;
-            return db.collection("gi").find().skip(skip_page).limit(40);
-
-          case 12:
-            result = _context.sent;
-            _context.next = 18;
-            break;
-
-          case 15:
-            _context.next = 17;
-            return db.collection("gi").find({}).toArray();
-
-          case 17:
-            result = _context.sent;
-
-          case 18:
             res.json(result);
 
-          case 19:
+          case 7:
           case "end":
             return _context.stop();
         }

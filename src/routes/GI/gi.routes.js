@@ -31,16 +31,7 @@ import verificateTipoCliente from "../../functions/insertManyGis/verificateTipoC
 // SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  let result = await db.collection("gi").find({}).count();
-  if (result > 40) {
-    //hay que paginarlos de 40 en 40
-    let num_pag = 20;
-    let skip_page = (num_pag - 1) * 40;
-    let num_pages = parseInt(result.length / 40 + 1);
-    result = await db.collection("gi").find().skip(skip_page).limit(40);
-  } else {
-    result = await db.collection("gi").find({}).toArray();
-  }
+  let result = await db.collection("gi").find().toArray();
   res.json(result);
 });
 
