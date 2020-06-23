@@ -13,6 +13,8 @@ var _morgan = _interopRequireDefault(require("morgan"));
 
 var _cors = _interopRequireDefault(require("cors"));
 
+var _path = _interopRequireDefault(require("path"));
+
 var _index = _interopRequireDefault(require("./routes/index.routes"));
 
 var _gi = _interopRequireDefault(require("./routes/GI/gi.routes"));
@@ -57,7 +59,9 @@ app.use((0, _morgan["default"])('dev'));
 app.use(_express["default"].urlencoded({
   extended: false
 }));
-app.use(_express["default"].json()); //Routes
+app.use(_express["default"].json()); //Statics
+
+app.use('/uploads', _express["default"]["static"](_path["default"].resolve('uploads'))); //Routes
 
 app.use(_index["default"]);
 app.use('/gi', _gi["default"]);

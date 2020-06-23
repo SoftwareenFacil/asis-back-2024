@@ -1,6 +1,7 @@
 import express, { urlencoded } from "express";
 import morgan from "morgan";
 import cors from "cors";
+import path from "path";
 //---------------------IMPORTS ROUTES
 import IndexRoute from "./routes/index.routes";
 import GIRoute from "./routes/GI/gi.routes";
@@ -27,6 +28,9 @@ app.use(cors())
 app.use(morgan('dev'))
 app.use(express.urlencoded({extended: false}))
 app.use(express.json())
+
+//Statics
+app.use('/uploads', express.static(path.resolve('uploads')))
 
 //Routes
 app.use(IndexRoute);
