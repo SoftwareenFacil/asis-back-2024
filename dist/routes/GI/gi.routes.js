@@ -431,7 +431,7 @@ router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/fun
   };
 }()); //INSERT
 
-router.post("/", /*#__PURE__*/function () {
+router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(req, res) {
     var db, newGi, items, result;
     return regeneratorRuntime.wrap(function _callee9$(_context9) {
@@ -456,14 +456,19 @@ router.post("/", /*#__PURE__*/function () {
               newGi.codigo = "ASIS-GI-".concat(YEAR, "-00001");
             }
 
-            _context9.next = 10;
+            newGi.url_file_adjunto = {
+              name: req.file.originalname,
+              size: req.file.size,
+              path: req.file.path
+            };
+            _context9.next = 11;
             return db.collection("gi").insertOne(newGi);
 
-          case 10:
+          case 11:
             result = _context9.sent;
             res.json(result);
 
-          case 12:
+          case 13:
           case "end":
             return _context9.stop();
         }
