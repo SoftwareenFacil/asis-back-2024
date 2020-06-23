@@ -264,7 +264,7 @@ router.get("/:id", /*#__PURE__*/function () {
   };
 }()); //UPDATE
 
-router.put("/:id", /*#__PURE__*/function () {
+router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
     var id, updatedGI, db, result;
     return regeneratorRuntime.wrap(function _callee6$(_context6) {
@@ -286,17 +286,22 @@ router.put("/:id", /*#__PURE__*/function () {
           case 7:
             result = _context6.sent;
             updatedGI.codigo = result.codigo;
+            updatedGI.url_file_adjunto = {
+              name: req.file.originalname,
+              size: req.file.size,
+              path: req.file.path
+            };
             console.log(result.codigo);
-            _context6.next = 12;
+            _context6.next = 13;
             return db.collection("gi").replaceOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, updatedGI);
 
-          case 12:
+          case 13:
             result = _context6.sent;
             res.json(result);
 
-          case 14:
+          case 15:
           case "end":
             return _context6.stop();
         }

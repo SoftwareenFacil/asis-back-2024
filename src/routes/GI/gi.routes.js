@@ -92,12 +92,17 @@ router.get("/:id", async (req, res) => {
 });
 
 //UPDATE
-router.put("/:id", async (req, res) => {
+router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const updatedGI = req.body;
   const db = await connect();
   let result = await db.collection("gi").findOne({ _id: ObjectID(id) });
   updatedGI.codigo = result.codigo;
+  updatedGI.url_file_adjunto = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path
+  }
   console.log(result.codigo);
   result = await db
     .collection("gi")
