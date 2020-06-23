@@ -91,7 +91,7 @@ router.get("/", /*#__PURE__*/function () {
 
 router.post("/pagination", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var _req$body, pageNumber, nPerPage, db, _result;
+    var _req$body, pageNumber, nPerPage, db, result;
 
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
@@ -108,9 +108,9 @@ router.post("/pagination", /*#__PURE__*/function () {
             return db.collection("gi").find().skip(pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0).limit(nPerPage).toArray();
 
           case 7:
-            _result = _context2.sent;
-            console.log(_result);
-            res.json(_result);
+            result = _context2.sent;
+            console.log(result);
+            res.json(result);
             _context2.next = 15;
             break;
 
@@ -266,7 +266,7 @@ router.get("/:id", /*#__PURE__*/function () {
 
 router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
-    var id, updatedGI, db;
+    var id, updatedGI, db, result;
     return regeneratorRuntime.wrap(function _callee6$(_context6) {
       while (1) {
         switch (_context6.prev = _context6.next) {
@@ -284,21 +284,35 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
               size: req.file.size,
               path: req.file.path
             };
-            _context6.next = 8;
+            _context6.prev = 6;
+            _context6.next = 9;
             return db.collection("gi").replaceOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, updatedGI);
 
-          case 8:
+          case 9:
             result = _context6.sent;
-            res.json(result);
+            res.status(201).json({
+              message: "GI editado correctamente"
+            });
+            _context6.next = 17;
+            break;
 
-          case 10:
+          case 13:
+            _context6.prev = 13;
+            _context6.t0 = _context6["catch"](6);
+            res.status(500).json({
+              message: "ha ocurrido un error",
+              error: _context6.t0
+            });
+            console.log(_context6.t0);
+
+          case 17:
           case "end":
             return _context6.stop();
         }
       }
-    }, _callee6);
+    }, _callee6, null, [[6, 13]]);
   }));
 
   return function (_x11, _x12) {
@@ -308,8 +322,7 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
 
 router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(req, res) {
-    var nombre, db, data, array_general_empresas, array_general_personas, array_general, renegados, empresas, personas, lastGi, arrayGIs, _result2;
-
+    var nombre, db, data, array_general_empresas, array_general_personas, array_general, renegados, empresas, personas, lastGi, arrayGIs, result;
     return regeneratorRuntime.wrap(function _callee7$(_context7) {
       while (1) {
         switch (_context7.prev = _context7.next) {
@@ -366,7 +379,7 @@ router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/fun
             return db.collection("gi").insertMany(arrayGIs);
 
           case 37:
-            _result2 = _context7.sent;
+            result = _context7.sent;
             res.json({
               message: "Ha finalizado la inserción masiva",
               isOK: true,

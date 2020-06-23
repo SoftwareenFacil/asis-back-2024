@@ -46,7 +46,7 @@ router.post("/pagination", async (req, res) => {
       .skip(pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0)
       .limit(nPerPage)
       .toArray();
-    console.log(result)
+    console.log(result);
     res.json(result);
   } catch (error) {
     res.json(error);
@@ -100,12 +100,17 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   updatedGI.url_file_adjunto = {
     name: req.file.originalname,
     size: req.file.size,
-    path: req.file.path
+    path: req.file.path,
+  };
+  try {
+    const result = await db
+      .collection("gi")
+      .replaceOne({ _id: ObjectID(id) }, updatedGI);
+    res.status(201).json({message: "GI editado correctamente"});
+  } catch (error) {
+    res.status(500).json({message: "ha ocurrido un error", error})
+    console.log(error)
   }
-  result = await db
-    .collection("gi")
-    .replaceOne({ _id: ObjectID(id) }, updatedGI);
-  res.json(result);
 });
 
 //TEST PARA recibir EXCEL DE INGRESO DE GIS
@@ -193,13 +198,12 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   } else {
     newGi.codigo = `ASIS-GI-${YEAR}-00001`;
   }
-  
+
   newGi.url_file_adjunto = {
     name: req.file.originalname,
     size: req.file.size,
-    path: req.file.path
-  }
-  
+    path: req.file.path,
+  };
 
   const result = await db.collection("gi").insertOne(newGi);
   res.json(result);
