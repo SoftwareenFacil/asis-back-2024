@@ -91,7 +91,7 @@ router.get("/", /*#__PURE__*/function () {
 
 router.post("/pagination", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var _req$body, pageNumber, nPerPage, db, result;
+    var _req$body, pageNumber, nPerPage, db, _result;
 
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
@@ -108,9 +108,9 @@ router.post("/pagination", /*#__PURE__*/function () {
             return db.collection("gi").find().skip(pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0).limit(nPerPage).toArray();
 
           case 7:
-            result = _context2.sent;
-            console.log(result);
-            res.json(result);
+            _result = _context2.sent;
+            console.log(_result);
+            res.json(_result);
             _context2.next = 15;
             break;
 
@@ -266,42 +266,34 @@ router.get("/:id", /*#__PURE__*/function () {
 
 router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
-    var id, updatedGI, db, result;
+    var id, updatedGI, db;
     return regeneratorRuntime.wrap(function _callee6$(_context6) {
       while (1) {
         switch (_context6.prev = _context6.next) {
           case 0:
             id = req.params.id;
-            updatedGI = req.body;
+            updatedGI = JSON.parse(req.body.data);
             _context6.next = 4;
             return (0, _database.connect)();
 
           case 4:
             db = _context6.sent;
-            _context6.next = 7;
-            return db.collection("gi").findOne({
-              _id: (0, _mongodb.ObjectID)(id)
-            });
-
-          case 7:
-            result = _context6.sent;
-            updatedGI.codigo = result.codigo;
+            // let result = await db.collection("gi").findOne({ _id: ObjectID(id) });
             updatedGI.url_file_adjunto = {
               name: req.file.originalname,
               size: req.file.size,
               path: req.file.path
             };
-            console.log(result.codigo);
-            _context6.next = 13;
+            _context6.next = 8;
             return db.collection("gi").replaceOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, updatedGI);
 
-          case 13:
+          case 8:
             result = _context6.sent;
             res.json(result);
 
-          case 15:
+          case 10:
           case "end":
             return _context6.stop();
         }
@@ -312,53 +304,31 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
   return function (_x11, _x12) {
     return _ref6.apply(this, arguments);
   };
-}()); //TEST PARA GONZALO PASA SUBIR ARCHIVO
+}()); //TEST PARA recibir EXCEL DE INGRESO DE GIS
 
-router.post("/test/gonzalo", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(req, res) {
-    var data;
+    var nombre, db, data, array_general_empresas, array_general_personas, array_general, renegados, empresas, personas, lastGi, arrayGIs, _result2;
+
     return regeneratorRuntime.wrap(function _callee7$(_context7) {
       while (1) {
         switch (_context7.prev = _context7.next) {
           case 0:
-            data = req.file;
-            res.json(data);
-
-          case 2:
-          case "end":
-            return _context7.stop();
-        }
-      }
-    }, _callee7);
-  }));
-
-  return function (_x13, _x14) {
-    return _ref7.apply(this, arguments);
-  };
-}()); //TEST PARA RECIBIR FILES
-
-router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/function () {
-  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(req, res) {
-    var nombre, db, data, array_general_empresas, array_general_personas, array_general, renegados, empresas, personas, lastGi, arrayGIs, result;
-    return regeneratorRuntime.wrap(function _callee8$(_context8) {
-      while (1) {
-        switch (_context8.prev = _context8.next) {
-          case 0:
             nombre = req.body.nombre;
-            _context8.next = 3;
+            _context7.next = 3;
             return (0, _database.connect)();
 
           case 3:
-            db = _context8.sent;
+            db = _context7.sent;
             data = (0, _excelToJson["default"])(req.file.path);
             array_general_empresas = [];
             array_general_personas = [];
             array_general = [];
             renegados = [];
-            _context8.prev = 9;
+            _context7.prev = 9;
 
             if (!(data.length > 0)) {
-              _context8.next = 41;
+              _context7.next = 41;
               break;
             }
 
@@ -382,27 +352,27 @@ router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/fun
             empresas = (0, _verificateCredito["default"])(empresas);
             empresas = (0, _verificateDiasCredito["default"])(empresas);
             empresas = (0, _verificateOrdenCompra["default"])(empresas);
-            _context8.next = 31;
+            _context7.next = 31;
             return db.collection("gi").find({}).sort({
               codigo: -1
             }).limit(1).toArray();
 
           case 31:
-            lastGi = _context8.sent;
+            lastGi = _context7.sent;
             console.log(lastGi);
             arrayGIs = (0, _createJsonGiForInsert["default"])(empresas, personas);
             arrayGIs = (0, _addCodeGI["default"])(arrayGIs, lastGi[0], YEAR);
-            _context8.next = 37;
+            _context7.next = 37;
             return db.collection("gi").insertMany(arrayGIs);
 
           case 37:
-            result = _context8.sent;
+            _result2 = _context7.sent;
             res.json({
               message: "Ha finalizado la inserción masiva",
               isOK: true,
               renegados: []
             });
-            _context8.next = 42;
+            _context7.next = 42;
             break;
 
           case 41:
@@ -411,49 +381,49 @@ router.post("/test/file", _multer["default"].single("archivo"), /*#__PURE__*/fun
             });
 
           case 42:
-            _context8.next = 47;
+            _context7.next = 47;
             break;
 
           case 44:
-            _context8.prev = 44;
-            _context8.t0 = _context8["catch"](9);
+            _context7.prev = 44;
+            _context7.t0 = _context7["catch"](9);
             res.json({
               message: "Algo ha salido mal",
               isOK: false,
-              error: _context8.t0
+              error: _context7.t0
             });
 
           case 47:
           case "end":
-            return _context8.stop();
+            return _context7.stop();
         }
       }
-    }, _callee8, null, [[9, 44]]);
+    }, _callee7, null, [[9, 44]]);
   }));
 
-  return function (_x15, _x16) {
-    return _ref8.apply(this, arguments);
+  return function (_x13, _x14) {
+    return _ref7.apply(this, arguments);
   };
 }()); //INSERT
 
 router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () {
-  var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(req, res) {
+  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(req, res) {
     var db, newGi, items, result;
-    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+    return regeneratorRuntime.wrap(function _callee8$(_context8) {
       while (1) {
-        switch (_context9.prev = _context9.next) {
+        switch (_context8.prev = _context8.next) {
           case 0:
-            _context9.next = 2;
+            _context8.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context9.sent;
+            db = _context8.sent;
             newGi = req.body;
-            _context9.next = 6;
+            _context8.next = 6;
             return db.collection("gi").find({}).toArray();
 
           case 6:
-            items = _context9.sent;
+            items = _context8.sent;
 
             if (items.length > 0) {
               newGi.codigo = "ASIS-GI-".concat(YEAR, "-").concat((0, _NewCode.calculate)(items[items.length - 1]));
@@ -466,14 +436,49 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
               size: req.file.size,
               path: req.file.path
             };
-            _context9.next = 11;
+            _context8.next = 11;
             return db.collection("gi").insertOne(newGi);
 
           case 11:
-            result = _context9.sent;
+            result = _context8.sent;
             res.json(result);
 
           case 13:
+          case "end":
+            return _context8.stop();
+        }
+      }
+    }, _callee8);
+  }));
+
+  return function (_x15, _x16) {
+    return _ref8.apply(this, arguments);
+  };
+}()); //DELETE
+
+router["delete"]("/:id", /*#__PURE__*/function () {
+  var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(req, res) {
+    var id, db, result;
+    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+      while (1) {
+        switch (_context9.prev = _context9.next) {
+          case 0:
+            id = req.params.id;
+            _context9.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context9.sent;
+            _context9.next = 6;
+            return db.collection("gi").deleteOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            });
+
+          case 6:
+            result = _context9.sent;
+            res.json(result);
+
+          case 8:
           case "end":
             return _context9.stop();
         }
@@ -484,60 +489,25 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
   return function (_x17, _x18) {
     return _ref9.apply(this, arguments);
   };
-}()); //DELETE
+}()); //para programar solamente limpiar toda la db
 
-router["delete"]("/:id", /*#__PURE__*/function () {
+router["delete"]("/", /*#__PURE__*/function () {
   var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(req, res) {
-    var id, db, result;
+    var db, result;
     return regeneratorRuntime.wrap(function _callee10$(_context10) {
       while (1) {
         switch (_context10.prev = _context10.next) {
           case 0:
-            id = req.params.id;
-            _context10.next = 3;
-            return (0, _database.connect)();
-
-          case 3:
-            db = _context10.sent;
-            _context10.next = 6;
-            return db.collection("gi").deleteOne({
-              _id: (0, _mongodb.ObjectID)(id)
-            });
-
-          case 6:
-            result = _context10.sent;
-            res.json(result);
-
-          case 8:
-          case "end":
-            return _context10.stop();
-        }
-      }
-    }, _callee10);
-  }));
-
-  return function (_x19, _x20) {
-    return _ref10.apply(this, arguments);
-  };
-}()); //para programar solamente limpiar toda la db
-
-router["delete"]("/", /*#__PURE__*/function () {
-  var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(req, res) {
-    var db, result;
-    return regeneratorRuntime.wrap(function _callee11$(_context11) {
-      while (1) {
-        switch (_context11.prev = _context11.next) {
-          case 0:
-            _context11.next = 2;
+            _context10.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context11.sent;
-            _context11.next = 5;
+            db = _context10.sent;
+            _context10.next = 5;
             return db.collection("gi").drop();
 
           case 5:
-            result = _context11.sent;
+            result = _context10.sent;
             // await db.collection("cobranza").drop();
             // await db.collection("evaluaciones").drop();
             // await db.collection("existencia").drop();
@@ -555,14 +525,14 @@ router["delete"]("/", /*#__PURE__*/function () {
 
           case 7:
           case "end":
-            return _context11.stop();
+            return _context10.stop();
         }
       }
-    }, _callee11);
+    }, _callee10);
   }));
 
-  return function (_x21, _x22) {
-    return _ref11.apply(this, arguments);
+  return function (_x19, _x20) {
+    return _ref10.apply(this, arguments);
   };
 }());
 var _default = router;

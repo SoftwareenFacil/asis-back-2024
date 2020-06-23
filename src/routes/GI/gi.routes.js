@@ -94,29 +94,21 @@ router.get("/:id", async (req, res) => {
 //UPDATE
 router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const updatedGI = req.body;
+  const updatedGI = JSON.parse(req.body.data);
   const db = await connect();
-  let result = await db.collection("gi").findOne({ _id: ObjectID(id) });
-  updatedGI.codigo = result.codigo;
+  // let result = await db.collection("gi").findOne({ _id: ObjectID(id) });
   updatedGI.url_file_adjunto = {
     name: req.file.originalname,
     size: req.file.size,
     path: req.file.path
   }
-  console.log(result.codigo);
   result = await db
     .collection("gi")
     .replaceOne({ _id: ObjectID(id) }, updatedGI);
   res.json(result);
 });
 
-//TEST PARA GONZALO PASA SUBIR ARCHIVO
-router.post("/test/gonzalo", multer.single("archivo"), async (req, res) => {
-  const data = req.file;
-  res.json(data);
-});
-
-//TEST PARA RECIBIR FILES
+//TEST PARA recibir EXCEL DE INGRESO DE GIS
 router.post("/test/file", multer.single("archivo"), async (req, res) => {
   const { nombre } = req.body;
   const db = await connect();
