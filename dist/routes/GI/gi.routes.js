@@ -431,7 +431,7 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
 
           case 2:
             db = _context8.sent;
-            newGi = req.body;
+            newGi = JSON.parse(req.body.data);
             _context8.next = 6;
             return db.collection("gi").find({}).toArray();
 

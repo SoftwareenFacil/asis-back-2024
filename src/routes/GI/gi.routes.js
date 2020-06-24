@@ -191,7 +191,7 @@ router.post("/test/file", multer.single("archivo"), async (req, res) => {
 //INSERT
 router.post("/", multer.single("archivo"), async (req, res) => {
   const db = await connect();
-  const newGi = req.body;
+  const newGi = JSON.parse(req.body.data);
   const items = await db.collection("gi").find({}).toArray();
   if (items.length > 0) {
     newGi.codigo = `ASIS-GI-${YEAR}-${calculate(items[items.length - 1])}`;

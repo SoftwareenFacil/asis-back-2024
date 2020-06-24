@@ -28,19 +28,12 @@ router.get("/:id", async (req, res) => {
   res.json(result);
 });
 
-// ------------------------------------------TEST------------------------------
-router.post("/confirmar/:id", multer.single('archivo'), async (req, res) =>{
-
-  const datos = req.body
-
-  // const { id } = req.params
-
-})
 
 //CONFIRMAR RESERVA
-router.post("/confirmar/:id", multer.single('archivo'), async (req, res) => {
+router.post("/confirmar/:id", async (req, res) => {
   const { id } = req.params;
   const datos = req.body;
+  console.log('here')
   const db = await connect();
   let obs = {};
   obs.obs = datos.observacion;
