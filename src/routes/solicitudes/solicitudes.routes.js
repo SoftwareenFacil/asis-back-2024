@@ -78,9 +78,17 @@ router.put("/:id", multer.single("archivo"), async (req, res) =>{
     path: req.file.path,
     type: req.file.mimetype
   }
-  const result = await db.collection("solicitudes").updateOne({_id: ObjectID(id)}, solicitud);
 
-  res.json(result)
+  try {
+    const result = await db
+      .collection("solicitudes")
+      .replaceOne({ _id: ObjectID(id) }, solicitud);
+    res.status(201).json({message: "Solicitud modificada correctamente"});
+  } catch (error) {
+    res.status(500).json({message: "ha ocurrido un error", error})
+  }
+
+  // const result = await db.collection("solicitudes").updateOne({_id: ObjectID(id)}, solicitud);
 })
 
 //CONFIRMAR SOLICITUD

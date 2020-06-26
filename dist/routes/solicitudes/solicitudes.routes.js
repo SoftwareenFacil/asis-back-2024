@@ -184,21 +184,34 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
               path: req.file.path,
               type: req.file.mimetype
             };
-            _context4.next = 8;
-            return db.collection("solicitudes").updateOne({
+            _context4.prev = 6;
+            _context4.next = 9;
+            return db.collection("solicitudes").replaceOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, solicitud);
 
-          case 8:
+          case 9:
             result = _context4.sent;
-            res.json(result);
+            res.status(201).json({
+              message: "Solicitud modificada correctamente"
+            });
+            _context4.next = 16;
+            break;
 
-          case 10:
+          case 13:
+            _context4.prev = 13;
+            _context4.t0 = _context4["catch"](6);
+            res.status(500).json({
+              message: "ha ocurrido un error",
+              error: _context4.t0
+            });
+
+          case 16:
           case "end":
             return _context4.stop();
         }
       }
-    }, _callee4);
+    }, _callee4, null, [[6, 13]]);
   }));
 
   return function (_x7, _x8) {

@@ -293,7 +293,7 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
           case 9:
             result = _context6.sent;
             res.status(201).json({
-              message: "GI editado correctamente"
+              message: "GI modificado correctamente"
             });
             _context6.next = 17;
             break;

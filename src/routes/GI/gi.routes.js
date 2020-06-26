@@ -106,7 +106,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     const result = await db
       .collection("gi")
       .replaceOne({ _id: ObjectID(id) }, updatedGI);
-    res.status(201).json({message: "GI editado correctamente"});
+    res.status(201).json({message: "GI modificado correctamente"});
   } catch (error) {
     res.status(500).json({message: "ha ocurrido un error", error})
     console.log(error)
