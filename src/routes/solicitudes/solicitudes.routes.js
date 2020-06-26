@@ -80,7 +80,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) =>{
   }
   const result = await db.collection("solicitudes").updateOne({_id: ObjectID(id)}, solicitud);
 
-  req.json(result)
+  res.json(result)
 })
 
 //CONFIRMAR SOLICITUD
