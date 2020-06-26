@@ -163,7 +163,7 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
   };
 }()); //CONFIRMAR SOLICITUD
 
-router.post("/confirmar/:id", /*#__PURE__*/function () {
+router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
     var db, solicitud, id, obs, resultSol, resultGI, resp, codigoAsis, newReserva, resulReserva;
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
@@ -175,7 +175,7 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
 
           case 2:
             db = _context4.sent;
-            solicitud = req.body;
+            solicitud = JSON.parse(req.body.data);
             id = req.params.id;
             obs = {};
             obs.obs = solicitud.observacion_solicitud;
@@ -189,6 +189,11 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
                 fecha_confirmacion: solicitud.fecha_solicitud,
                 hora_confirmacion: solicitud.hora_solicitud,
                 medio_confirmacion: solicitud.medio_confirmacion,
+                url_file_adjunto: {
+                  name: req.file.originalname,
+                  size: req.file.size,
+                  path: req.file.path
+                },
                 estado: "Confirmado"
               },
               $push: {

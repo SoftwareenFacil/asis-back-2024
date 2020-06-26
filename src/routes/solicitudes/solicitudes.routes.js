@@ -66,9 +66,9 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 });
 
 //CONFIRMAR SOLICITUD
-router.post("/confirmar/:id", async (req, res) => {
+router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   const db = await connect();
-  const solicitud = req.body;
+  const solicitud = JSON.parse(req.body.data);
   const { id } = req.params;
   let obs = {};
   obs.obs = solicitud.observacion_solicitud;
@@ -81,6 +81,11 @@ router.post("/confirmar/:id", async (req, res) => {
         fecha_confirmacion: solicitud.fecha_solicitud,
         hora_confirmacion: solicitud.hora_solicitud,
         medio_confirmacion: solicitud.medio_confirmacion,
+        url_file_adjunto: {
+          name: req.file.originalname,
+          size: req.file.size,
+          path: req.file.path,
+        },
         estado: "Confirmado",
       },
       $push: {
