@@ -4,6 +4,8 @@ import { getYear } from "../../functions/getYearActual";
 import { getDate } from "../../functions/getDateNow";
 const addDays = require("add-days");
 
+import multer from "../../libs/multer";
+
 const router = Router();
 
 const YEAR = getYear();
@@ -35,10 +37,10 @@ router.get("/mostrar/:id", async (req, res) => {
 });
 
 //INSERT
-router.post("/", async (req, res) => {
+router.post("/", multer.single("archivo"), async (req, res) => {
   const db = await connect();
-  let newSolicitud = req.body;
-  const nuevaObs = req.body.observacion_solicitud;
+  let newSolicitud = JSON.parse(req.body.data);
+  const nuevaObs = newSolicitud.observacion_solicitud;
   const items = await db.collection("solicitudes").find({}).toArray();
   if (items.length > 0) {
     newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(
@@ -52,6 +54,13 @@ router.post("/", async (req, res) => {
     obs: nuevaObs,
     fecha: getDate(new Date()),
   });
+
+  newSolicitud.url_file_adjunto = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path,
+  };
+
   const result = await db.collection("solicitudes").insertOne(newSolicitud);
   res.json(result);
 });

@@ -13,9 +13,13 @@ var _getYearActual = require("../../functions/getYearActual");
 
 var _getDateNow = require("../../functions/getDateNow");
 
+var _multer = _interopRequireDefault(require("../../libs/multer"));
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -103,7 +107,7 @@ router.get("/mostrar/:id", /*#__PURE__*/function () {
   };
 }()); //INSERT
 
-router.post("/", /*#__PURE__*/function () {
+router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
     var db, newSolicitud, nuevaObs, items, result;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
@@ -115,8 +119,8 @@ router.post("/", /*#__PURE__*/function () {
 
           case 2:
             db = _context3.sent;
-            newSolicitud = req.body;
-            nuevaObs = req.body.observacion_solicitud;
+            newSolicitud = JSON.parse(req.body.data);
+            nuevaObs = newSolicitud.observacion_solicitud;
             _context3.next = 7;
             return db.collection("solicitudes").find({}).toArray();
 
@@ -134,14 +138,19 @@ router.post("/", /*#__PURE__*/function () {
               obs: nuevaObs,
               fecha: (0, _getDateNow.getDate)(new Date())
             });
-            _context3.next = 13;
+            newSolicitud.url_file_adjunto = {
+              name: req.file.originalname,
+              size: req.file.size,
+              path: req.file.path
+            };
+            _context3.next = 14;
             return db.collection("solicitudes").insertOne(newSolicitud);
 
-          case 13:
+          case 14:
             result = _context3.sent;
             res.json(result);
 
-          case 15:
+          case 16:
           case "end":
             return _context3.stop();
         }
