@@ -231,7 +231,7 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
 
 router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
-    var db, solicitud, id, obs, resultSol, resultGI, resp, codigoAsis, newReserva, resulReserva;
+    var db, solicitud, id, obs, archivo, resultSol, resultGI, resp, codigoAsis, newReserva, resulReserva;
     return regeneratorRuntime.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
@@ -244,10 +244,21 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
             solicitud = JSON.parse(req.body.data);
             id = req.params.id;
             obs = {};
+            archivo = {};
             obs.obs = solicitud.observacion_solicitud;
-            obs.fecha = (0, _getDateNow.getDate)(new Date()); //obtener mail del cliente principal
+            obs.fecha = (0, _getDateNow.getDate)(new Date()); //verificar si hay archivo o no 
 
-            _context5.next = 10;
+            if (req.file) {
+              archivo = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            } //obtener mail del cliente principal
+
+
+            _context5.next = 12;
             return db.collection("solicitudes").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -255,12 +266,7 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
                 fecha_confirmacion: solicitud.fecha_solicitud,
                 hora_confirmacion: solicitud.hora_solicitud,
                 medio_confirmacion: solicitud.medio_confirmacion,
-                url_file_adjunto: {
-                  name: req.file.originalname,
-                  size: req.file.size,
-                  path: req.file.path,
-                  type: req.file.mimetype
-                },
+                url_file_adjunto: archivo,
                 estado: "Confirmado"
               },
               $push: {
@@ -268,15 +274,15 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
               }
             });
 
-          case 10:
+          case 12:
             resultSol = _context5.sent;
 
             if (!resultSol.result.ok) {
-              _context5.next = 26;
+              _context5.next = 28;
               break;
             }
 
-            _context5.next = 14;
+            _context5.next = 16;
             return db.collection("gi").updateOne({
               _id: (0, _mongodb.ObjectID)(solicitud.id_GI_Principal)
             }, {
@@ -285,20 +291,20 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
               }
             });
 
-          case 14:
+          case 16:
             resultGI = _context5.sent;
 
             if (!resultGI.result.ok) {
-              _context5.next = 26;
+              _context5.next = 28;
               break;
             }
 
-            _context5.next = 18;
+            _context5.next = 20;
             return db.collection("solicitudes").findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
-          case 18:
+          case 20:
             resp = _context5.sent;
             codigoAsis = resp.codigo;
             codigoAsis = codigoAsis.replace("SOL", "AGE");
@@ -326,14 +332,14 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
               observacion: [],
               estado: "Ingresado"
             };
-            _context5.next = 24;
+            _context5.next = 26;
             return db.collection("reservas").insertOne(newReserva);
 
-          case 24:
+          case 26:
             resulReserva = _context5.sent;
             res.json(resulReserva);
 
-          case 26:
+          case 28:
           case "end":
             return _context5.stop();
         }

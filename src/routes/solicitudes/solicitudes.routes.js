@@ -104,8 +104,19 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   const solicitud = JSON.parse(req.body.data);
   const { id } = req.params;
   let obs = {};
+  let archivo = {}
   obs.obs = solicitud.observacion_solicitud;
   obs.fecha = getDate(new Date());
+
+  //verificar si hay archivo o no 
+  if(req.file){
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype
+    }
+  }
   //obtener mail del cliente principal
   const resultSol = await db.collection("solicitudes").updateOne(
     { _id: ObjectID(id) },
@@ -114,12 +125,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         fecha_confirmacion: solicitud.fecha_solicitud,
         hora_confirmacion: solicitud.hora_solicitud,
         medio_confirmacion: solicitud.medio_confirmacion,
-        url_file_adjunto: {
-          name: req.file.originalname,
-          size: req.file.size,
-          path: req.file.path,
-          type: req.file.mimetype
-        },
+        url_file_adjunto: archivo,
         estado: "Confirmado",
       },
       $push: {
