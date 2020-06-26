@@ -52,15 +52,20 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   newSolicitud.observacion_solicitud = [];
   newSolicitud.observacion_solicitud.push({
     obs: nuevaObs,
-    fecha: getDate(new Date()),
+    fecha: getDate(new Date())
   });
 
-  newSolicitud.url_file_adjunto = {
-    name: req.file.originalname,
-    size: req.file.size,
-    path: req.file.path,
-    type: req.file.mimetype
-  };
+  if(req.file){
+    newSolicitud.url_file_adjunto = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype
+    };
+  }
+  else{
+    newSolicitud.url_file_adjunto = {}
+  }
 
   const result = await db.collection("solicitudes").insertOne(newSolicitud);
   res.json(result);
@@ -72,11 +77,13 @@ router.put("/:id", multer.single("archivo"), async (req, res) =>{
   const solicitud = JSON.parse(req.body.data);
   const { id } = req.params;
 
-  solicitud.url_file_adjunto = {
-    name: req.file.originalname,
-    size: req.file.size,
-    path: req.file.path,
-    type: req.file.mimetype
+  if(req.file){
+    solicitud.url_file_adjunto = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype
+    }
   }
 
   try {

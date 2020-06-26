@@ -138,12 +138,18 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
               obs: nuevaObs,
               fecha: (0, _getDateNow.getDate)(new Date())
             });
-            newSolicitud.url_file_adjunto = {
-              name: req.file.originalname,
-              size: req.file.size,
-              path: req.file.path,
-              type: req.file.mimetype
-            };
+
+            if (req.file) {
+              newSolicitud.url_file_adjunto = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            } else {
+              newSolicitud.url_file_adjunto = {};
+            }
+
             _context3.next = 14;
             return db.collection("solicitudes").insertOne(newSolicitud);
 
@@ -178,12 +184,16 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
             db = _context4.sent;
             solicitud = JSON.parse(req.body.data);
             id = req.params.id;
-            solicitud.url_file_adjunto = {
-              name: req.file.originalname,
-              size: req.file.size,
-              path: req.file.path,
-              type: req.file.mimetype
-            };
+
+            if (req.file) {
+              solicitud.url_file_adjunto = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
+
             _context4.prev = 6;
             _context4.next = 9;
             return db.collection("solicitudes").replaceOne({
