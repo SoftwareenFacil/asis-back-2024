@@ -113,8 +113,13 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   }
 });
 
+//TEST DATOS ARCHIVOS
+router.post('/test/gonzalo', multer.single("archivo"), async (req, res) =>{
+  console.log(req.file)
+})
+
 //TEST PARA recibir EXCEL DE INGRESO DE GIS
-router.post("/test/file", multer.single("archivo"), async (req, res) => {
+router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
   const { nombre } = req.body;
   const db = await connect();
   const data = excelToJson(req.file.path);
@@ -203,6 +208,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     name: req.file.originalname,
     size: req.file.size,
     path: req.file.path,
+    type: req.file.mimetype
   };
 
   const result = await db.collection("gi").insertOne(newGi);

@@ -59,11 +59,29 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     name: req.file.originalname,
     size: req.file.size,
     path: req.file.path,
+    type: req.file.mimetype
   };
 
   const result = await db.collection("solicitudes").insertOne(newSolicitud);
   res.json(result);
 });
+
+//EDITAR SOLICITUD
+router.put("/:id", multer.single("archivo"), async (req, res) =>{
+  const db = await connect()
+  const solicitud = JSON.parse(req.body.data);
+  const { id } = req.params;
+
+  solicitud.url_file_adjunto = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path,
+    type: req.file.mimetype
+  }
+  const result = await db.collection("solicitudes").updateOne({_id: ObjectID(id)}, solicitud);
+
+  req.json(result)
+})
 
 //CONFIRMAR SOLICITUD
 router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
@@ -85,6 +103,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
           name: req.file.originalname,
           size: req.file.size,
           path: req.file.path,
+          type: req.file.mimetype
         },
         estado: "Confirmado",
       },
@@ -144,7 +163,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
 });
 
 //CONFIRM MANY
-router.post("/many", async (req, res) => {
+router.post("/many", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   let new_array = [];
 

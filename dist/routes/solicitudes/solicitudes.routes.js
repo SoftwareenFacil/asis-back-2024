@@ -141,7 +141,8 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
             newSolicitud.url_file_adjunto = {
               name: req.file.originalname,
               size: req.file.size,
-              path: req.file.path
+              path: req.file.path,
+              type: req.file.mimetype
             };
             _context3.next = 14;
             return db.collection("solicitudes").insertOne(newSolicitud);
@@ -161,11 +162,11 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
   return function (_x5, _x6) {
     return _ref3.apply(this, arguments);
   };
-}()); //CONFIRMAR SOLICITUD
+}()); //EDITAR SOLICITUD
 
-router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
-    var db, solicitud, id, obs, resultSol, resultGI, resp, codigoAsis, newReserva, resulReserva;
+    var db, solicitud, id, result;
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
@@ -177,11 +178,53 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
             db = _context4.sent;
             solicitud = JSON.parse(req.body.data);
             id = req.params.id;
+            solicitud.url_file_adjunto = {
+              name: req.file.originalname,
+              size: req.file.size,
+              path: req.file.path,
+              type: req.file.mimetype
+            };
+            _context4.next = 8;
+            return db.collection("solicitudes").updateOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            }, solicitud);
+
+          case 8:
+            result = _context4.sent;
+            req.json(result);
+
+          case 10:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, _callee4);
+  }));
+
+  return function (_x7, _x8) {
+    return _ref4.apply(this, arguments);
+  };
+}()); //CONFIRMAR SOLICITUD
+
+router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+  var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
+    var db, solicitud, id, obs, resultSol, resultGI, resp, codigoAsis, newReserva, resulReserva;
+    return regeneratorRuntime.wrap(function _callee5$(_context5) {
+      while (1) {
+        switch (_context5.prev = _context5.next) {
+          case 0:
+            _context5.next = 2;
+            return (0, _database.connect)();
+
+          case 2:
+            db = _context5.sent;
+            solicitud = JSON.parse(req.body.data);
+            id = req.params.id;
             obs = {};
             obs.obs = solicitud.observacion_solicitud;
             obs.fecha = (0, _getDateNow.getDate)(new Date()); //obtener mail del cliente principal
 
-            _context4.next = 10;
+            _context5.next = 10;
             return db.collection("solicitudes").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -192,7 +235,8 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
                 url_file_adjunto: {
                   name: req.file.originalname,
                   size: req.file.size,
-                  path: req.file.path
+                  path: req.file.path,
+                  type: req.file.mimetype
                 },
                 estado: "Confirmado"
               },
@@ -202,14 +246,14 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
             });
 
           case 10:
-            resultSol = _context4.sent;
+            resultSol = _context5.sent;
 
             if (!resultSol.result.ok) {
-              _context4.next = 26;
+              _context5.next = 26;
               break;
             }
 
-            _context4.next = 14;
+            _context5.next = 14;
             return db.collection("gi").updateOne({
               _id: (0, _mongodb.ObjectID)(solicitud.id_GI_Principal)
             }, {
@@ -219,20 +263,20 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
             });
 
           case 14:
-            resultGI = _context4.sent;
+            resultGI = _context5.sent;
 
             if (!resultGI.result.ok) {
-              _context4.next = 26;
+              _context5.next = 26;
               break;
             }
 
-            _context4.next = 18;
+            _context5.next = 18;
             return db.collection("solicitudes").findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
           case 18:
-            resp = _context4.sent;
+            resp = _context5.sent;
             codigoAsis = resp.codigo;
             codigoAsis = codigoAsis.replace("SOL", "AGE");
             newReserva = {
@@ -259,38 +303,38 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
               observacion: [],
               estado: "Ingresado"
             };
-            _context4.next = 24;
+            _context5.next = 24;
             return db.collection("reservas").insertOne(newReserva);
 
           case 24:
-            resulReserva = _context4.sent;
+            resulReserva = _context5.sent;
             res.json(resulReserva);
 
           case 26:
           case "end":
-            return _context4.stop();
+            return _context5.stop();
         }
       }
-    }, _callee4);
+    }, _callee5);
   }));
 
-  return function (_x7, _x8) {
-    return _ref4.apply(this, arguments);
+  return function (_x9, _x10) {
+    return _ref5.apply(this, arguments);
   };
 }()); //CONFIRM MANY
 
-router.post("/many", /*#__PURE__*/function () {
-  var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
+router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+  var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
     var db, new_array, obs, result, resp, codigoAsis, arrayReservas, resultReserva;
-    return regeneratorRuntime.wrap(function _callee5$(_context5) {
+    return regeneratorRuntime.wrap(function _callee6$(_context6) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context6.prev = _context6.next) {
           case 0:
-            _context5.next = 2;
+            _context6.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context5.sent;
+            db = _context6.sent;
             new_array = [];
             obs = {};
             obs.obs = req.body[0].observacion_solicitud;
@@ -317,7 +361,7 @@ router.post("/many", /*#__PURE__*/function () {
             resp = "";
             codigoAsis = "";
             arrayReservas = [];
-            _context5.next = 14;
+            _context6.next = 14;
             return db.collection("solicitudes").find({
               _id: {
                 $in: new_array
@@ -325,7 +369,7 @@ router.post("/many", /*#__PURE__*/function () {
             }).toArray();
 
           case 14:
-            resp = _context5.sent;
+            resp = _context6.sent;
             resp.forEach(function (element) {
               codigoAsis = element.codigo;
               codigoAsis = codigoAsis.replace("SOL", "AGE");
@@ -354,49 +398,14 @@ router.post("/many", /*#__PURE__*/function () {
                 estado: "Ingresado"
               });
             });
-            _context5.next = 18;
+            _context6.next = 18;
             return db.collection("reservas").insertMany(arrayReservas);
 
           case 18:
-            resultReserva = _context5.sent;
+            resultReserva = _context6.sent;
             res.json(resultReserva);
 
           case 20:
-          case "end":
-            return _context5.stop();
-        }
-      }
-    }, _callee5);
-  }));
-
-  return function (_x9, _x10) {
-    return _ref5.apply(this, arguments);
-  };
-}()); //DELETE
-
-router["delete"]("/:id", /*#__PURE__*/function () {
-  var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
-    var id, db, result;
-    return regeneratorRuntime.wrap(function _callee6$(_context6) {
-      while (1) {
-        switch (_context6.prev = _context6.next) {
-          case 0:
-            id = req.params.id;
-            _context6.next = 3;
-            return (0, _database.connect)();
-
-          case 3:
-            db = _context6.sent;
-            _context6.next = 6;
-            return db.collection("solicitudes").deleteOne({
-              _id: (0, _mongodb.ObjectID)(id)
-            });
-
-          case 6:
-            result = _context6.sent;
-            res.json(result);
-
-          case 8:
           case "end":
             return _context6.stop();
         }
@@ -406,6 +415,41 @@ router["delete"]("/:id", /*#__PURE__*/function () {
 
   return function (_x11, _x12) {
     return _ref6.apply(this, arguments);
+  };
+}()); //DELETE
+
+router["delete"]("/:id", /*#__PURE__*/function () {
+  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(req, res) {
+    var id, db, result;
+    return regeneratorRuntime.wrap(function _callee7$(_context7) {
+      while (1) {
+        switch (_context7.prev = _context7.next) {
+          case 0:
+            id = req.params.id;
+            _context7.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context7.sent;
+            _context7.next = 6;
+            return db.collection("solicitudes").deleteOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            });
+
+          case 6:
+            result = _context7.sent;
+            res.json(result);
+
+          case 8:
+          case "end":
+            return _context7.stop();
+        }
+      }
+    }, _callee7);
+  }));
+
+  return function (_x13, _x14) {
+    return _ref7.apply(this, arguments);
   };
 }());
 var _default = router;
