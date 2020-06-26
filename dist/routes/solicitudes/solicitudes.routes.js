@@ -191,7 +191,7 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
 
           case 8:
             result = _context4.sent;
-            req.json(result);
+            res.json(result);
 
           case 10:
           case "end":
