@@ -96,30 +96,93 @@ router.get("/:id", /*#__PURE__*/function () {
   return function (_x3, _x4) {
     return _ref2.apply(this, arguments);
   };
-}()); //CONFIRMAR RESERVA
+}()); //EDITAR RESERVA
 
-router.post("/confirmar/:id", /*#__PURE__*/function () {
+router.put("/:id", /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, datos, db, obs, result, codAsis, reserva, gi, isOC, estado_archivo, estado;
+    var id, datos, db, obs, result;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
             id = req.params.id;
-            datos = req.body;
-            console.log('here');
-            _context3.next = 5;
+            datos = JSON.parse(req.body.data);
+            _context3.next = 4;
+            return (0, _database.connect)();
+
+          case 4:
+            db = _context3.sent;
+            obs = {};
+            obs.obs = datos.observacion;
+            obs.fecha = (0, _getDateNow.getDate)(new Date());
+            _context3.next = 10;
+            return db.collection("reservas").updateOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            }, {
+              $set: {
+                fecha_reserva: datos.fecha_reserva,
+                hora_reserva: datos.hora_reserva,
+                fecha_reserva_fin: datos.fecha_reserva_fin,
+                hora_reserva_fin: datos.hora_reserva_fin,
+                jornada: datos.jornada,
+                mes: datos.mes,
+                anio: datos.anio,
+                id_GI_personalAsignado: datos.id_GI_profesional_asignado,
+                sucursal: datos.sucursal
+              },
+              $push: {
+                observacion: obs
+              }
+            });
+
+          case 10:
+            result = _context3.sent;
+
+          case 11:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+
+  return function (_x5, _x6) {
+    return _ref3.apply(this, arguments);
+  };
+}()); //CONFIRMAR RESERVA
+
+router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+  var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
+    var id, datos, archivo, db, obs, result, codAsis, reserva, gi, isOC, estado_archivo, estado;
+    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            id = req.params.id;
+            datos = JSON.parse(req.body.data);
+            archivo = {};
+            _context4.next = 5;
             return (0, _database.connect)();
 
           case 5:
-            db = _context3.sent;
+            db = _context4.sent;
             obs = {};
             obs.obs = datos.observacion;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
             result = null;
             codAsis = "";
-            _context3.prev = 11;
-            _context3.next = 14;
+
+            if (req.file) {
+              archivo = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
+
+            _context4.prev = 12;
+            _context4.next = 15;
             return db.collection("reservas").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -130,6 +193,7 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
                 hora_reserva_fin: datos.hora_reserva_fin,
                 id_GI_personalAsignado: datos.id_GI_profesional_asignado,
                 sucursal: datos.sucursal,
+                url_file_adjunto_confirm: archivo,
                 estado: "Reservado",
                 reqEvaluacion: (0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion),
                 archivo: req.file
@@ -139,25 +203,25 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 14:
-            result = _context3.sent;
-            _context3.next = 17;
+          case 15:
+            result = _context4.sent;
+            _context4.next = 18;
             return db.collection("reservas").findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
-          case 17:
-            reserva = _context3.sent;
+          case 18:
+            reserva = _context4.sent;
 
             if (!((0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion) == "si" && result.result.ok == 1)) {
-              _context3.next = 25;
+              _context4.next = 26;
               break;
             }
 
             //insertamos la evaluacion
             codAsis = reserva.codigo;
             codAsis = codAsis.replace("AGE", "EVA");
-            _context3.next = 23;
+            _context4.next = 24;
             return db.collection("evaluaciones").insertOne({
               id_GI_personalAsignado: reserva.id_GI_personalAsignado,
               codigo: codAsis,
@@ -181,19 +245,19 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               estado: "Ingresado"
             });
 
-          case 23:
-            _context3.next = 37;
+          case 24:
+            _context4.next = 38;
             break;
 
-          case 25:
-            _context3.next = 27;
+          case 26:
+            _context4.next = 28;
             return db.collection("gi").findOne({
               rut: reserva.rut_cp,
               categoria: "Empresa/Organización"
             });
 
-          case 27:
-            gi = _context3.sent;
+          case 28:
+            gi = _context4.sent;
             isOC = "";
             estado_archivo = "";
             estado = "";
@@ -214,7 +278,7 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
 
             codAsis = reserva.codigo;
             codAsis = codAsis.replace("AGE", "FAC");
-            _context3.next = 36;
+            _context4.next = 37;
             return db.collection("facturaciones").insertOne({
               codigo: codAsis,
               nombre_servicio: reserva.nombre_servicio,
@@ -250,56 +314,68 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               total: 0
             });
 
-          case 36:
-            result = _context3.sent;
-
           case 37:
+            result = _context4.sent;
+
+          case 38:
             res.json({
               status: 200,
               message: "Reserva Confirmada"
             });
-            _context3.next = 43;
+            _context4.next = 44;
             break;
 
-          case 40:
-            _context3.prev = 40;
-            _context3.t0 = _context3["catch"](11);
+          case 41:
+            _context4.prev = 41;
+            _context4.t0 = _context4["catch"](12);
             res.json({
               status: 500,
               message: "No se pudo concretar la confirmacion de la reserva",
-              error: _context3.t0
+              error: _context4.t0
             });
 
-          case 43:
+          case 44:
           case "end":
-            return _context3.stop();
+            return _context4.stop();
         }
       }
-    }, _callee3, null, [[11, 40]]);
+    }, _callee4, null, [[12, 41]]);
   }));
 
-  return function (_x5, _x6) {
-    return _ref3.apply(this, arguments);
+  return function (_x7, _x8) {
+    return _ref4.apply(this, arguments);
   };
 }()); //CONFIRMACION MASIVA DE RESERVAS
 
-router.post("/confirmar", /*#__PURE__*/function () {
-  var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
-    var db, new_array, obs, result, resp, codigoAsis, arrayReservas, resultEva, arrayIDsCP, isOC, estado_archivo, estado, GIs, resultFac;
-    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+router.post("/confirmar", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+  var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
+    var db, datosJson, new_array, archivo, obs, result, resp, codigoAsis, arrayReservas, resultEva, arrayIDsCP, isOC, estado_archivo, estado, GIs, resultFac;
+    return regeneratorRuntime.wrap(function _callee5$(_context5) {
       while (1) {
-        switch (_context4.prev = _context4.next) {
+        switch (_context5.prev = _context5.next) {
           case 0:
-            _context4.next = 2;
+            _context5.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context4.sent;
+            db = _context5.sent;
+            datosJson = JSON.parse(req.body.data);
             new_array = [];
+            archivo = {};
             obs = {};
-            obs.obs = req.body[0].observacion;
-            obs.fecha = (0, _getDateNow.getDate)(new Date());
-            req.body[1].ids.forEach(function (element) {
+            obs.obs = datosJson[0].observacion;
+            obs.fecha = (0, _getDateNow.getDate)(new Date()); //verificar si hay archivo o no 
+
+            if (req.file) {
+              archivo = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
+
+            datosJson[1].ids.forEach(function (element) {
               new_array.push((0, _mongodb.ObjectID)(element));
             }); // Se editan las reservas de forma masiva
 
@@ -309,14 +385,15 @@ router.post("/confirmar", /*#__PURE__*/function () {
               }
             }, {
               $set: {
-                fecha_reserva: req.body[0].fecha_reserva,
-                fecha_reserva_fin: req.body[0].fecha_reserva_fin,
-                hora_reserva: req.body[0].hora_reserva,
-                hora_reserva_fin: req.body[0].hora_reserva_fin,
-                id_GI_personalAsignado: req.body[0].id_GI_profesional_asignado,
-                sucursal: req.body[0].sucursal,
+                fecha_reserva: datosJson[0].fecha_reserva,
+                fecha_reserva_fin: datosJson[0].fecha_reserva_fin,
+                hora_reserva: datosJson[0].hora_reserva,
+                hora_reserva_fin: datosJson[0].hora_reserva_fin,
+                id_GI_personalAsignado: datosJson[0].id_GI_profesional_asignado,
+                sucursal: datosJson[0].sucursal,
+                url_file_adjunto_confirm: archivo,
                 estado: "Reservado",
-                reqEvaluacion: (0, _changeToMiniscula.getMinusculas)(req.body[0].reqEvaluacion)
+                reqEvaluacion: (0, _changeToMiniscula.getMinusculas)(datosJson[0].reqEvaluacion)
               },
               $push: {
                 observacion: obs
@@ -326,18 +403,18 @@ router.post("/confirmar", /*#__PURE__*/function () {
             codigoAsis = "";
             arrayReservas = []; // Se insertan las evaluaciones o las facturaciones dependiendo del caso
 
-            _context4.next = 14;
+            _context5.next = 17;
             return db.collection("reservas").find({
               _id: {
                 $in: new_array
               }
             }).toArray();
 
-          case 14:
-            resp = _context4.sent;
+          case 17:
+            resp = _context5.sent;
 
-            if (!((0, _changeToMiniscula.getMinusculas)(req.body[0].reqEvaluacion) === "si" && result)) {
-              _context4.next = 23;
+            if (!((0, _changeToMiniscula.getMinusculas)(datosJson[0].reqEvaluacion) === "si" && result)) {
+              _context5.next = 26;
               break;
             }
 
@@ -367,16 +444,16 @@ router.post("/confirmar", /*#__PURE__*/function () {
                 estado: "Ingresado"
               });
             });
-            _context4.next = 19;
+            _context5.next = 22;
             return db.collection("evaluaciones").insertMany(arrayReservas);
 
-          case 19:
-            resultEva = _context4.sent;
+          case 22:
+            resultEva = _context5.sent;
             res.json(resultEva);
-            _context4.next = 36;
+            _context5.next = 39;
             break;
 
-          case 23:
+          case 26:
             arrayIDsCP = [];
             isOC = "";
             estado_archivo = "";
@@ -384,7 +461,7 @@ router.post("/confirmar", /*#__PURE__*/function () {
             resp.forEach(function (element) {
               arrayIDsCP.push((0, _mongodb.ObjectID)(element.id_GI_Principal));
             });
-            _context4.next = 30;
+            _context5.next = 33;
             return db.collection("gi").find({
               _id: {
                 $in: arrayIDsCP
@@ -392,8 +469,8 @@ router.post("/confirmar", /*#__PURE__*/function () {
               categoria: "Empresa/Organización"
             }).toArray();
 
-          case 30:
-            GIs = _context4.sent;
+          case 33:
+            GIs = _context5.sent;
             resp.forEach(function (element) {
               codigoAsis = element.codigo;
               codigoAsis = codigoAsis.replace("AGE", "FAC"); // gi = GIs.map((gi) => gi._id === element.id_GI_Principal);
@@ -450,23 +527,23 @@ router.post("/confirmar", /*#__PURE__*/function () {
                 total: 0
               });
             });
-            _context4.next = 34;
+            _context5.next = 37;
             return db.collection("facturaciones").insertMany(arrayReservas);
 
-          case 34:
-            resultFac = _context4.sent;
+          case 37:
+            resultFac = _context5.sent;
             res.json(resultFac);
 
-          case 36:
+          case 39:
           case "end":
-            return _context4.stop();
+            return _context5.stop();
         }
       }
-    }, _callee4);
+    }, _callee5);
   }));
 
-  return function (_x7, _x8) {
-    return _ref4.apply(this, arguments);
+  return function (_x9, _x10) {
+    return _ref5.apply(this, arguments);
   };
 }());
 var _default = router;

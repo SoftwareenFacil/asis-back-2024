@@ -28,18 +28,54 @@ router.get("/:id", async (req, res) => {
   res.json(result);
 });
 
+//EDITAR RESERVA
+router.put("/:id", async (req, res) =>{
+  const { id } = req.params;
+  const datos = JSON.parse(req.body.data);
+  const db = await connect();
+  let obs = {};
+  obs.obs = datos.observacion;
+  obs.fecha = getDate(new Date());
+
+  const result = await db.collection("reservas").updateOne({_id: ObjectID(id)}, {
+    $set:{
+      fecha_reserva: datos.fecha_reserva,
+      hora_reserva: datos.hora_reserva,
+      fecha_reserva_fin: datos.fecha_reserva_fin,
+      hora_reserva_fin: datos.hora_reserva_fin,
+      jornada: datos.jornada,
+      mes: datos.mes,
+      anio: datos.anio,
+      id_GI_personalAsignado: datos.id_GI_profesional_asignado,
+      sucursal: datos.sucursal
+    },
+    $push:{
+      observacion: obs
+    }
+  })
+})
 
 //CONFIRMAR RESERVA
-router.post("/confirmar/:id", async (req, res) => {
+router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const datos = req.body;
-  console.log('here')
+  const datos = JSON.parse(req.body.data);
+  let archivo = {}
   const db = await connect();
   let obs = {};
   obs.obs = datos.observacion;
   obs.fecha = getDate(new Date());
   let result = null;
   let codAsis = "";
+
+  if(req.file){
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype
+    };
+  }
+
   try {
     result = await db.collection("reservas").updateOne(
       { _id: ObjectID(id) },
@@ -51,6 +87,7 @@ router.post("/confirmar/:id", async (req, res) => {
           hora_reserva_fin: datos.hora_reserva_fin,
           id_GI_personalAsignado: datos.id_GI_profesional_asignado,
           sucursal: datos.sucursal,
+          url_file_adjunto_confirm: archivo,
           estado: "Reservado",
           reqEvaluacion: getMinusculas(datos.reqEvaluacion),
           archivo: req.file
@@ -166,15 +203,26 @@ router.post("/confirmar/:id", async (req, res) => {
 });
 
 //CONFIRMACION MASIVA DE RESERVAS
-router.post("/confirmar", async (req, res) => {
+router.post("/confirmar", multer.single("archivo"), async (req, res) => {
   const db = await connect();
-  
+  let datosJson = JSON.parse(req.body.data);
   let new_array = [];
+  let archivo = {}
   let obs = {};
-  obs.obs = req.body[0].observacion;
+  obs.obs = datosJson[0].observacion;
   obs.fecha = getDate(new Date());
 
-  req.body[1].ids.forEach((element) => {
+  //verificar si hay archivo o no 
+  if(req.file){
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype
+    }
+  }
+
+  datosJson[1].ids.forEach((element) => {
     new_array.push(ObjectID(element));
   });
 
@@ -183,14 +231,15 @@ router.post("/confirmar", async (req, res) => {
     { _id: { $in: new_array } },
     {
       $set: {
-        fecha_reserva: req.body[0].fecha_reserva,
-        fecha_reserva_fin: req.body[0].fecha_reserva_fin,
-        hora_reserva: req.body[0].hora_reserva,
-        hora_reserva_fin: req.body[0].hora_reserva_fin,
-        id_GI_personalAsignado: req.body[0].id_GI_profesional_asignado,
-        sucursal: req.body[0].sucursal,
+        fecha_reserva: datosJson[0].fecha_reserva,
+        fecha_reserva_fin: datosJson[0].fecha_reserva_fin,
+        hora_reserva: datosJson[0].hora_reserva,
+        hora_reserva_fin: datosJson[0].hora_reserva_fin,
+        id_GI_personalAsignado: datosJson[0].id_GI_profesional_asignado,
+        sucursal: datosJson[0].sucursal,
+        url_file_adjunto_confirm: archivo,
         estado: "Reservado",
-        reqEvaluacion: getMinusculas(req.body[0].reqEvaluacion),
+        reqEvaluacion: getMinusculas(datosJson[0].reqEvaluacion),
       },
       $push: {
         observacion: obs,
@@ -208,7 +257,7 @@ router.post("/confirmar", async (req, res) => {
     .find({ _id: { $in: new_array } })
     .toArray();
 
-  if (getMinusculas(req.body[0].reqEvaluacion) === "si" && result) {
+  if (getMinusculas(datosJson[0].reqEvaluacion) === "si" && result) {
     resp.forEach((element) => {
       codigoAsis = element.codigo;
       codigoAsis = codigoAsis.replace("AGE", "EVA");

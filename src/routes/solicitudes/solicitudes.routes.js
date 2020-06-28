@@ -87,15 +87,56 @@ router.put("/:id", multer.single("archivo"), async (req, res) =>{
   }
 
   try {
-    const result = await db
-      .collection("solicitudes")
-      .replaceOne({ _id: ObjectID(id) }, solicitud);
+    const result = await db.collection('solicitudes').updateOne({_id: ObjectID(id)}, {
+      $set:{
+        id_GI_Principal: solicitud.id_GI_Principal,
+        id_GI_Secundario: solicitud.id_GI_Secundario,
+        id_GI_PersonalAsignado: solicitud.id_GI_PersonalAsignado,
+        rut_CP: solicitud.rut_CP,
+        razon_social_CP: solicitud.razon_social_CP,
+        nro_contrato_seleccionado_cp: solicitud.nro_contrato_seleccionado_cp,
+        faena_seleccionada_cp: solicitud.faena_seleccionada_cp,
+        rut_cs: solicitud.rut_cs,
+        razon_social_cs: solicitud.razon_social_cs,
+        fecha_solicitud: solicitud.fecha_solicitud,
+        fecha_servicio_solicitado: solicitud.fecha_servicio_solicitado,
+        mes_solicitud: solicitud.mes_solicitud,
+        anio_solicitud: solicitud.anio_solicitud,
+        nombre_receptor: solicitud.nombre_receptor,
+        categoria1: solicitud.categoria1,
+        categoria2: solicitud.categoria2,
+        categoria3: solicitud.categoria3,
+        nombre_servicio: solicitud.nombre_servicio,
+        tipo_servicio: solicitud.tipo_servicio,
+        monto_neto: solicitud.monto_neto,
+        porcentaje_impuesto: solicitud.porcentaje_impuesto,
+        valor_impuesto: solicitud.valor_impuesto,
+        precio: solicitud.precio,
+        costo_estimado: solicitud.costo_estimado,
+        lugar_servicio: solicitud.lugar_servicio,
+        sucursal: solicitud.sucursal,
+        hora_servicio_solicitado: solicitud.hora_servicio_solicitado,
+        fecha_servicio_solicitado_termino: solicitud.fecha_servicio_solicitado_termino,
+        hora_servicio_solicitado_termino: solicitud.hora_servicio_solicitado_termino,
+        jornada: solicitud.jornada,
+        hora_solicitud: solicitud.hora_solicitud,
+        estado: solicitud.estado,
+        codigo: solicitud.codigo,
+        url_file_adjunto: solicitud.url_file_adjunto
+      },
+      $push:{
+        observacion_solicitud: {
+          obs: solicitud.observacion_solicitud,
+          fecha: getDate(new Date())
+        }
+      }
+    })
+
+
     res.status(201).json({message: "Solicitud modificada correctamente"});
   } catch (error) {
     res.status(500).json({message: "ha ocurrido un error", error})
   }
-
-  // const result = await db.collection("solicitudes").updateOne({_id: ObjectID(id)}, solicitud);
 })
 
 //CONFIRMAR SOLICITUD
@@ -125,7 +166,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         fecha_confirmacion: solicitud.fecha_solicitud,
         hora_confirmacion: solicitud.hora_solicitud,
         medio_confirmacion: solicitud.medio_confirmacion,
-        url_file_adjunto: archivo,
+        url_file_adjunto_confirm: archivo,
         estado: "Confirmado",
       },
       $push: {
@@ -148,6 +189,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       const resp = await db
         .collection("solicitudes")
         .findOne({ _id: ObjectID(id) });
+        
       let codigoAsis = resp.codigo;
       codigoAsis = codigoAsis.replace("SOL", "AGE");
       const newReserva = {
@@ -171,6 +213,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         nombre_servicio: resp.nombre_servicio,
         lugar_servicio: resp.lugar_servicio,
         sucursal: resp.sucursal,
+        url_file_adjunto: archivo,
         observacion: [],
         estado: "Ingresado",
       };
@@ -188,21 +231,33 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   let new_array = [];
 
+  let dataJson = JSON.parse(req.body.data);
   let obs = {};
-  obs.obs = req.body[0].observacion_solicitud;
+  obs.obs = dataJson[0].observacion_solicitud;
   obs.fecha = getDate(new Date());
 
-  req.body[1].ids.forEach((element) => {
+  dataJson[1].ids.forEach((element) => {
     new_array.push(ObjectID(element));
   });
+
+  //verificar si hay archivo o no 
+  if(req.file){
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype
+    }
+  }
 
   const result = db.collection("solicitudes").updateMany(
     { _id: { $in: new_array } },
     {
       $set: {
-        fecha_confirmacion: req.body[0].fecha_solicitud,
-        hora_confirmacion: req.body[0].hora_solicitud,
-        medio_confirmacion: req.body[0].medio_confirmacion,
+        fecha_confirmacion: dataJson[0].fecha_solicitud,
+        hora_confirmacion: dataJson[0].hora_solicitud,
+        medio_confirmacion: dataJson[0].medio_confirmacion,
+        url_file_adjunto_confirm: archivo,
         estado: "Confirmado",
       },
       $push: {

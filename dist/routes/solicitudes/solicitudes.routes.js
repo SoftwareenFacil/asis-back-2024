@@ -196,9 +196,52 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
 
             _context4.prev = 6;
             _context4.next = 9;
-            return db.collection("solicitudes").replaceOne({
+            return db.collection('solicitudes').updateOne({
               _id: (0, _mongodb.ObjectID)(id)
-            }, solicitud);
+            }, {
+              $set: {
+                id_GI_Principal: solicitud.id_GI_Principal,
+                id_GI_Secundario: solicitud.id_GI_Secundario,
+                id_GI_PersonalAsignado: solicitud.id_GI_PersonalAsignado,
+                rut_CP: solicitud.rut_CP,
+                razon_social_CP: solicitud.razon_social_CP,
+                nro_contrato_seleccionado_cp: solicitud.nro_contrato_seleccionado_cp,
+                faena_seleccionada_cp: solicitud.faena_seleccionada_cp,
+                rut_cs: solicitud.rut_cs,
+                razon_social_cs: solicitud.razon_social_cs,
+                fecha_solicitud: solicitud.fecha_solicitud,
+                fecha_servicio_solicitado: solicitud.fecha_servicio_solicitado,
+                mes_solicitud: solicitud.mes_solicitud,
+                anio_solicitud: solicitud.anio_solicitud,
+                nombre_receptor: solicitud.nombre_receptor,
+                categoria1: solicitud.categoria1,
+                categoria2: solicitud.categoria2,
+                categoria3: solicitud.categoria3,
+                nombre_servicio: solicitud.nombre_servicio,
+                tipo_servicio: solicitud.tipo_servicio,
+                monto_neto: solicitud.monto_neto,
+                porcentaje_impuesto: solicitud.porcentaje_impuesto,
+                valor_impuesto: solicitud.valor_impuesto,
+                precio: solicitud.precio,
+                costo_estimado: solicitud.costo_estimado,
+                lugar_servicio: solicitud.lugar_servicio,
+                sucursal: solicitud.sucursal,
+                hora_servicio_solicitado: solicitud.hora_servicio_solicitado,
+                fecha_servicio_solicitado_termino: solicitud.fecha_servicio_solicitado_termino,
+                hora_servicio_solicitado_termino: solicitud.hora_servicio_solicitado_termino,
+                jornada: solicitud.jornada,
+                hora_solicitud: solicitud.hora_solicitud,
+                estado: solicitud.estado,
+                codigo: solicitud.codigo,
+                url_file_adjunto: solicitud.url_file_adjunto
+              },
+              $push: {
+                observacion_solicitud: {
+                  obs: solicitud.observacion_solicitud,
+                  fecha: (0, _getDateNow.getDate)(new Date())
+                }
+              }
+            });
 
           case 9:
             result = _context4.sent;
@@ -266,7 +309,7 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
                 fecha_confirmacion: solicitud.fecha_solicitud,
                 hora_confirmacion: solicitud.hora_solicitud,
                 medio_confirmacion: solicitud.medio_confirmacion,
-                url_file_adjunto: archivo,
+                url_file_adjunto_confirm: archivo,
                 estado: "Confirmado"
               },
               $push: {
@@ -329,6 +372,7 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
               nombre_servicio: resp.nombre_servicio,
               lugar_servicio: resp.lugar_servicio,
               sucursal: resp.sucursal,
+              url_file_adjunto: archivo,
               observacion: [],
               estado: "Ingresado"
             };
@@ -354,7 +398,7 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
 
 router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
-    var db, new_array, obs, result, resp, codigoAsis, arrayReservas, resultReserva;
+    var db, new_array, dataJson, obs, result, resp, codigoAsis, arrayReservas, resultReserva;
     return regeneratorRuntime.wrap(function _callee6$(_context6) {
       while (1) {
         switch (_context6.prev = _context6.next) {
@@ -365,21 +409,33 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
           case 2:
             db = _context6.sent;
             new_array = [];
+            dataJson = JSON.parse(req.body.data);
             obs = {};
-            obs.obs = req.body[0].observacion_solicitud;
+            obs.obs = dataJson[0].observacion_solicitud;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
-            req.body[1].ids.forEach(function (element) {
+            dataJson[1].ids.forEach(function (element) {
               new_array.push((0, _mongodb.ObjectID)(element));
-            });
+            }); //verificar si hay archivo o no 
+
+            if (req.file) {
+              archivo = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
+
             result = db.collection("solicitudes").updateMany({
               _id: {
                 $in: new_array
               }
             }, {
               $set: {
-                fecha_confirmacion: req.body[0].fecha_solicitud,
-                hora_confirmacion: req.body[0].hora_solicitud,
-                medio_confirmacion: req.body[0].medio_confirmacion,
+                fecha_confirmacion: dataJson[0].fecha_solicitud,
+                hora_confirmacion: dataJson[0].hora_solicitud,
+                medio_confirmacion: dataJson[0].medio_confirmacion,
+                url_file_adjunto_confirm: archivo,
                 estado: "Confirmado"
               },
               $push: {
@@ -390,14 +446,14 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
             resp = "";
             codigoAsis = "";
             arrayReservas = [];
-            _context6.next = 14;
+            _context6.next = 16;
             return db.collection("solicitudes").find({
               _id: {
                 $in: new_array
               }
             }).toArray();
 
-          case 14:
+          case 16:
             resp = _context6.sent;
             resp.forEach(function (element) {
               codigoAsis = element.codigo;
@@ -427,14 +483,14 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
                 estado: "Ingresado"
               });
             });
-            _context6.next = 18;
+            _context6.next = 20;
             return db.collection("reservas").insertMany(arrayReservas);
 
-          case 18:
+          case 20:
             resultReserva = _context6.sent;
             res.json(resultReserva);
 
-          case 20:
+          case 22:
           case "end":
             return _context6.stop();
         }
