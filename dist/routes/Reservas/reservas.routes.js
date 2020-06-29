@@ -98,9 +98,9 @@ router.get("/:id", /*#__PURE__*/function () {
   };
 }()); //EDITAR RESERVA
 
-router.put("/:id", /*#__PURE__*/function () {
+router.put("/:id", _multer["default"].single('archivo'), /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, datos, db, obs, result;
+    var id, datos, db, archivo, obs, result;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -112,10 +112,21 @@ router.put("/:id", /*#__PURE__*/function () {
 
           case 4:
             db = _context3.sent;
+            archivo = {};
             obs = {};
             obs.obs = datos.observacion;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
-            _context3.next = 10;
+
+            if (req.file) {
+              archivo = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
+
+            _context3.next = 12;
             return db.collection("reservas").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -128,17 +139,18 @@ router.put("/:id", /*#__PURE__*/function () {
                 mes: datos.mes,
                 anio: datos.anio,
                 id_GI_personalAsignado: datos.id_GI_profesional_asignado,
-                sucursal: datos.sucursal
+                sucursal: datos.sucursal,
+                url_file_adjunto: archivo
               },
               $push: {
                 observacion: obs
               }
             });
 
-          case 10:
+          case 12:
             result = _context3.sent;
 
-          case 11:
+          case 13:
           case "end":
             return _context3.stop();
         }

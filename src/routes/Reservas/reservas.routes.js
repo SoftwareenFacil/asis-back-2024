@@ -29,13 +29,23 @@ router.get("/:id", async (req, res) => {
 });
 
 //EDITAR RESERVA
-router.put("/:id", async (req, res) =>{
+router.put("/:id", multer.single('archivo'), async (req, res) =>{
   const { id } = req.params;
   const datos = JSON.parse(req.body.data);
   const db = await connect();
+  let archivo = {}
   let obs = {};
   obs.obs = datos.observacion;
   obs.fecha = getDate(new Date());
+
+  if(req.file){
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype
+    };
+  }
 
   const result = await db.collection("reservas").updateOne({_id: ObjectID(id)}, {
     $set:{
@@ -47,7 +57,8 @@ router.put("/:id", async (req, res) =>{
       mes: datos.mes,
       anio: datos.anio,
       id_GI_personalAsignado: datos.id_GI_profesional_asignado,
-      sucursal: datos.sucursal
+      sucursal: datos.sucursal,
+      url_file_adjunto: archivo
     },
     $push:{
       observacion: obs
