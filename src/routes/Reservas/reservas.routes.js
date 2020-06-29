@@ -101,7 +101,6 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
           url_file_adjunto_confirm: archivo,
           estado: "Reservado",
           reqEvaluacion: getMinusculas(datos.reqEvaluacion),
-          archivo: req.file
         },
         $push: {
           observacion: obs,

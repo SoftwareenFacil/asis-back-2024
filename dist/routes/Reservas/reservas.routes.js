@@ -207,8 +207,7 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
                 sucursal: datos.sucursal,
                 url_file_adjunto_confirm: archivo,
                 estado: "Reservado",
-                reqEvaluacion: (0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion),
-                archivo: req.file
+                reqEvaluacion: (0, _changeToMiniscula.getMinusculas)(datos.reqEvaluacion)
               },
               $push: {
                 observacion: obs
