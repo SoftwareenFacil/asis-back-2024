@@ -64,6 +64,8 @@ router.put("/:id", multer.single('archivo'), async (req, res) =>{
       observacion: obs
     }
   })
+
+  res.json(result)
 })
 
 //CONFIRMAR RESERVA

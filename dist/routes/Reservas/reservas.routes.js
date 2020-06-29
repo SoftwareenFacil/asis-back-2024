@@ -149,8 +149,9 @@ router.put("/:id", _multer["default"].single('archivo'), /*#__PURE__*/function (
 
           case 12:
             result = _context3.sent;
+            res.json(result);
 
-          case 13:
+          case 14:
           case "end":
             return _context3.stop();
         }
