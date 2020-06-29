@@ -231,7 +231,9 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   let new_array = [];
 
+  console.log(JSON.parse(req.body.data));
   let dataJson = JSON.parse(req.body.data);
+  let archivo = {}
   let obs = {};
   obs.obs = dataJson[0].observacion_solicitud;
   obs.fecha = getDate(new Date());

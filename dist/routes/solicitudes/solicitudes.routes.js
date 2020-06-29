@@ -398,7 +398,7 @@ router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*
 
 router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
-    var db, new_array, dataJson, obs, result, resp, codigoAsis, arrayReservas, resultReserva;
+    var db, new_array, dataJson, archivo, obs, result, resp, codigoAsis, arrayReservas, resultReserva;
     return regeneratorRuntime.wrap(function _callee6$(_context6) {
       while (1) {
         switch (_context6.prev = _context6.next) {
@@ -409,7 +409,9 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
           case 2:
             db = _context6.sent;
             new_array = [];
+            console.log(JSON.parse(req.body.data));
             dataJson = JSON.parse(req.body.data);
+            archivo = {};
             obs = {};
             obs.obs = dataJson[0].observacion_solicitud;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
@@ -446,14 +448,14 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
             resp = "";
             codigoAsis = "";
             arrayReservas = [];
-            _context6.next = 16;
+            _context6.next = 18;
             return db.collection("solicitudes").find({
               _id: {
                 $in: new_array
               }
             }).toArray();
 
-          case 16:
+          case 18:
             resp = _context6.sent;
             resp.forEach(function (element) {
               codigoAsis = element.codigo;
@@ -483,14 +485,14 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
                 estado: "Ingresado"
               });
             });
-            _context6.next = 20;
+            _context6.next = 22;
             return db.collection("reservas").insertMany(arrayReservas);
 
-          case 20:
+          case 22:
             resultReserva = _context6.sent;
             res.json(resultReserva);
 
-          case 22:
+          case 24:
           case "end":
             return _context6.stop();
         }
