@@ -1,9 +1,10 @@
-import { Router } from "express";
+import { Router, json } from "express";
 import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import { getMinusculas } from "../../functions/changeToMiniscula";
 import { getDate } from "../../functions/getDateNow";
 import { getFechaPago } from "../../functions/calculateFechaPago";
+import multer from "../../libs/multer";
 
 const router = Router();
 
@@ -23,30 +24,41 @@ router.get("/", async (req, res) => {
 });
 
 //INSERTAR DATOS DE FACTURACION
-router.post("/:id", async (req, res) => {
+router.post("/:id", multer.single('archivo'), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
+  let datos = JSON.parse(req.body.data)
+  let archivo = {};
   let obs = {};
-  obs.obs = req.body.observacion_factura;
+  obs.obs = datos.observacion_factura;
   obs.fecha = getDate(new Date());
   obs.estado = "Cargado";
   let result = "";
+
+  if (req.file) {
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
 
   result = await db.collection("facturaciones").updateOne(
     { _id: ObjectID(id) },
     {
       $set: {
-        fecha_facturacion: req.body.fecha_facturacion,
+        fecha_facturacion: datos.fecha_facturacion,
         estado_archivo: "Cargado",
-        nro_factura: req.body.nro_factura,
-        archivo_factura: req.body.archivo_factura,
-        monto_neto: req.body.monto_neto,
-        porcentaje_impuesto: req.body.porcentaje_impuesto,
-        valor_impuesto: req.body.valor_impuesto,
-        sub_total: req.body.sub_total,
-        exento: req.body.exento,
-        descuento: req.body.descuento,
-        total: req.body.total,
+        nro_factura: datos.nro_factura,
+        archivo_factura: archivo,
+        monto_neto: datos.monto_neto,
+        porcentaje_impuesto: datos.porcentaje_impuesto,
+        valor_impuesto: datos.valor_impuesto,
+        sub_total: datos.sub_total,
+        exento: datos.exento,
+        descuento: datos.descuento,
+        total: datos.total,
       },
       $push: {
         observacion_factura: obs,
@@ -58,35 +70,46 @@ router.post("/:id", async (req, res) => {
 });
 
 //INSERTAR FACTURA MASIVO
-router.post("/", async (req, res) => {
+router.post("/", multer.single('archivo'), async (req, res) => {
   const db = await connect();
   let new_array = [];
+  let datos = JSON.parse(req.body.data);
+  let archivo = {};
   let obs = {};
 
-  obs.obs = req.body[0].observacion_factura;
+  obs.obs = datos[0].observacion_factura;
   obs.fecha = getDate(new Date());
   obs.estado = "Cargado";
   let result = "";
 
-  req.body[1].ids.forEach((element) => {
+  datos[1].ids.forEach((element) => {
     new_array.push(ObjectID(element));
   });
+
+  if (req.file) {
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
 
   result = await db.collection("facturaciones").updateMany(
     { _id: { $in: new_array } },
     {
       $set: {
-        fecha_facturacion: req.body[0].fecha_facturacion,
+        fecha_facturacion: datos[0].fecha_facturacion,
         estado_archivo: "Cargado",
-        nro_factura: req.body[0].nro_factura,
-        archivo_factura: req.body[0].archivo_factura,
-        monto_neto: req.body[0].monto_neto,
-        porcentaje_impuesto: req.body[0].porcentaje_impuesto,
-        valor_impuesto: req.body[0].valor_impuesto,
-        sub_total: req.body[0].sub_total,
-        exento: req.body[0].exento,
-        descuento: req.body[0].descuento,
-        total: req.body[0].total,
+        nro_factura: datos[0].nro_factura,
+        archivo_factura: archivo,
+        monto_neto: datos[0].monto_neto,
+        porcentaje_impuesto: datos[0].porcentaje_impuesto,
+        valor_impuesto: datos[0].valor_impuesto,
+        sub_total: datos[0].sub_total,
+        exento: datos[0].exento,
+        descuento: datos[0].descuento,
+        total: datos[0].total,
       },
       $push: {
         observacion_factura: obs,
@@ -98,21 +121,33 @@ router.post("/", async (req, res) => {
 });
 
 //SUBIR OC
-router.post("/subiroc/:id", async (req, res) => {
+router.post("/subiroc/:id", multer.single('archivo'), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
+  let datos = JSON.parse(req.body.data);
+  let archivo = {};
   let obs = {};
-  obs.obs = req.body.observacion_oc;
+  obs.obs = datos.observacion_oc;
   obs.fecha = getDate(new Date());
   obs.estado = "Cargado";
+
+  if (req.file) {
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
+
   const result = await db.collection("facturaciones").updateOne(
     { _id: ObjectID(id) },
     {
       $set: {
-        archivo_oc: req.body.archivo_oc,
-        fecha_oc: req.body.fecha_oc,
-        hora_oc: req.body.hora_oc,
-        nro_oc: req.body.nro_oc,
+        archivo_oc: archivo,
+        fecha_oc: datos.fecha_oc,
+        hora_oc: datos.hora_oc,
+        nro_oc: datos.nro_oc,
         estado_archivo: "Cargado",
         estado: "En Revisión",
       },
@@ -126,27 +161,37 @@ router.post("/subiroc/:id", async (req, res) => {
 });
 
 //SUBIR OC MASIVO
-router.post("/oc/subiroc/many", async (req, res) => {
+router.post("/oc/subiroc/many", multer.single('archivo'), async (req, res) => {
   const db = await connect();
   let new_array = [];
-
+  let datos = JSON.parse(req.body.data)
+  let archivo = {};
   let obs = {};
-  obs.obs = req.body[0].observacion_oc;
+  obs.obs = datos[0].observacion_oc;
   obs.fecha = getDate(new Date());
   obs.estado = "Cargado";
 
-  req.body[1].ids.forEach((element) => {
+  datos[1].ids.forEach((element) => {
     new_array.push(ObjectID(element));
   });
+
+  if (req.file) {
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
 
   const result = await db.collection("facturaciones").updateMany(
     { _id: { $in: new_array } },
     {
       $set: {
-        archivo_oc: req.body[0].archivo_oc,
-        fecha_oc: req.body[0].fecha_oc,
-        hora_oc: req.body[0].hora_oc,
-        nro_oc: req.body[0].nro_oc,
+        archivo_oc: archivo,
+        fecha_oc: datos[0].fecha_oc,
+        hora_oc: datos[0].hora_oc,
+        nro_oc: datos[0].nro_oc,
         estado_archivo: "Cargado",
         estado: "En Revisión",
       },

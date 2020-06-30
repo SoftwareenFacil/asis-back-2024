@@ -125,7 +125,7 @@ router.post("/subir/:id", _multer["default"].single("archivo"), /*#__PURE__*/fun
 
 router.post("/confirmar/:id", /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, db, datos, archivo, result, obs, codAsis, gi, isOC, estado_archivo, estado;
+    var id, db, datos, result, obs, codAsis, gi, isOC, estado_archivo, estado;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -137,25 +137,24 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
           case 3:
             db = _context3.sent;
             datos = req.body;
-            archivo = {};
             result = "";
             obs = {};
             obs.obs = datos.observaciones;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
 
             if (!(datos.estado_archivo == "Aprobado")) {
-              _context3.next = 35;
+              _context3.next = 34;
               break;
             }
 
             obs.estado = datos.estado_archivo;
 
             if (!(datos.estado_resultado == "Aprobado con Obs" || datos.estado_resultado == "Aprobado")) {
-              _context3.next = 18;
+              _context3.next = 17;
               break;
             }
 
-            _context3.next = 15;
+            _context3.next = 14;
             return db.collection("resultados").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -174,13 +173,13 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 15:
+          case 14:
             result = _context3.sent;
-            _context3.next = 21;
+            _context3.next = 20;
             break;
 
-          case 18:
-            _context3.next = 20;
+          case 17:
+            _context3.next = 19;
             return db.collection("resultados").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -196,19 +195,19 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 20:
+          case 19:
             result = _context3.sent;
 
-          case 21:
+          case 20:
             //insercion de la facturación
             codAsis = result.value.codigo;
-            _context3.next = 24;
+            _context3.next = 23;
             return db.collection("gi").findOne({
               rut: result.value.rut_cp,
               categoria: "Empresa/Organización"
             });
 
-          case 24:
+          case 23:
             gi = _context3.sent;
             isOC = "";
             estado_archivo = "";
@@ -228,11 +227,11 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
             }
 
             if (!result) {
-              _context3.next = 33;
+              _context3.next = 32;
               break;
             }
 
-            _context3.next = 32;
+            _context3.next = 31;
             return db.collection("facturaciones").insertOne({
               codigo: codAsis.replace("RES", "FAC"),
               nombre_servicio: result.value.nombre_servicio,
@@ -268,16 +267,16 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               total: 0
             });
 
-          case 32:
+          case 31:
             result = _context3.sent;
 
-          case 33:
-            _context3.next = 39;
+          case 32:
+            _context3.next = 38;
             break;
 
-          case 35:
+          case 34:
             obs.estado = datos.estado_archivo;
-            _context3.next = 38;
+            _context3.next = 37;
             return db.collection("resultados").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -289,13 +288,13 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 38:
+          case 37:
             result = _context3.sent;
 
-          case 39:
+          case 38:
             res.json(result);
 
-          case 40:
+          case 39:
           case "end":
             return _context3.stop();
         }
