@@ -453,14 +453,14 @@ router.post("/oc/confirmaroc/many", /*#__PURE__*/function () {
 
 router.post("/validar/:id", /*#__PURE__*/function () {
   var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(req, res) {
-    var id, _req$body, estado_archivo, observaciones, nro_nota_credito, fecha_nota_credito, monto_nota_credito, factura_anular, archivo_adjunto, db, obs, estado, result, _db$collection$insert, codAsis, gi, servicio, _db$collection$insert2;
+    var id, _req$body, estado_archivo, observaciones, nro_nota_credito, fecha_nota_credito, monto_nota_credito, factura_anular, db, obs, estado, result, _db$collection$insert, codAsis, gi, servicio, _db$collection$insert2;
 
     return regeneratorRuntime.wrap(function _callee8$(_context8) {
       while (1) {
         switch (_context8.prev = _context8.next) {
           case 0:
             id = req.params.id;
-            _req$body = req.body, estado_archivo = _req$body.estado_archivo, observaciones = _req$body.observaciones, nro_nota_credito = _req$body.nro_nota_credito, fecha_nota_credito = _req$body.fecha_nota_credito, monto_nota_credito = _req$body.monto_nota_credito, factura_anular = _req$body.factura_anular, archivo_adjunto = _req$body.archivo_adjunto;
+            _req$body = req.body, estado_archivo = _req$body.estado_archivo, observaciones = _req$body.observaciones, nro_nota_credito = _req$body.nro_nota_credito, fecha_nota_credito = _req$body.fecha_nota_credito, monto_nota_credito = _req$body.monto_nota_credito, factura_anular = _req$body.factura_anular;
             _context8.next = 4;
             return (0, _database.connect)();
 

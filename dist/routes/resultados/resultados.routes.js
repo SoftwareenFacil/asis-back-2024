@@ -204,7 +204,7 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
             _context3.next = 23;
             return db.collection("gi").findOne({
               rut: result.value.rut_cp,
-              categoria: "Empresa/Organización"
+              categoria: "Empresa/Organizacion"
             });
 
           case 23:

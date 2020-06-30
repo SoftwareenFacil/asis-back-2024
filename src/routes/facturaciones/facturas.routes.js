@@ -279,7 +279,6 @@ router.post("/validar/:id", async (req, res) => {
     fecha_nota_credito,
     monto_nota_credito,
     factura_anular,
-    archivo_adjunto,
   } = req.body;
   const db = await connect();
   let obs = {};

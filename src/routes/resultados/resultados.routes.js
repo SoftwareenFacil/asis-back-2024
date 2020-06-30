@@ -112,7 +112,7 @@ router.post("/confirmar/:id", async (req, res) => {
     let codAsis = result.value.codigo;
     let gi = await db
       .collection("gi")
-      .findOne({ rut: result.value.rut_cp, categoria: "Empresa/Organización" });
+      .findOne({ rut: result.value.rut_cp, categoria: "Empresa/Organizacion" });
     var isOC = "";
     let estado_archivo = "";
     let estado = "";
