@@ -127,7 +127,7 @@ router.post("/evaluar/:id", _multer["default"].single("archivo"), /*#__PURE__*/f
 
 router.post("/evaluado/:id", /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, db, datos, estadoEvaluacion, archivo, obs, result, codAsis, resultinsert;
+    var id, db, datos, estadoEvaluacion, obs, result, codAsis, resultinsert;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -140,7 +140,6 @@ router.post("/evaluado/:id", /*#__PURE__*/function () {
             db = _context3.sent;
             datos = req.body;
             estadoEvaluacion = "";
-            archivo = {};
             obs = {};
             obs.obs = datos.observaciones;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
@@ -152,7 +151,7 @@ router.post("/evaluado/:id", /*#__PURE__*/function () {
               estadoEvaluacion = "Ingresado";
             }
 
-            _context3.next = 14;
+            _context3.next = 13;
             return db.collection("evaluaciones").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -172,17 +171,17 @@ router.post("/evaluado/:id", /*#__PURE__*/function () {
               returnNewDocument: true
             });
 
-          case 14:
+          case 13:
             result = _context3.sent;
 
             if (!(result.ok == 1 && (datos.estado_archivo == "Aprobado" || datos.estado_archivo == "Aprobado con Obs"))) {
-              _context3.next = 22;
+              _context3.next = 21;
               break;
             }
 
             codAsis = result.value.codigo;
             codAsis = codAsis.replace("EVA", "RES");
-            _context3.next = 20;
+            _context3.next = 19;
             return db.collection("resultados").insertOne({
               codigo: codAsis,
               nombre_servicio: result.value.nombre_servicio,
@@ -198,7 +197,6 @@ router.post("/evaluado/:id", /*#__PURE__*/function () {
               condicionantes: [],
               vigencia_examen: "",
               observaciones: [],
-              url_file_adjunto: archivo,
               fecha_confirmacion_examen: datos.fecha_confirmacion_examen,
               hora_confirmacion_examen: datos.hora_confirmacion_examen,
               estado: "En Revisión",
@@ -206,14 +204,14 @@ router.post("/evaluado/:id", /*#__PURE__*/function () {
               estado_resultado: ""
             });
 
-          case 20:
+          case 19:
             resultinsert = _context3.sent;
             result = resultinsert;
 
-          case 22:
+          case 21:
             res.json(result);
 
-          case 23:
+          case 22:
           case "end":
             return _context3.stop();
         }

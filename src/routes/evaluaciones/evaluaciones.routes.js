@@ -64,7 +64,6 @@ router.post("/evaluado/:id", async (req, res) => {
   const db = await connect();
   const datos = req.body;
   let estadoEvaluacion = "";
-  let archivo = {};
   let obs = {};
   obs.obs = datos.observaciones;
   obs.fecha = getDate(new Date());
@@ -114,7 +113,6 @@ router.post("/evaluado/:id", async (req, res) => {
       condicionantes: [],
       vigencia_examen: "",
       observaciones: [],
-      url_file_adjunto: archivo,
       fecha_confirmacion_examen: datos.fecha_confirmacion_examen,
       hora_confirmacion_examen: datos.hora_confirmacion_examen,
       estado: "En Revisión",

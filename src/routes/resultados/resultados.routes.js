@@ -56,24 +56,15 @@ router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
 });
 
 //confirmar resultado
-router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
+router.post("/confirmar/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const datos = JSON.parse(req.body.data);
+  const datos = req.body;
   let archivo = {};
   let result = "";
   let obs = {};
   obs.obs = datos.observaciones;
   obs.fecha = getDate(new Date());
-
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
 
   if (datos.estado_archivo == "Aprobado") {
     obs.estado = datos.estado_archivo;
@@ -92,7 +83,6 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
             fecha_resultado: datos.fecha_resultado,
             hora_resultado: datos.hora_resultado,
             condicionantes: datos.condicionantes,
-            url_file_archivo_res_confirm: archivo,
             fecha_vencimiento_examen: getDateEspecific(
               getFechaVencExam(datos.fecha_resultado, datos.vigencia_examen)
             ).substr(0, 10),
@@ -112,7 +102,6 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
             estado_resultado: datos.estado_resultado,
             fecha_resultado: datos.fecha_resultado,
             hora_resultado: datos.hora_resultado,
-            url_file_archivo_res_confirm: archivo,
           },
           $push: {
             observaciones: obs,
@@ -184,7 +173,6 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       {
         $set: {
           estado_archivo: datos.estado_archivo,
-          url_file_archivo_res_confirm: archivo,
         },
         $push: {
           observaciones: obs,
