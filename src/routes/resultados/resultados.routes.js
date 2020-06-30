@@ -60,7 +60,6 @@ router.post("/confirmar/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const datos = req.body;
-  let archivo = {};
   let result = "";
   let obs = {};
   obs.obs = datos.observaciones;
