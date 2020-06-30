@@ -3,6 +3,7 @@ import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import { getFechaVencExam } from "../../functions/fechaVencExamen";
 import { getDate } from "../../functions/getDateNow";
+import multer from "../../libs/multer";
 
 const router = Router();
 
@@ -18,20 +19,33 @@ router.get("/", async (req, res) => {
 });
 
 //INGRESAR PAGO
-router.post("/nuevo/:id", async (req, res) => {
+router.post("/nuevo/:id", multer.single('archivo'), async (req, res) => {
   const db = await connect();
   const { id } = req.params;
+  let datos = JSON.parse(req.body.data)
+  let archivo = {};
+
+  if (req.file) {
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
+
   let obj = {};
-  obj.fecha_pago = req.body.fecha_pago;
-  obj.hora_pago = req.body.hora_pago;
-  obj.sucursal = req.body.sucursal;
-  obj.tipo_pago = req.body.tipo_pago;
-  obj.monto = req.body.monto;
-  obj.descuento = req.body.descuento;
-  obj.total = req.body.total;
-  obj.observaciones = req.body.observaciones;
-  obj.institucion_bancaria = req.body.institucion_bancaria;
-  obj.archivo_adjunto = req.body.archivo_adjunto;
+  obj.fecha_pago = datos.fecha_pago;
+  obj.hora_pago = datos.hora_pago;
+  obj.sucursal = datos.sucursal;
+  obj.tipo_pago = datos.tipo_pago;
+  obj.monto = datos.monto;
+  obj.descuento = datos.descuento;
+  obj.total = datos.total;
+  obj.observaciones = datos.observaciones;
+  obj.institucion_bancaria = datos.institucion_bancaria;
+  obj.archivo_adjunto = archivo;
+
   let result = await db.collection("pagos").findOneAndUpdate(
     { _id: ObjectID(id) },
     {
@@ -100,13 +114,24 @@ router.post("/nuevo/:id", async (req, res) => {
 });
 
 //INGRESO MASIVO DE PAGOS
-router.post("/many", async (req, res) => {
+router.post("/many", multer.single('archivo'), async (req, res) => {
   const db = await connect();
+  let datos = JSON.parse(req.body.data)
+  let archivo = {};
   let new_array = [];
 
-  req.body[1].ids.forEach((element) => {
+  datos[1].ids.forEach((element) => {
     new_array.push(ObjectID(element));
   });
+
+  if (req.file) {
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
 
   try {
     let result = await db
@@ -118,15 +143,16 @@ router.post("/many", async (req, res) => {
           {
             $push: {
               pagos: {
-                fecha_pago: req.body[0].fecha_pago,
-                hora_pago: req.body[0].hora_pago,
-                sucursal: req.body[0].sucursal,
-                tipo_pago: req.body[0].tipo_pago,
+                fecha_pago: datos[0].fecha_pago,
+                hora_pago: datos[0].hora_pago,
+                sucursal: datos[0].sucursal,
+                tipo_pago: datos[0].tipo_pago,
                 monto: c.valor_servicio - c.valor_cancelado,
-                descuento: req.body[0].descuento,
+                descuento: datos[0].descuento,
                 total: c.valor_servicio - c.valor_cancelado,
-                observaciones: req.body[0].observaciones,
-                institucion_bancaria: req.body[0].institucion_bancaria,
+                observaciones: datos[0].observaciones,
+                institucion_bancaria: datos[0].institucion_bancaria,
+                archivo_adjunto: archivo
               },
             },
             $set: {
@@ -138,7 +164,7 @@ router.post("/many", async (req, res) => {
       });
 
     //pasar los codigos de pago a cobranza
-    let codesCobranza = req.body[2].codes;
+    let codesCobranza = datos[2].codes;
     codesCobranza = codesCobranza.map((e) => (e = e.replace("PAG", "COB")));
 
     result = await db

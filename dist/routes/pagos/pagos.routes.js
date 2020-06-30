@@ -15,9 +15,13 @@ var _fechaVencExamen = require("../../functions/fechaVencExamen");
 
 var _getDateNow = require("../../functions/getDateNow");
 
+var _multer = _interopRequireDefault(require("../../libs/multer"));
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -58,9 +62,9 @@ router.get("/", /*#__PURE__*/function () {
   };
 }()); //INGRESAR PAGO
 
-router.post("/nuevo/:id", /*#__PURE__*/function () {
+router.post("/nuevo/:id", _multer["default"].single('archivo'), /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var db, id, obj, result, codigoPAG, codigoCOB;
+    var db, id, datos, archivo, obj, result, codigoPAG, codigoCOB;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -71,18 +75,30 @@ router.post("/nuevo/:id", /*#__PURE__*/function () {
           case 2:
             db = _context2.sent;
             id = req.params.id;
+            datos = JSON.parse(req.body.data);
+            archivo = {};
+
+            if (req.file) {
+              archivo = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
+
             obj = {};
-            obj.fecha_pago = req.body.fecha_pago;
-            obj.hora_pago = req.body.hora_pago;
-            obj.sucursal = req.body.sucursal;
-            obj.tipo_pago = req.body.tipo_pago;
-            obj.monto = req.body.monto;
-            obj.descuento = req.body.descuento;
-            obj.total = req.body.total;
-            obj.observaciones = req.body.observaciones;
-            obj.institucion_bancaria = req.body.institucion_bancaria;
-            obj.archivo_adjunto = req.body.archivo_adjunto;
-            _context2.next = 17;
+            obj.fecha_pago = datos.fecha_pago;
+            obj.hora_pago = datos.hora_pago;
+            obj.sucursal = datos.sucursal;
+            obj.tipo_pago = datos.tipo_pago;
+            obj.monto = datos.monto;
+            obj.descuento = datos.descuento;
+            obj.total = datos.total;
+            obj.observaciones = datos.observaciones;
+            obj.institucion_bancaria = datos.institucion_bancaria;
+            obj.archivo_adjunto = archivo;
+            _context2.next = 20;
             return db.collection("pagos").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -96,18 +112,18 @@ router.post("/nuevo/:id", /*#__PURE__*/function () {
               returnOriginal: false
             });
 
-          case 17:
+          case 20:
             result = _context2.sent;
             //-- sacamos el codigo de pagos y lo transformamos a cobranza para buscar si existe
             codigoPAG = result.value.codigo;
             codigoCOB = codigoPAG.replace("PAG", "COB"); //--
 
             if (!(result.value.valor_cancelado > 0 && result.value.valor_cancelado < result.value.valor_servicio)) {
-              _context2.next = 26;
+              _context2.next = 29;
               break;
             }
 
-            _context2.next = 23;
+            _context2.next = 26;
             return db.collection("pagos").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -116,18 +132,18 @@ router.post("/nuevo/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 23:
+          case 26:
             result = _context2.sent;
-            _context2.next = 30;
+            _context2.next = 33;
             break;
 
-          case 26:
+          case 29:
             if (!(result.value.valor_cancelado === result.value.valor_servicio)) {
-              _context2.next = 30;
+              _context2.next = 33;
               break;
             }
 
-            _context2.next = 29;
+            _context2.next = 32;
             return db.collection("pagos").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -136,11 +152,11 @@ router.post("/nuevo/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 29:
+          case 32:
             result = _context2.sent;
 
-          case 30:
-            _context2.next = 32;
+          case 33:
+            _context2.next = 35;
             return db.collection("cobranza").findOneAndUpdate({
               codigo: codigoCOB
             }, {
@@ -152,15 +168,15 @@ router.post("/nuevo/:id", /*#__PURE__*/function () {
               returnOriginal: false
             });
 
-          case 32:
+          case 35:
             result = _context2.sent;
 
             if (!(result.value.valor_deuda === 0)) {
-              _context2.next = 37;
+              _context2.next = 40;
               break;
             }
 
-            _context2.next = 36;
+            _context2.next = 39;
             return db.collection("cobranza").updateOne({
               codigo: codigoCOB
             }, {
@@ -169,13 +185,13 @@ router.post("/nuevo/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 36:
+          case 39:
             result = _context2.sent;
 
-          case 37:
+          case 40:
             res.json(result);
 
-          case 38:
+          case 41:
           case "end":
             return _context2.stop();
         }
@@ -188,9 +204,9 @@ router.post("/nuevo/:id", /*#__PURE__*/function () {
   };
 }()); //INGRESO MASIVO DE PAGOS
 
-router.post("/many", /*#__PURE__*/function () {
+router.post("/many", _multer["default"].single('archivo'), /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var db, new_array, result, codesCobranza;
+    var db, datos, archivo, new_array, result, codesCobranza;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -200,12 +216,24 @@ router.post("/many", /*#__PURE__*/function () {
 
           case 2:
             db = _context3.sent;
+            datos = JSON.parse(req.body.data);
+            archivo = {};
             new_array = [];
-            req.body[1].ids.forEach(function (element) {
+            datos[1].ids.forEach(function (element) {
               new_array.push((0, _mongodb.ObjectID)(element));
             });
-            _context3.prev = 5;
-            _context3.next = 8;
+
+            if (req.file) {
+              archivo = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
+
+            _context3.prev = 8;
+            _context3.next = 11;
             return db.collection("pagos").find({
               _id: {
                 $in: new_array
@@ -216,15 +244,16 @@ router.post("/many", /*#__PURE__*/function () {
               }, {
                 $push: {
                   pagos: {
-                    fecha_pago: req.body[0].fecha_pago,
-                    hora_pago: req.body[0].hora_pago,
-                    sucursal: req.body[0].sucursal,
-                    tipo_pago: req.body[0].tipo_pago,
+                    fecha_pago: datos[0].fecha_pago,
+                    hora_pago: datos[0].hora_pago,
+                    sucursal: datos[0].sucursal,
+                    tipo_pago: datos[0].tipo_pago,
                     monto: c.valor_servicio - c.valor_cancelado,
-                    descuento: req.body[0].descuento,
+                    descuento: datos[0].descuento,
                     total: c.valor_servicio - c.valor_cancelado,
-                    observaciones: req.body[0].observaciones,
-                    institucion_bancaria: req.body[0].institucion_bancaria
+                    observaciones: datos[0].observaciones,
+                    institucion_bancaria: datos[0].institucion_bancaria,
+                    archivo_adjunto: archivo
                   }
                 },
                 $set: {
@@ -234,14 +263,14 @@ router.post("/many", /*#__PURE__*/function () {
               });
             });
 
-          case 8:
+          case 11:
             result = _context3.sent;
             //pasar los codigos de pago a cobranza
-            codesCobranza = req.body[2].codes;
+            codesCobranza = datos[2].codes;
             codesCobranza = codesCobranza.map(function (e) {
               return e = e.replace("PAG", "COB");
             });
-            _context3.next = 13;
+            _context3.next = 16;
             return db.collection("cobranza").find({
               codigo: {
                 $in: codesCobranza
@@ -258,30 +287,30 @@ router.post("/many", /*#__PURE__*/function () {
               });
             });
 
-          case 13:
+          case 16:
             result = _context3.sent;
             res.json({
               message: "Pagos realizados satisfactoriamente",
               isOK: true
             });
-            _context3.next = 20;
+            _context3.next = 23;
             break;
 
-          case 17:
-            _context3.prev = 17;
-            _context3.t0 = _context3["catch"](5);
+          case 20:
+            _context3.prev = 20;
+            _context3.t0 = _context3["catch"](8);
             res.json({
               message: "ha ocurrido un error",
               err: _context3.t0,
               isOK: false
             });
 
-          case 20:
+          case 23:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3, null, [[5, 17]]);
+    }, _callee3, null, [[8, 20]]);
   }));
 
   return function (_x5, _x6) {
