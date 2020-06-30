@@ -17,9 +17,13 @@ var _getDateNow = require("../../functions/getDateNow");
 
 var _getEspecificDate = require("../../functions/getEspecificDate");
 
+var _multer = _interopRequireDefault(require("../../libs/multer"));
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -28,7 +32,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 var router = (0, _express.Router)(); //database connection
 
 //SELECT
-router.get('/', /*#__PURE__*/function () {
+router.get("/", /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(req, res) {
     var db, result;
     return regeneratorRuntime.wrap(function _callee$(_context) {
@@ -41,7 +45,7 @@ router.get('/', /*#__PURE__*/function () {
           case 2:
             db = _context.sent;
             _context.next = 5;
-            return db.collection('resultados').find({}).toArray();
+            return db.collection("resultados").find({}).toArray();
 
           case 5:
             result = _context.sent;
@@ -60,9 +64,9 @@ router.get('/', /*#__PURE__*/function () {
   };
 }()); //SUBIR ARCHIVO RESUILTADO
 
-router.post('/subir/:id', /*#__PURE__*/function () {
+router.post("/subir/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var id, db, obs, result;
+    var id, db, datos, archivo, obs, result;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -73,28 +77,40 @@ router.post('/subir/:id', /*#__PURE__*/function () {
 
           case 3:
             db = _context2.sent;
+            datos = JSON.parse(req.body.data);
+            archivo = {};
             obs = {};
-            obs.obs = req.body.observaciones;
+            obs.obs = datos.observaciones;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
             obs.estado = "Cargado";
-            _context2.next = 10;
-            return db.collection('resultados').updateOne({
+
+            if (req.file) {
+              archivo = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
+
+            _context2.next = 13;
+            return db.collection("resultados").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
                 estado_archivo: "Cargado",
-                archivo_resultado: req.body.archivo_resultado
+                url_file_adjunto_res: archivo
               },
               $push: {
                 observaciones: obs
               }
             });
 
-          case 10:
+          case 13:
             result = _context2.sent;
             res.json(result);
 
-          case 12:
+          case 15:
           case "end":
             return _context2.stop();
         }
@@ -107,9 +123,9 @@ router.post('/subir/:id', /*#__PURE__*/function () {
   };
 }()); //confirmar resultado
 
-router.post('/confirmar/:id', /*#__PURE__*/function () {
+router.post("/confirmar/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var id, db, result, obs, codAsis, gi, isOC, estado_archivo, estado;
+    var id, db, datos, archivo, result, obs, codAsis, gi, isOC, estado_archivo, estado;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
@@ -120,111 +136,116 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
 
           case 3:
             db = _context3.sent;
+            datos = JSON.parse(req.body.data);
+            archivo = {};
             result = "";
             obs = {};
-            obs.obs = req.body.observaciones;
+            obs.obs = datos.observaciones;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
 
-            if (!(req.body.estado_archivo == 'Aprobado')) {
-              _context3.next = 33;
+            if (req.file) {
+              archivo = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
+
+            if (!(datos.estado_archivo == "Aprobado")) {
+              _context3.next = 36;
               break;
             }
 
-            obs.estado = req.body.estado_archivo;
+            obs.estado = datos.estado_archivo;
 
-            if (!(req.body.estado_resultado == 'Aprobado con Obs' || req.body.estado_resultado == 'Aprobado')) {
-              _context3.next = 16;
+            if (!(datos.estado_resultado == "Aprobado con Obs" || datos.estado_resultado == "Aprobado")) {
+              _context3.next = 19;
               break;
             }
 
-            _context3.next = 13;
-            return db.collection('resultados').findOneAndUpdate({
+            _context3.next = 16;
+            return db.collection("resultados").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
                 estado: "Revisado",
-                estado_archivo: req.body.estado_archivo,
-                estado_resultado: req.body.estado_resultado,
-                vigencia_examen: req.body.vigencia_examen,
-                fecha_resultado: req.body.fecha_resultado,
-                hora_resultado: req.body.hora_resultado,
-                condicionantes: req.body.condicionantes,
-                fecha_vencimiento_examen: (0, _getEspecificDate.getDateEspecific)((0, _fechaVencExamen.getFechaVencExam)(req.body.fecha_resultado, req.body.vigencia_examen)).substr(0, 10)
+                estado_archivo: datos.estado_archivo,
+                estado_resultado: datos.estado_resultado,
+                vigencia_examen: datos.vigencia_examen,
+                fecha_resultado: datos.fecha_resultado,
+                hora_resultado: datos.hora_resultado,
+                condicionantes: datos.condicionantes,
+                url_file_archivo_res_confirm: archivo,
+                fecha_vencimiento_examen: (0, _getEspecificDate.getDateEspecific)((0, _fechaVencExamen.getFechaVencExam)(datos.fecha_resultado, datos.vigencia_examen)).substr(0, 10)
               },
               $push: {
                 observaciones: obs
               }
             });
-
-          case 13:
-            result = _context3.sent;
-            _context3.next = 19;
-            break;
 
           case 16:
-            _context3.next = 18;
-            return db.collection('resultados').findOneAndUpdate({
+            result = _context3.sent;
+            _context3.next = 22;
+            break;
+
+          case 19:
+            _context3.next = 21;
+            return db.collection("resultados").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
                 estado: "Revisado",
-                estado_archivo: req.body.estado_archivo,
-                estado_resultado: req.body.estado_resultado,
-                fecha_resultado: req.body.fecha_resultado,
-                hora_resultado: req.body.hora_resultado
+                estado_archivo: datos.estado_archivo,
+                estado_resultado: datos.estado_resultado,
+                fecha_resultado: datos.fecha_resultado,
+                hora_resultado: datos.hora_resultado,
+                url_file_archivo_res_confirm: archivo
               },
               $push: {
                 observaciones: obs
               }
             });
 
-          case 18:
+          case 21:
             result = _context3.sent;
 
-          case 19:
+          case 22:
             //insercion de la facturación
             codAsis = result.value.codigo;
-            _context3.next = 22;
-            return db.collection('gi').findOne({
+            _context3.next = 25;
+            return db.collection("gi").findOne({
               rut: result.value.rut_cp,
-              "categoria": "Empresa/Organización"
+              categoria: "Empresa/Organización"
             });
 
-          case 22:
+          case 25:
             gi = _context3.sent;
-            isOC = '';
-            estado_archivo = '';
-            estado = ''; // if(gi){
-            //     isOC = gi.orden_compra;
-            //     (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
-            // }
-            // else{
-            //     isOC = "No"
-            //     estado_archivo = 'No Requiere OC'
-            // }
+            isOC = "";
+            estado_archivo = "";
+            estado = "";
 
             if (gi) {
               isOC = gi.orden_compra;
 
-              if (isOC == 'Si') {
-                estado_archivo = 'Sin Documento', estado = 'Ingresado';
+              if (isOC == "Si") {
+                estado_archivo = "Sin Documento", estado = "Ingresado";
               } else {
-                estado = 'En Facturacion', estado_archivo = 'Sin Documento';
-              } // (isOC == 'Si') ? estado_archivo = 'Sin Documento' : estado_archivo = 'No Requiere OC';
-
+                estado = "En Facturacion", estado_archivo = "Sin Documento";
+              }
             } else {
               isOC = "No";
-              estado = 'En Facturacion', estado_archivo = 'Sin Documento';
+              estado = "En Facturacion", estado_archivo = "Sin Documento";
             }
 
             if (!result) {
-              _context3.next = 31;
+              _context3.next = 34;
               break;
             }
 
-            _context3.next = 30;
-            return db.collection('facturaciones').insertOne({
-              codigo: codAsis.replace('RES', 'FAC'),
+            _context3.next = 33;
+            return db.collection("facturaciones").insertOne({
+              codigo: codAsis.replace("RES", "FAC"),
               nombre_servicio: result.value.nombre_servicio,
               id_GI_personalAsignado: result.value.id_GI_personalAsignado,
               faena_seleccionada_cp: result.value.faena_seleccionada_cp,
@@ -258,34 +279,35 @@ router.post('/confirmar/:id', /*#__PURE__*/function () {
               total: 0
             });
 
-          case 30:
+          case 33:
             result = _context3.sent;
 
-          case 31:
-            _context3.next = 37;
+          case 34:
+            _context3.next = 40;
             break;
 
-          case 33:
-            obs.estado = req.body.estado_archivo;
-            _context3.next = 36;
-            return db.collection('resultados').updateOne({
+          case 36:
+            obs.estado = datos.estado_archivo;
+            _context3.next = 39;
+            return db.collection("resultados").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
-                estado_archivo: req.body.estado_archivo
+                estado_archivo: datos.estado_archivo,
+                url_file_archivo_res_confirm: archivo
               },
               $push: {
                 observaciones: obs
               }
             });
 
-          case 36:
+          case 39:
             result = _context3.sent;
 
-          case 37:
+          case 40:
             res.json(result);
 
-          case 38:
+          case 41:
           case "end":
             return _context3.stop();
         }

@@ -3,6 +3,7 @@ import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import { CalculateFechaVenc } from "../../functions/getFechaVenc";
 import { getDate } from "../../functions/getDateNow";
+import multer from "../../libs/multer";
 
 const router = Router();
 
@@ -11,95 +12,130 @@ import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 
 //SELECT
-router.get('/', async (req, res) => {
-    const db = await connect();
-    const result = await db.collection('evaluaciones').find({}).toArray();
-    res.json(result);
+router.get("/", async (req, res) => {
+  const db = await connect();
+  const result = await db.collection("evaluaciones").find({}).toArray();
+  res.json(result);
 });
 
 //PASAR A EN EVALUACION
-router.post('/evaluar/:id', async (req, res) => {
-    const { id } = req.params
-    const db = await connect();
-    let obs = {}
-    obs.obs = req.body.observaciones
-    obs.fecha = getDate(new Date())
-    obs.estado = "Cargado"
-    const result = await db.collection('evaluaciones').updateOne({ _id: ObjectID(id) }, {
-        $set: {
-            estado: "En Evaluacion",
-            estado_archivo: "Cargado",
-            archivo_examen: req.body.archivo_examen,
-            fecha_carga_examen: req.body.fecha_carga_examen,
-            hora_carga_examen: req.body.hora_carga_examen
-        },
-        $push:{
-            observaciones: obs
-        }
-    });
+router.post("/evaluar/:id", multer.single("archivo"), async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+  const datos = JSON.parse(req.body.data);
+  let obs = {};
+  let archivo = {};
+  obs.obs = datos.observaciones;
+  obs.fecha = getDate(new Date());
+  obs.estado = "Cargado";
 
-    res.json(result)
+  if (req.file) {
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
+
+  const result = await db.collection("evaluaciones").updateOne(
+    { _id: ObjectID(id) },
+    {
+      $set: {
+        estado: "En Evaluacion",
+        estado_archivo: "Cargado",
+        archivo_examen: datos.archivo_examen,
+        fecha_carga_examen: datos.fecha_carga_examen,
+        hora_carga_examen: datos.hora_carga_examen,
+        url_file_adjunto_EE: archivo,
+      },
+      $push: {
+        observaciones: obs,
+      },
+    }
+  );
+
+  res.json(result);
 });
 
 //PASAR A EVALUADO
-router.post('/evaluado/:id', async (req, res) => {
-    const { id } = req.params
-    const db = await connect();
-    let estadoEvaluacion = '';
-    let obs = {}
-    obs.obs = req.body.observaciones
-    obs.fecha = getDate(new Date())
-    obs.estado = req.body.estado_archivo
+router.post("/evaluado/:id", multer.single("archivo"), async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+  const datos = JSON.parse(req.body.data);
+  let estadoEvaluacion = "";
+  let archivo = {};
+  let obs = {};
+  obs.obs = datos.observaciones;
+  obs.fecha = getDate(new Date());
+  obs.estado = datos.estado_archivo;
 
-    if (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs") {
+  if(req.file){
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype
+    };
+  }
 
-        estadoEvaluacion = 'Evaluado'
-    }
-    else {
-        estadoEvaluacion = 'Ingresado'
-    }
-    let result = await db.collection('evaluaciones').findOneAndUpdate({ _id: ObjectID(id) }, {
-        $set: {
-            estado: estadoEvaluacion,
-            estado_archivo: req.body.estado_archivo,
-            fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
-            hora_confirmacion_examen: req.body.hora_confirmacion_examen
-        },
-        $push:{
-            observaciones: obs
-        }
+  if (
+    datos.estado_archivo == "Aprobado" ||
+    datos.estado_archivo == "Aprobado con Obs"
+  ) {
+    estadoEvaluacion = "Evaluado";
+  } else {
+    estadoEvaluacion = "Ingresado";
+  }
+  let result = await db.collection("evaluaciones").findOneAndUpdate(
+    { _id: ObjectID(id) },
+    {
+      $set: {
+        estado: estadoEvaluacion,
+        estado_archivo: datos.estado_archivo,
+        fecha_confirmacion_examen: datos.fecha_confirmacion_examen,
+        hora_confirmacion_examen: datos.hora_confirmacion_examen,
+        url_file_adjunto_E: archivo
+      },
+      $push: {
+        observaciones: obs,
+      },
     },
-        { sort: { codigo: 1 }, returnNewDocument: true });
+    { sort: { codigo: 1 }, returnNewDocument: true }
+  );
 
-    if (result.ok == 1 && (req.body.estado_archivo == "Aprobado" || req.body.estado_archivo == "Aprobado con Obs")) {
-        let codAsis = result.value.codigo;
-        codAsis = codAsis.replace('EVA', 'RES')
-        const resultinsert = await db.collection('resultados').insertOne({
-            codigo: codAsis,
-            nombre_servicio: result.value.nombre_servicio,
-            id_GI_personalAsignado: result.value.id_GI_personalAsignado,
-            faena_seleccionada_cp: result.value.faena_seleccionada_cp,
-            valor_servicio: result.value.valor_servicio,
-            rut_cp: result.value.rut_cp,
-            razon_social_cp: result.value.razon_social_cp,
-            rut_cs: result.value.rut_cs,
-            razon_social_cs: result.value.razon_social_cs,
-            lugar_servicio: result.value.lugar_servicio,
-            sucursal: result.value.sucursal,
-            condicionantes: [],
-            vigencia_examen: "",
-            observaciones: [],
-            fecha_confirmacion_examen: req.body.fecha_confirmacion_examen,
-            hora_confirmacion_examen: req.body.hora_confirmacion_examen,
-            estado: "En Revisión",
-            estado_archivo: "Sin Documento",
-            estado_resultado: ""
-        });
+  if (result.ok == 1 &&
+    (datos.estado_archivo == "Aprobado" ||
+    datos.estado_archivo == "Aprobado con Obs")) {
+    let codAsis = result.value.codigo;
+    codAsis = codAsis.replace("EVA", "RES");
+    const resultinsert = await db.collection("resultados").insertOne({
+      codigo: codAsis,
+      nombre_servicio: result.value.nombre_servicio,
+      id_GI_personalAsignado: result.value.id_GI_personalAsignado,
+      faena_seleccionada_cp: result.value.faena_seleccionada_cp,
+      valor_servicio: result.value.valor_servicio,
+      rut_cp: result.value.rut_cp,
+      razon_social_cp: result.value.razon_social_cp,
+      rut_cs: result.value.rut_cs,
+      razon_social_cs: result.value.razon_social_cs,
+      lugar_servicio: result.value.lugar_servicio,
+      sucursal: result.value.sucursal,
+      condicionantes: [],
+      vigencia_examen: "",
+      observaciones: [],
+      url_file_adjunto: archivo,
+      fecha_confirmacion_examen: datos.fecha_confirmacion_examen,
+      hora_confirmacion_examen: datos.hora_confirmacion_examen,
+      estado: "En Revisión",
+      estado_archivo: "Sin Documento",
+      estado_resultado: "",
+    });
 
-        result = resultinsert
-    }
+    result = resultinsert;
+  }
 
-    res.json(result)
+  res.json(result);
 });
 
 export default router;
