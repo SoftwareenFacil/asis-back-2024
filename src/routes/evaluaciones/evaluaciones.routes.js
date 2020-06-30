@@ -59,25 +59,16 @@ router.post("/evaluar/:id", multer.single("archivo"), async (req, res) => {
 });
 
 //PASAR A EVALUADO
-router.post("/evaluado/:id", multer.single("archivo"), async (req, res) => {
+router.post("/evaluado/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const datos = JSON.parse(req.body.data);
+  const datos = req.body;
   let estadoEvaluacion = "";
   let archivo = {};
   let obs = {};
   obs.obs = datos.observaciones;
   obs.fecha = getDate(new Date());
   obs.estado = datos.estado_archivo;
-
-  if(req.file){
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype
-    };
-  }
 
   if (
     datos.estado_archivo == "Aprobado" ||
@@ -95,7 +86,6 @@ router.post("/evaluado/:id", multer.single("archivo"), async (req, res) => {
         estado_archivo: datos.estado_archivo,
         fecha_confirmacion_examen: datos.fecha_confirmacion_examen,
         hora_confirmacion_examen: datos.hora_confirmacion_examen,
-        url_file_adjunto_E: archivo
       },
       $push: {
         observaciones: obs,
