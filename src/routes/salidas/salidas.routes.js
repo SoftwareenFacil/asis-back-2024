@@ -3,7 +3,6 @@ import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import calculateExistencia from "../../functions/calculateExistencia";
 import getFinalExistencia from "../../functions/getFinalToExistencia";
-import multer from "../../libs/multer";
 
 const router = Router();
 
@@ -21,22 +20,13 @@ router.get("/", async (req, res) => {
 });
 
 //INSERT SALIDA
-router.post("/", multer.single('archivo'), async (req, res) => {
+router.post("/", async (req, res) => {
   const db = await connect();
-  const datos = JSON.parse(req.body.data);
+  const datos = req.body;
   let newSalida = {};
   let archivo = {};
   const items = await db.collection("salidas").find({}).toArray();
   let result = "";
-
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
 
   if (items.length > 0) {
     newSalida.codigo = `ASIS-GTS-SAL-${YEAR}-${calculate(

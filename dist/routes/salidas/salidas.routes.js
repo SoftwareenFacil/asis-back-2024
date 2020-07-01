@@ -15,8 +15,6 @@ var _calculateExistencia = _interopRequireDefault(require("../../functions/calcu
 
 var _getFinalToExistencia = _interopRequireDefault(require("../../functions/getFinalToExistencia"));
 
-var _multer = _interopRequireDefault(require("../../libs/multer"));
-
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -63,7 +61,7 @@ router.get("/", /*#__PURE__*/function () {
   };
 }()); //INSERT SALIDA
 
-router.post("/", _multer["default"].single('archivo'), /*#__PURE__*/function () {
+router.post("/", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
     var db, datos, newSalida, archivo, items, result, objInsert;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
@@ -75,7 +73,7 @@ router.post("/", _multer["default"].single('archivo'), /*#__PURE__*/function () 
 
           case 2:
             db = _context2.sent;
-            datos = JSON.parse(req.body.data);
+            datos = req.body;
             newSalida = {};
             archivo = {};
             _context2.next = 8;
@@ -84,15 +82,6 @@ router.post("/", _multer["default"].single('archivo'), /*#__PURE__*/function () 
           case 8:
             items = _context2.sent;
             result = "";
-
-            if (req.file) {
-              archivo = {
-                name: req.file.originalname,
-                size: req.file.size,
-                path: req.file.path,
-                type: req.file.mimetype
-              };
-            }
 
             if (items.length > 0) {
               newSalida.codigo = "ASIS-GTS-SAL-".concat(YEAR, "-").concat((0, _NewCode.calculate)(items[items.length - 1]));
@@ -117,15 +106,15 @@ router.post("/", _multer["default"].single('archivo'), /*#__PURE__*/function () 
             newSalida.precio_venta_unitario = datos.precio_venta_unitario;
             newSalida.ingreso_total = datos.ingreso_total;
             newSalida.archivo_adjunto = archivo;
-            _context2.prev = 29;
-            _context2.next = 32;
+            _context2.prev = 28;
+            _context2.next = 31;
             return db.collection("salidas").insertOne(newSalida);
 
-          case 32:
+          case 31:
             result = _context2.sent;
 
             if (!result) {
-              _context2.next = 49;
+              _context2.next = 48;
               break;
             }
 
@@ -147,45 +136,45 @@ router.post("/", _multer["default"].single('archivo'), /*#__PURE__*/function () 
                 ingreso_total: newSalida.ingreso_total
               }]
             };
-            _context2.next = 37;
+            _context2.next = 36;
             return db.collection("prexistencia").insertOne(objInsert);
 
-          case 37:
+          case 36:
             result = _context2.sent;
-            _context2.next = 40;
+            _context2.next = 39;
             return db.collection("prexistencia").find({}).toArray();
 
-          case 40:
+          case 39:
             result = _context2.sent;
             result = (0, _calculateExistencia["default"])(result);
             result = (0, _getFinalToExistencia["default"])(result); //limpiar existencia a 0 para recargarla con los nuevos datos
 
-            _context2.next = 45;
+            _context2.next = 44;
             return db.collection("existencia").deleteMany({});
 
-          case 45:
-            _context2.next = 47;
+          case 44:
+            _context2.next = 46;
             return db.collection("existencia").insertMany(result);
 
-          case 47:
+          case 46:
             result = _context2.sent;
             res.json(result);
 
-          case 49:
-            _context2.next = 54;
+          case 48:
+            _context2.next = 53;
             break;
 
-          case 51:
-            _context2.prev = 51;
-            _context2.t0 = _context2["catch"](29);
+          case 50:
+            _context2.prev = 50;
+            _context2.t0 = _context2["catch"](28);
             res.json(_context2.t0);
 
-          case 54:
+          case 53:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[29, 51]]);
+    }, _callee2, null, [[28, 50]]);
   }));
 
   return function (_x3, _x4) {
