@@ -24,7 +24,6 @@ router.post("/", async (req, res) => {
   const db = await connect();
   const datos = req.body;
   let newSalida = {};
-  let archivo = {};
   const items = await db.collection("salidas").find({}).toArray();
   let result = "";
 
@@ -51,7 +50,6 @@ router.post("/", async (req, res) => {
   newSalida.costo_total = datos.costo_total;
   newSalida.precio_venta_unitario = datos.precio_venta_unitario;
   newSalida.ingreso_total = datos.ingreso_total;
-  newSalida.archivo_adjunto = archivo;
 
   try {
     result = await db.collection("salidas").insertOne(newSalida);

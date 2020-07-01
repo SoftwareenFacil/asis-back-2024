@@ -63,7 +63,7 @@ router.get("/", /*#__PURE__*/function () {
 
 router.post("/", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var db, datos, newSalida, archivo, items, result, objInsert;
+    var db, datos, newSalida, items, result, objInsert;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -75,11 +75,10 @@ router.post("/", /*#__PURE__*/function () {
             db = _context2.sent;
             datos = req.body;
             newSalida = {};
-            archivo = {};
-            _context2.next = 8;
+            _context2.next = 7;
             return db.collection("salidas").find({}).toArray();
 
-          case 8:
+          case 7:
             items = _context2.sent;
             result = "";
 
@@ -105,16 +104,15 @@ router.post("/", /*#__PURE__*/function () {
             newSalida.costo_total = datos.costo_total;
             newSalida.precio_venta_unitario = datos.precio_venta_unitario;
             newSalida.ingreso_total = datos.ingreso_total;
-            newSalida.archivo_adjunto = archivo;
-            _context2.prev = 28;
-            _context2.next = 31;
+            _context2.prev = 26;
+            _context2.next = 29;
             return db.collection("salidas").insertOne(newSalida);
 
-          case 31:
+          case 29:
             result = _context2.sent;
 
             if (!result) {
-              _context2.next = 48;
+              _context2.next = 46;
               break;
             }
 
@@ -136,45 +134,45 @@ router.post("/", /*#__PURE__*/function () {
                 ingreso_total: newSalida.ingreso_total
               }]
             };
-            _context2.next = 36;
+            _context2.next = 34;
             return db.collection("prexistencia").insertOne(objInsert);
 
-          case 36:
+          case 34:
             result = _context2.sent;
-            _context2.next = 39;
+            _context2.next = 37;
             return db.collection("prexistencia").find({}).toArray();
 
-          case 39:
+          case 37:
             result = _context2.sent;
             result = (0, _calculateExistencia["default"])(result);
             result = (0, _getFinalToExistencia["default"])(result); //limpiar existencia a 0 para recargarla con los nuevos datos
 
-            _context2.next = 44;
+            _context2.next = 42;
             return db.collection("existencia").deleteMany({});
 
-          case 44:
-            _context2.next = 46;
+          case 42:
+            _context2.next = 44;
             return db.collection("existencia").insertMany(result);
 
-          case 46:
+          case 44:
             result = _context2.sent;
             res.json(result);
 
-          case 48:
-            _context2.next = 53;
+          case 46:
+            _context2.next = 51;
             break;
 
-          case 50:
-            _context2.prev = 50;
-            _context2.t0 = _context2["catch"](28);
+          case 48:
+            _context2.prev = 48;
+            _context2.t0 = _context2["catch"](26);
             res.json(_context2.t0);
 
-          case 53:
+          case 51:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[28, 50]]);
+    }, _callee2, null, [[26, 48]]);
   }));
 
   return function (_x3, _x4) {
