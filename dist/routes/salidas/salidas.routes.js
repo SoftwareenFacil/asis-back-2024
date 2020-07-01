@@ -15,6 +15,8 @@ var _calculateExistencia = _interopRequireDefault(require("../../functions/calcu
 
 var _getFinalToExistencia = _interopRequireDefault(require("../../functions/getFinalToExistencia"));
 
+var _multer = _interopRequireDefault(require("../../libs/multer"));
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -61,9 +63,9 @@ router.get("/", /*#__PURE__*/function () {
   };
 }()); //INSERT SALIDA
 
-router.post("/", /*#__PURE__*/function () {
+router.post("/", _multer["default"].single('archivo'), /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var db, newSalida, items, result, objInsert;
+    var db, datos, newSalida, archivo, items, result, objInsert;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -73,13 +75,24 @@ router.post("/", /*#__PURE__*/function () {
 
           case 2:
             db = _context2.sent;
+            datos = JSON.parse(req.body.data);
             newSalida = {};
-            _context2.next = 6;
+            archivo = {};
+            _context2.next = 8;
             return db.collection("salidas").find({}).toArray();
 
-          case 6:
+          case 8:
             items = _context2.sent;
             result = "";
+
+            if (req.file) {
+              archivo = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
 
             if (items.length > 0) {
               newSalida.codigo = "ASIS-GTS-SAL-".concat(YEAR, "-").concat((0, _NewCode.calculate)(items[items.length - 1]));
@@ -87,31 +100,32 @@ router.post("/", /*#__PURE__*/function () {
               newSalida.codigo = "ASIS-GTS-SAL-".concat(YEAR, "-00001");
             }
 
-            newSalida.fecha = req.body.fecha;
-            newSalida.tipo_salida = req.body.tipo_salida;
-            newSalida.nro_documento = req.body.nro_documento;
-            newSalida.usuario = req.body.usuario;
-            newSalida.categoria_general = req.body.categoria_general;
-            newSalida.subcategoria_uno = req.body.subcategoria_uno;
-            newSalida.subcategoria_dos = req.body.subcategoria_dos;
-            newSalida.subcategoria_tres = req.body.subcategoria_tres;
-            newSalida.codigo_categoria_tres = req.body.codigo_categoria_tres;
-            newSalida.descripcion = req.body.descripcion;
-            newSalida.motivo_salida = req.body.motivo_salida;
-            newSalida.cantidad = req.body.cantidad;
-            newSalida.costo_unitario = req.body.costo_unitario;
-            newSalida.costo_total = req.body.costo_total;
-            newSalida.precio_venta_unitario = req.body.precio_venta_unitario;
-            newSalida.ingreso_total = req.body.ingreso_total;
-            _context2.prev = 25;
-            _context2.next = 28;
+            newSalida.fecha = datos.fecha;
+            newSalida.tipo_salida = datos.tipo_salida;
+            newSalida.nro_documento = datos.nro_documento;
+            newSalida.usuario = datos.usuario;
+            newSalida.categoria_general = datos.categoria_general;
+            newSalida.subcategoria_uno = datos.subcategoria_uno;
+            newSalida.subcategoria_dos = datos.subcategoria_dos;
+            newSalida.subcategoria_tres = datos.subcategoria_tres;
+            newSalida.codigo_categoria_tres = datos.codigo_categoria_tres;
+            newSalida.descripcion = datos.descripcion;
+            newSalida.motivo_salida = datos.motivo_salida;
+            newSalida.cantidad = datos.cantidad;
+            newSalida.costo_unitario = datos.costo_unitario;
+            newSalida.costo_total = datos.costo_total;
+            newSalida.precio_venta_unitario = datos.precio_venta_unitario;
+            newSalida.ingreso_total = datos.ingreso_total;
+            newSalida.archivo_adjunto = archivo;
+            _context2.prev = 29;
+            _context2.next = 32;
             return db.collection("salidas").insertOne(newSalida);
 
-          case 28:
+          case 32:
             result = _context2.sent;
 
             if (!result) {
-              _context2.next = 45;
+              _context2.next = 49;
               break;
             }
 
@@ -133,45 +147,45 @@ router.post("/", /*#__PURE__*/function () {
                 ingreso_total: newSalida.ingreso_total
               }]
             };
-            _context2.next = 33;
+            _context2.next = 37;
             return db.collection("prexistencia").insertOne(objInsert);
 
-          case 33:
+          case 37:
             result = _context2.sent;
-            _context2.next = 36;
+            _context2.next = 40;
             return db.collection("prexistencia").find({}).toArray();
 
-          case 36:
+          case 40:
             result = _context2.sent;
             result = (0, _calculateExistencia["default"])(result);
             result = (0, _getFinalToExistencia["default"])(result); //limpiar existencia a 0 para recargarla con los nuevos datos
 
-            _context2.next = 41;
+            _context2.next = 45;
             return db.collection("existencia").deleteMany({});
 
-          case 41:
-            _context2.next = 43;
+          case 45:
+            _context2.next = 47;
             return db.collection("existencia").insertMany(result);
 
-          case 43:
+          case 47:
             result = _context2.sent;
             res.json(result);
 
-          case 45:
-            _context2.next = 50;
+          case 49:
+            _context2.next = 54;
             break;
 
-          case 47:
-            _context2.prev = 47;
-            _context2.t0 = _context2["catch"](25);
+          case 51:
+            _context2.prev = 51;
+            _context2.t0 = _context2["catch"](29);
             res.json(_context2.t0);
 
-          case 50:
+          case 54:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[25, 47]]);
+    }, _callee2, null, [[29, 51]]);
   }));
 
   return function (_x3, _x4) {

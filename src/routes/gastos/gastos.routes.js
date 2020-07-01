@@ -3,6 +3,7 @@ import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import calculateExistencia from "../../functions/calculateExistencia";
 import getFinalExistencia from "../../functions/getFinalToExistencia";
+import multer from "../../libs/multer";
 const router = Router();
 
 const YEAR = getYear();
@@ -20,9 +21,11 @@ router.get("/", async (req, res) => {
 });
 
 //INSERT GASTO
-router.post("/", async (req, res) => {
+router.post("/", multer.single('archivo'), async (req, res) => {
   const db = await connect();
+  const datos = JSON.parse(req.body.data)
   let newGasto = {};
+  let archivo = {};
   const items = await db.collection("gastos").find({}).toArray();
 
   if (items.length > 0) {
@@ -31,31 +34,40 @@ router.post("/", async (req, res) => {
     newGasto.codigo = `ASIS-GTS-${YEAR}-00001`;
   }
 
-  newGasto.fecha = req.body.fecha;
-  newGasto.fecha_registro = req.body.fecha_registro;
-  newGasto.categoria_general = req.body.categoria_general;
-  newGasto.subcategoria_uno = req.body.subcategoria_uno;
-  newGasto.subcategoria_dos = req.body.subcategoria_dos;
-  newGasto.descripcion_gasto = req.body.descripcion_gasto;
-  newGasto.rut_proveedor = req.body.rut_proveedor;
-  newGasto.razon_social_proveedor = req.body.razon_social_proveedor;
-  newGasto.requiere_servicio = req.body.requiere_servicio;
-  newGasto.id_servicio = req.body.id_servicio;
-  newGasto.servicio = req.body.servicio;
-  newGasto.tipo_registro = req.body.tipo_registro;
-  newGasto.tipo_documento = req.body.tipo_documento;
-  newGasto.nro_documento = req.body.nro_documento;
-  newGasto.medio_pago = req.body.medio_pago;
-  newGasto.institucion_bancaria = req.body.institucion_bancaria;
-  newGasto.inventario = req.body.inventario;
-  newGasto.cantidad_factor = req.body.cantidad_factor;
-  newGasto.precio_unitario = req.body.precio_unitario;
-  newGasto.monto_neto = req.body.monto_neto;
-  newGasto.impuesto = req.body.impuesto;
-  newGasto.monto_exento = req.body.monto_exento;
-  newGasto.monto_total = req.body.monto_total;
-  newGasto.observaciones = req.body.observaciones;
-  newGasto.archivo_adjunto = req.body.archivo_adjunto;
+  if (req.file) {
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
+
+  newGasto.fecha = datos.fecha;
+  newGasto.fecha_registro = datos.fecha_registro;
+  newGasto.categoria_general = datos.categoria_general;
+  newGasto.subcategoria_uno = datos.subcategoria_uno;
+  newGasto.subcategoria_dos = datos.subcategoria_dos;
+  newGasto.descripcion_gasto = datos.descripcion_gasto;
+  newGasto.rut_proveedor = datos.rut_proveedor;
+  newGasto.razon_social_proveedor = datos.razon_social_proveedor;
+  newGasto.requiere_servicio = datos.requiere_servicio;
+  newGasto.id_servicio = datos.id_servicio;
+  newGasto.servicio = datos.servicio;
+  newGasto.tipo_registro = datos.tipo_registro;
+  newGasto.tipo_documento = datos.tipo_documento;
+  newGasto.nro_documento = datos.nro_documento;
+  newGasto.medio_pago = datos.medio_pago;
+  newGasto.institucion_bancaria = datos.institucion_bancaria;
+  newGasto.inventario = datos.inventario;
+  newGasto.cantidad_factor = datos.cantidad_factor;
+  newGasto.precio_unitario = datos.precio_unitario;
+  newGasto.monto_neto = datos.monto_neto;
+  newGasto.impuesto = datos.impuesto;
+  newGasto.monto_exento = datos.monto_exento;
+  newGasto.monto_total = datos.monto_total;
+  newGasto.observaciones = datos.observaciones;
+  newGasto.archivo_adjunto = archivo;
   newGasto.entradas = [];
 
   const result = await db.collection("gastos").insertOne(newGasto);

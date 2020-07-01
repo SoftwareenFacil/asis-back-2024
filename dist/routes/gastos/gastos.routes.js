@@ -15,6 +15,8 @@ var _calculateExistencia = _interopRequireDefault(require("../../functions/calcu
 
 var _getFinalToExistencia = _interopRequireDefault(require("../../functions/getFinalToExistencia"));
 
+var _multer = _interopRequireDefault(require("../../libs/multer"));
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
@@ -61,9 +63,9 @@ router.get("/", /*#__PURE__*/function () {
   };
 }()); //INSERT GASTO
 
-router.post("/", /*#__PURE__*/function () {
+router.post("/", _multer["default"].single('archivo'), /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var db, newGasto, items, result;
+    var db, datos, newGasto, archivo, items, result;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -73,11 +75,13 @@ router.post("/", /*#__PURE__*/function () {
 
           case 2:
             db = _context2.sent;
+            datos = JSON.parse(req.body.data);
             newGasto = {};
-            _context2.next = 6;
+            archivo = {};
+            _context2.next = 8;
             return db.collection("gastos").find({}).toArray();
 
-          case 6:
+          case 8:
             items = _context2.sent;
 
             if (items.length > 0) {
@@ -86,40 +90,49 @@ router.post("/", /*#__PURE__*/function () {
               newGasto.codigo = "ASIS-GTS-".concat(YEAR, "-00001");
             }
 
-            newGasto.fecha = req.body.fecha;
-            newGasto.fecha_registro = req.body.fecha_registro;
-            newGasto.categoria_general = req.body.categoria_general;
-            newGasto.subcategoria_uno = req.body.subcategoria_uno;
-            newGasto.subcategoria_dos = req.body.subcategoria_dos;
-            newGasto.descripcion_gasto = req.body.descripcion_gasto;
-            newGasto.rut_proveedor = req.body.rut_proveedor;
-            newGasto.razon_social_proveedor = req.body.razon_social_proveedor;
-            newGasto.requiere_servicio = req.body.requiere_servicio;
-            newGasto.id_servicio = req.body.id_servicio;
-            newGasto.servicio = req.body.servicio;
-            newGasto.tipo_registro = req.body.tipo_registro;
-            newGasto.tipo_documento = req.body.tipo_documento;
-            newGasto.nro_documento = req.body.nro_documento;
-            newGasto.medio_pago = req.body.medio_pago;
-            newGasto.institucion_bancaria = req.body.institucion_bancaria;
-            newGasto.inventario = req.body.inventario;
-            newGasto.cantidad_factor = req.body.cantidad_factor;
-            newGasto.precio_unitario = req.body.precio_unitario;
-            newGasto.monto_neto = req.body.monto_neto;
-            newGasto.impuesto = req.body.impuesto;
-            newGasto.monto_exento = req.body.monto_exento;
-            newGasto.monto_total = req.body.monto_total;
-            newGasto.observaciones = req.body.observaciones;
-            newGasto.archivo_adjunto = req.body.archivo_adjunto;
+            if (req.file) {
+              archivo = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
+
+            newGasto.fecha = datos.fecha;
+            newGasto.fecha_registro = datos.fecha_registro;
+            newGasto.categoria_general = datos.categoria_general;
+            newGasto.subcategoria_uno = datos.subcategoria_uno;
+            newGasto.subcategoria_dos = datos.subcategoria_dos;
+            newGasto.descripcion_gasto = datos.descripcion_gasto;
+            newGasto.rut_proveedor = datos.rut_proveedor;
+            newGasto.razon_social_proveedor = datos.razon_social_proveedor;
+            newGasto.requiere_servicio = datos.requiere_servicio;
+            newGasto.id_servicio = datos.id_servicio;
+            newGasto.servicio = datos.servicio;
+            newGasto.tipo_registro = datos.tipo_registro;
+            newGasto.tipo_documento = datos.tipo_documento;
+            newGasto.nro_documento = datos.nro_documento;
+            newGasto.medio_pago = datos.medio_pago;
+            newGasto.institucion_bancaria = datos.institucion_bancaria;
+            newGasto.inventario = datos.inventario;
+            newGasto.cantidad_factor = datos.cantidad_factor;
+            newGasto.precio_unitario = datos.precio_unitario;
+            newGasto.monto_neto = datos.monto_neto;
+            newGasto.impuesto = datos.impuesto;
+            newGasto.monto_exento = datos.monto_exento;
+            newGasto.monto_total = datos.monto_total;
+            newGasto.observaciones = datos.observaciones;
+            newGasto.archivo_adjunto = archivo;
             newGasto.entradas = [];
-            _context2.next = 36;
+            _context2.next = 39;
             return db.collection("gastos").insertOne(newGasto);
 
-          case 36:
+          case 39:
             result = _context2.sent;
             res.json(result);
 
-          case 38:
+          case 41:
           case "end":
             return _context2.stop();
         }

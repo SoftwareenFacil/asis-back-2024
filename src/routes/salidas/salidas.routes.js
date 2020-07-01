@@ -3,6 +3,7 @@ import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import calculateExistencia from "../../functions/calculateExistencia";
 import getFinalExistencia from "../../functions/getFinalToExistencia";
+import multer from "../../libs/multer";
 
 const router = Router();
 
@@ -20,11 +21,22 @@ router.get("/", async (req, res) => {
 });
 
 //INSERT SALIDA
-router.post("/", async (req, res) => {
+router.post("/", multer.single('archivo'), async (req, res) => {
   const db = await connect();
+  const datos = JSON.parse(req.body.data);
   let newSalida = {};
+  let archivo = {};
   const items = await db.collection("salidas").find({}).toArray();
   let result = "";
+
+  if (req.file) {
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
 
   if (items.length > 0) {
     newSalida.codigo = `ASIS-GTS-SAL-${YEAR}-${calculate(
@@ -33,22 +45,23 @@ router.post("/", async (req, res) => {
   } else {
     newSalida.codigo = `ASIS-GTS-SAL-${YEAR}-00001`;
   }
-  newSalida.fecha = req.body.fecha;
-  newSalida.tipo_salida = req.body.tipo_salida;
-  newSalida.nro_documento = req.body.nro_documento;
-  newSalida.usuario = req.body.usuario;
-  newSalida.categoria_general = req.body.categoria_general;
-  newSalida.subcategoria_uno = req.body.subcategoria_uno;
-  newSalida.subcategoria_dos = req.body.subcategoria_dos;
-  newSalida.subcategoria_tres = req.body.subcategoria_tres;
-  newSalida.codigo_categoria_tres = req.body.codigo_categoria_tres;
-  newSalida.descripcion = req.body.descripcion;
-  newSalida.motivo_salida = req.body.motivo_salida;
-  newSalida.cantidad = req.body.cantidad;
-  newSalida.costo_unitario = req.body.costo_unitario;
-  newSalida.costo_total = req.body.costo_total;
-  newSalida.precio_venta_unitario = req.body.precio_venta_unitario;
-  newSalida.ingreso_total = req.body.ingreso_total;
+  newSalida.fecha = datos.fecha;
+  newSalida.tipo_salida = datos.tipo_salida;
+  newSalida.nro_documento = datos.nro_documento;
+  newSalida.usuario = datos.usuario;
+  newSalida.categoria_general = datos.categoria_general;
+  newSalida.subcategoria_uno = datos.subcategoria_uno;
+  newSalida.subcategoria_dos = datos.subcategoria_dos;
+  newSalida.subcategoria_tres = datos.subcategoria_tres;
+  newSalida.codigo_categoria_tres = datos.codigo_categoria_tres;
+  newSalida.descripcion = datos.descripcion;
+  newSalida.motivo_salida = datos.motivo_salida;
+  newSalida.cantidad = datos.cantidad;
+  newSalida.costo_unitario = datos.costo_unitario;
+  newSalida.costo_total = datos.costo_total;
+  newSalida.precio_venta_unitario = datos.precio_venta_unitario;
+  newSalida.ingreso_total = datos.ingreso_total;
+  newSalida.archivo_adjunto = archivo;
 
   try {
     result = await db.collection("salidas").insertOne(newSalida);
