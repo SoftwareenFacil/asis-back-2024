@@ -63,6 +63,22 @@ router.get("/empresas", async (req, res) => {
   res.json(result);
 });
 
+//BUSCAR GIS POR NOMBRE O RUT
+router.post('/buscar', async (req, res) => {
+  const { identificador, filtro } = req.body;
+  const db = await connect();
+  const rexExpresionFiltro = new RegExp(filtro,'i');
+  let result;
+  if(identificador === 1){
+    result = await db.collection('gi').find({rut: rexExpresionFiltro}).toArray();
+  }
+  else{
+    result = await db.collection('gi').find({razon_social: rexExpresionFiltro}).toArray();
+  }
+
+  res.json(result)
+})
+
 //SELECT BY RUT
 router.post("/:rut", async (req, res) => {
   const { rut } = req.params;
