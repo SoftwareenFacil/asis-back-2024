@@ -91,40 +91,51 @@ router.get("/", /*#__PURE__*/function () {
 
 router.post("/pagination", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var _req$body, pageNumber, nPerPage, db, result;
+    var _req$body, pageNumber, nPerPage, skip_page, num_pages, db, countGIs, result;
 
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
             _req$body = req.body, pageNumber = _req$body.pageNumber, nPerPage = _req$body.nPerPage;
-            _context2.next = 3;
+            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+            num_pages = 0;
+            _context2.next = 5;
             return (0, _database.connect)();
 
-          case 3:
+          case 5:
             db = _context2.sent;
-            _context2.prev = 4;
-            _context2.next = 7;
-            return db.collection("gi").find().skip(pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0).limit(nPerPage).toArray();
+            _context2.prev = 6;
+            _context2.next = 9;
+            return db.collection('gi').find().count();
 
-          case 7:
-            result = _context2.sent;
-            console.log(result);
-            res.json(result);
-            _context2.next = 15;
-            break;
+          case 9:
+            countGIs = _context2.sent;
+            _context2.next = 12;
+            return db.collection("gi").find().skip(skip_page).limit(nPerPage).toArray();
 
           case 12:
-            _context2.prev = 12;
-            _context2.t0 = _context2["catch"](4);
-            res.json(_context2.t0);
+            result = _context2.sent;
+            res.json({
+              total_items: countGIs,
+              pagina_actual: pageNumber,
+              nro_paginas: parseInt(countGIs / nPerPage + 1),
+              gis: result
+            });
+            _context2.next = 19;
+            break;
 
-          case 15:
+          case 16:
+            _context2.prev = 16;
+            _context2.t0 = _context2["catch"](6);
+            res.status(501).json(_context2.t0);
+
+          case 19:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[4, 12]]);
+    }, _callee2, null, [[6, 16]]);
   }));
 
   return function (_x3, _x4) {

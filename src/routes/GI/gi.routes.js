@@ -38,18 +38,27 @@ router.get("/", async (req, res) => {
 // SELECT GI PAGINATED
 router.post("/pagination", async (req, res) => {
   const { pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  let num_pages = 0;
   const db = await connect();
   try {
+    const countGIs = await db.collection('gi').find().count();
     const result = await db
       .collection("gi")
       .find()
-      .skip(pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0)
+      .skip(skip_page)
       .limit(nPerPage)
       .toArray();
-    console.log(result);
-    res.json(result);
+
+    res.json({
+      total_items: countGIs,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt((countGIs/nPerPage)+1),
+      gis: result
+    });
+
   } catch (error) {
-    res.json(error);
+    res.status(501).json(error);
   }
 });
 
