@@ -91,7 +91,7 @@ router.get("/", /*#__PURE__*/function () {
 
 router.post("/pagination", /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var _req$body, pageNumber, nPerPage, skip_page, num_pages, db, countGIs, result;
+    var _req$body, pageNumber, nPerPage, skip_page, db, countGIs, result;
 
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
@@ -99,22 +99,21 @@ router.post("/pagination", /*#__PURE__*/function () {
           case 0:
             _req$body = req.body, pageNumber = _req$body.pageNumber, nPerPage = _req$body.nPerPage;
             skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-            num_pages = 0;
-            _context2.next = 5;
+            _context2.next = 4;
             return (0, _database.connect)();
 
-          case 5:
+          case 4:
             db = _context2.sent;
-            _context2.prev = 6;
-            _context2.next = 9;
-            return db.collection('gi').find().count();
+            _context2.prev = 5;
+            _context2.next = 8;
+            return db.collection("gi").find().count();
 
-          case 9:
+          case 8:
             countGIs = _context2.sent;
-            _context2.next = 12;
+            _context2.next = 11;
             return db.collection("gi").find().skip(skip_page).limit(nPerPage).toArray();
 
-          case 12:
+          case 11:
             result = _context2.sent;
             res.json({
               total_items: countGIs,
@@ -122,20 +121,20 @@ router.post("/pagination", /*#__PURE__*/function () {
               nro_paginas: parseInt(countGIs / nPerPage + 1),
               gis: result
             });
-            _context2.next = 19;
+            _context2.next = 18;
             break;
 
-          case 16:
-            _context2.prev = 16;
-            _context2.t0 = _context2["catch"](6);
+          case 15:
+            _context2.prev = 15;
+            _context2.t0 = _context2["catch"](5);
             res.status(501).json(_context2.t0);
 
-          case 19:
+          case 18:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2, null, [[6, 16]]);
+    }, _callee2, null, [[5, 15]]);
   }));
 
   return function (_x3, _x4) {
@@ -177,50 +176,70 @@ router.get("/empresas", /*#__PURE__*/function () {
   };
 }()); //BUSCAR GIS POR NOMBRE O RUT
 
-router.post('/buscar', /*#__PURE__*/function () {
+router.post("/buscar", /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
-    var _req$body2, identificador, filtro, db, rexExpresionFiltro, result;
+    var _req$body2, identificador, filtro, pageNumber, nPerPage, skip_page, db, rexExpresionFiltro, result, countGIs;
 
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
           case 0:
-            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro;
-            _context4.next = 3;
+            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
+            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+            _context4.next = 4;
             return (0, _database.connect)();
 
-          case 3:
+          case 4:
             db = _context4.sent;
-            rexExpresionFiltro = new RegExp(filtro, 'i');
+            rexExpresionFiltro = new RegExp(filtro, "i");
 
             if (!(identificador === 1)) {
-              _context4.next = 11;
+              _context4.next = 15;
               break;
             }
 
-            _context4.next = 8;
-            return db.collection('gi').find({
+            _context4.next = 9;
+            return db.collection("gi").find({
               rut: rexExpresionFiltro
-            }).toArray();
+            }).count();
 
-          case 8:
+          case 9:
+            countGIs = _context4.sent;
+            _context4.next = 12;
+            return db.collection("gi").find({
+              rut: rexExpresionFiltro
+            }).skip(skip_page).limit(nPerPage).toArray();
+
+          case 12:
             result = _context4.sent;
-            _context4.next = 14;
+            _context4.next = 21;
             break;
 
-          case 11:
-            _context4.next = 13;
-            return db.collection('gi').find({
+          case 15:
+            _context4.next = 17;
+            return db.collection("gi").find({
               razon_social: rexExpresionFiltro
-            }).toArray();
+            }).count();
 
-          case 13:
+          case 17:
+            countGIs = _context4.sent;
+            _context4.next = 20;
+            return db.collection("gi").find({
+              razon_social: rexExpresionFiltro
+            }).skip(skip_page).limit(nPerPage).toArray();
+
+          case 20:
             result = _context4.sent;
 
-          case 14:
-            res.json(result);
+          case 21:
+            res.json({
+              total_items: countGIs,
+              pagina_actual: pageNumber,
+              nro_paginas: parseInt(countGIs / nPerPage + 1),
+              gis: result
+            });
 
-          case 15:
+          case 22:
           case "end":
             return _context4.stop();
         }
@@ -387,7 +406,7 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
   };
 }()); //TEST DATOS ARCHIVOS
 
-router.post('/test/gonzalo', _multer["default"].single("archivo"), /*#__PURE__*/function () {
+router.post("/test/gonzalo", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(req, res) {
     return regeneratorRuntime.wrap(function _callee8$(_context8) {
       while (1) {

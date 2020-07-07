@@ -39,10 +39,9 @@ router.get("/", async (req, res) => {
 router.post("/pagination", async (req, res) => {
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  let num_pages = 0;
   const db = await connect();
   try {
-    const countGIs = await db.collection('gi').find().count();
+    const countGIs = await db.collection("gi").find().count();
     const result = await db
       .collection("gi")
       .find()
@@ -53,10 +52,9 @@ router.post("/pagination", async (req, res) => {
     res.json({
       total_items: countGIs,
       pagina_actual: pageNumber,
-      nro_paginas: parseInt((countGIs/nPerPage)+1),
-      gis: result
+      nro_paginas: parseInt(countGIs / nPerPage + 1),
+      gis: result,
     });
-
   } catch (error) {
     res.status(501).json(error);
   }
@@ -73,20 +71,38 @@ router.get("/empresas", async (req, res) => {
 });
 
 //BUSCAR GIS POR NOMBRE O RUT
-router.post('/buscar', async (req, res) => {
-  const { identificador, filtro } = req.body;
+router.post("/buscar", async (req, res) => {
+  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
-  const rexExpresionFiltro = new RegExp(filtro,'i');
+  const rexExpresionFiltro = new RegExp(filtro, "i");
   let result;
-  if(identificador === 1){
-    result = await db.collection('gi').find({rut: rexExpresionFiltro}).toArray();
-  }
-  else{
-    result = await db.collection('gi').find({razon_social: rexExpresionFiltro}).toArray();
+  let countGIs;
+  if (identificador === 1) {
+    countGIs = await db.collection("gi").find({ rut: rexExpresionFiltro }).count();
+    result = await db
+      .collection("gi")
+      .find({ rut: rexExpresionFiltro })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+  } else {
+    countGIs = await db.collection("gi").find({ razon_social: rexExpresionFiltro }).count();
+    result = await db
+      .collection("gi")
+      .find({ razon_social: rexExpresionFiltro })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
   }
 
-  res.json(result)
-})
+  res.json({
+    total_items: countGIs,
+    pagina_actual: pageNumber,
+    nro_paginas: parseInt(countGIs / nPerPage + 1),
+    gis: result,
+  });
+});
 
 //SELECT BY RUT
 router.post("/:rut", async (req, res) => {
@@ -131,17 +147,17 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     const result = await db
       .collection("gi")
       .replaceOne({ _id: ObjectID(id) }, updatedGI);
-    res.status(201).json({message: "GI modificado correctamente"});
+    res.status(201).json({ message: "GI modificado correctamente" });
   } catch (error) {
-    res.status(500).json({message: "ha ocurrido un error", error})
-    console.log(error)
+    res.status(500).json({ message: "ha ocurrido un error", error });
+    console.log(error);
   }
 });
 
 //TEST DATOS ARCHIVOS
-router.post('/test/gonzalo', multer.single("archivo"), async (req, res) =>{
-  console.log(req.file)
-})
+router.post("/test/gonzalo", multer.single("archivo"), async (req, res) => {
+  console.log(req.file);
+});
 
 //TEST PARA recibir EXCEL DE INGRESO DE GIS
 router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
@@ -233,7 +249,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     name: req.file.originalname,
     size: req.file.size,
     path: req.file.path,
-    type: req.file.mimetype
+    type: req.file.mimetype,
   };
 
   const result = await db.collection("gi").insertOne(newGi);
