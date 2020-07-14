@@ -2,6 +2,8 @@ import { Router } from "express";
 import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import { getDate } from "../../functions/getDateNow";
+import excelToJson from "../../functions/insertManyGis/excelToJson";
+import sendinblue from "../../libs/sendinblue/sendinblue";
 const addDays = require("add-days");
 
 import multer from "../../libs/multer";
@@ -52,92 +54,136 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   newSolicitud.observacion_solicitud = [];
   newSolicitud.observacion_solicitud.push({
     obs: nuevaObs,
-    fecha: getDate(new Date())
+    fecha: getDate(new Date()),
   });
 
-  if(req.file){
+  if (req.file) {
     newSolicitud.url_file_adjunto = {
       name: req.file.originalname,
       size: req.file.size,
       path: req.file.path,
-      type: req.file.mimetype
+      type: req.file.mimetype,
     };
-  }
-  else{
-    newSolicitud.url_file_adjunto = {}
+  } else {
+    newSolicitud.url_file_adjunto = {};
   }
 
   const result = await db.collection("solicitudes").insertOne(newSolicitud);
+  //envio correo
+  if(result.result.ok === 1){
+
+    const gi = await db.collection("gi").findOne({_id: ObjectID(result.ops[0].id_GI_Principal)});
+
+    const respMail = sendinblue({
+      razon_social: result.ops[0].razon_social_CP,
+      codigo: result.ops[0].codigo,
+      fecha: result.ops[0].fecha_solicitud,
+      hora: result.ops[0].hora_solicitud,
+      categoria: result.ops[0].categoria1,
+      servicio: result.ops[0].nombre_servicio,
+      tipo_servicio: result.ops[0].tipo_servicio,
+      lugar: result.ops[0].lugar_servicio,
+      sucursal: result.ops[0].sucursal,
+    }, gi.email_central);
+
+    console.log('resp sendinblue', respMail);
+  }
+
   res.json(result);
 });
 
+router.post('/test', async (req, res) =>{
+  const { id } = req.body;
+  const db = await connect();
+  
+  const gi = await db.collection("gi").findOne({_id: ObjectID(id)}, {email_central: 1});
+
+  res.json(gi.email_central);
+})
+
+//TEST PARA RECIBIR EXCEL DE INGRESO MASIVO DE SOLICITUDES
+router.post("/masivo", multer.single("archivo"), async (req, res) => {
+  const { nombre } = req.body;
+  const db = await connect();
+  const data = excelToJson(req.file.path, "PLANTILLA SOL_ASIS");
+
+  try {
+    if (data.length > 0) {
+    }
+  } catch (error) {}
+});
+
 //EDITAR SOLICITUD
-router.put("/:id", multer.single("archivo"), async (req, res) =>{
-  const db = await connect()
+router.put("/:id", multer.single("archivo"), async (req, res) => {
+  const db = await connect();
   const solicitud = JSON.parse(req.body.data);
   const { id } = req.params;
 
-  if(req.file){
+  if (req.file) {
     solicitud.url_file_adjunto = {
       name: req.file.originalname,
       size: req.file.size,
       path: req.file.path,
-      type: req.file.mimetype
-    }
+      type: req.file.mimetype,
+    };
   }
 
   try {
-    const result = await db.collection('solicitudes').updateOne({_id: ObjectID(id)}, {
-      $set:{
-        id_GI_Principal: solicitud.id_GI_Principal,
-        id_GI_Secundario: solicitud.id_GI_Secundario,
-        id_GI_PersonalAsignado: solicitud.id_GI_PersonalAsignado,
-        rut_CP: solicitud.rut_CP,
-        razon_social_CP: solicitud.razon_social_CP,
-        nro_contrato_seleccionado_cp: solicitud.nro_contrato_seleccionado_cp,
-        faena_seleccionada_cp: solicitud.faena_seleccionada_cp,
-        rut_cs: solicitud.rut_cs,
-        razon_social_cs: solicitud.razon_social_cs,
-        fecha_solicitud: solicitud.fecha_solicitud,
-        fecha_servicio_solicitado: solicitud.fecha_servicio_solicitado,
-        mes_solicitud: solicitud.mes_solicitud,
-        anio_solicitud: solicitud.anio_solicitud,
-        nombre_receptor: solicitud.nombre_receptor,
-        categoria1: solicitud.categoria1,
-        categoria2: solicitud.categoria2,
-        categoria3: solicitud.categoria3,
-        nombre_servicio: solicitud.nombre_servicio,
-        tipo_servicio: solicitud.tipo_servicio,
-        monto_neto: solicitud.monto_neto,
-        porcentaje_impuesto: solicitud.porcentaje_impuesto,
-        valor_impuesto: solicitud.valor_impuesto,
-        precio: solicitud.precio,
-        costo_estimado: solicitud.costo_estimado,
-        lugar_servicio: solicitud.lugar_servicio,
-        sucursal: solicitud.sucursal,
-        hora_servicio_solicitado: solicitud.hora_servicio_solicitado,
-        fecha_servicio_solicitado_termino: solicitud.fecha_servicio_solicitado_termino,
-        hora_servicio_solicitado_termino: solicitud.hora_servicio_solicitado_termino,
-        jornada: solicitud.jornada,
-        hora_solicitud: solicitud.hora_solicitud,
-        estado: solicitud.estado,
-        codigo: solicitud.codigo,
-        url_file_adjunto: solicitud.url_file_adjunto
-      },
-      $push:{
-        observacion_solicitud: {
-          obs: solicitud.observacion_solicitud,
-          fecha: getDate(new Date())
-        }
+    const result = await db.collection("solicitudes").updateOne(
+      { _id: ObjectID(id) },
+      {
+        $set: {
+          id_GI_Principal: solicitud.id_GI_Principal,
+          id_GI_Secundario: solicitud.id_GI_Secundario,
+          id_GI_PersonalAsignado: solicitud.id_GI_PersonalAsignado,
+          rut_CP: solicitud.rut_CP,
+          razon_social_CP: solicitud.razon_social_CP,
+          nro_contrato_seleccionado_cp: solicitud.nro_contrato_seleccionado_cp,
+          faena_seleccionada_cp: solicitud.faena_seleccionada_cp,
+          rut_cs: solicitud.rut_cs,
+          razon_social_cs: solicitud.razon_social_cs,
+          fecha_solicitud: solicitud.fecha_solicitud,
+          fecha_servicio_solicitado: solicitud.fecha_servicio_solicitado,
+          mes_solicitud: solicitud.mes_solicitud,
+          anio_solicitud: solicitud.anio_solicitud,
+          nombre_receptor: solicitud.nombre_receptor,
+          categoria1: solicitud.categoria1,
+          categoria2: solicitud.categoria2,
+          categoria3: solicitud.categoria3,
+          nombre_servicio: solicitud.nombre_servicio,
+          tipo_servicio: solicitud.tipo_servicio,
+          monto_neto: solicitud.monto_neto,
+          porcentaje_impuesto: solicitud.porcentaje_impuesto,
+          valor_impuesto: solicitud.valor_impuesto,
+          precio: solicitud.precio,
+          costo_estimado: solicitud.costo_estimado,
+          lugar_servicio: solicitud.lugar_servicio,
+          sucursal: solicitud.sucursal,
+          hora_servicio_solicitado: solicitud.hora_servicio_solicitado,
+          fecha_servicio_solicitado_termino:
+            solicitud.fecha_servicio_solicitado_termino,
+          hora_servicio_solicitado_termino:
+            solicitud.hora_servicio_solicitado_termino,
+          jornada: solicitud.jornada,
+          hora_solicitud: solicitud.hora_solicitud,
+          estado: solicitud.estado,
+          codigo: solicitud.codigo,
+          url_file_adjunto: solicitud.url_file_adjunto,
+        },
+        $push: {
+          observacion_solicitud: {
+            obs: solicitud.observacion_solicitud,
+            fecha: getDate(new Date()),
+          },
+        },
       }
-    })
+    );
 
-
-    res.status(201).json({message: "Solicitud modificada correctamente"});
+    res.status(201).json({ message: "Solicitud modificada correctamente" });
   } catch (error) {
-    res.status(500).json({message: "ha ocurrido un error", error})
+    res.status(500).json({ message: "ha ocurrido un error", error });
   }
-})
+});
 
 //CONFIRMAR SOLICITUD
 router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
@@ -145,18 +191,18 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   const solicitud = JSON.parse(req.body.data);
   const { id } = req.params;
   let obs = {};
-  let archivo = {}
+  let archivo = {};
   obs.obs = solicitud.observacion_solicitud;
   obs.fecha = getDate(new Date());
 
-  //verificar si hay archivo o no 
-  if(req.file){
+  //verificar si hay archivo o no
+  if (req.file) {
     archivo = {
       name: req.file.originalname,
       size: req.file.size,
       path: req.file.path,
-      type: req.file.mimetype
-    }
+      type: req.file.mimetype,
+    };
   }
   //obtener mail del cliente principal
   const resultSol = await db.collection("solicitudes").updateOne(
@@ -189,7 +235,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       const resp = await db
         .collection("solicitudes")
         .findOne({ _id: ObjectID(id) });
-        
+
       let codigoAsis = resp.codigo;
       codigoAsis = codigoAsis.replace("SOL", "AGE");
       const newReserva = {
@@ -233,7 +279,7 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 
   console.log(JSON.parse(req.body.data));
   let dataJson = JSON.parse(req.body.data);
-  let archivo = {}
+  let archivo = {};
   let obs = {};
   obs.obs = dataJson[0].observacion_solicitud;
   obs.fecha = getDate(new Date());
@@ -242,14 +288,14 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
     new_array.push(ObjectID(element));
   });
 
-  //verificar si hay archivo o no 
-  if(req.file){
+  //verificar si hay archivo o no
+  if (req.file) {
     archivo = {
       name: req.file.originalname,
       size: req.file.size,
       path: req.file.path,
-      type: req.file.mimetype
-    }
+      type: req.file.mimetype,
+    };
   }
 
   const result = db.collection("solicitudes").updateMany(
@@ -307,7 +353,9 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
     });
   });
 
-  const resultReserva = await db.collection("reservas").insertMany(arrayReservas);
+  const resultReserva = await db
+    .collection("reservas")
+    .insertMany(arrayReservas);
 
   res.json(resultReserva);
 });

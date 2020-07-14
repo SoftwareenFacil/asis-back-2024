@@ -159,11 +159,11 @@ router.post("/test/gonzalo", multer.single("archivo"), async (req, res) => {
   console.log(req.file);
 });
 
-//TEST PARA recibir EXCEL DE INGRESO DE GIS
+//TEST PARA RECIBIR EXCEL DE INGRESO DE GIS
 router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
   const { nombre } = req.body;
   const db = await connect();
-  const data = excelToJson(req.file.path);
+  const data = excelToJson(req.file.path, 'PLANTILLA GI_ASIS');
   let array_general_empresas = [];
   let array_general_personas = [];
   let array_general = [];
