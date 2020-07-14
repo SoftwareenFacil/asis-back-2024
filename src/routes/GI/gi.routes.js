@@ -75,7 +75,16 @@ router.post("/buscar", async (req, res) => {
   const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
-  const rexExpresionFiltro = new RegExp(filtro, "i");
+  let rutFiltrado;
+  if(identificador === 1 && filtro.includes('k')){
+    rutFiltrado = filtro;
+    rutFiltrado.replace('k', 'K')
+  }
+  else{
+    rutFiltrado = filtro;
+  }
+  console.log(rutFiltrado);
+  const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
   let result;
   let countGIs;
   if (identificador === 1) {
@@ -109,16 +118,27 @@ router.post("/:rut", async (req, res) => {
   const { rut } = req.params;
   const verificador = req.body.verificador;
   const db = await connect();
+  let rutFiltrado;
   let result = "";
+
+  if(rut.includes('k')){
+    rutFiltrado = rut.replace("k", "K");
+  }
+  else{
+    rutFiltrado = rut;
+  }
+
+  
 
   if (verificador == 1) {
     result = await db
       .collection("gi")
-      .findOne({ rut: rut, categoria: "Empresa/Organizacion" });
+      .findOne({ rut: rutFiltrado, categoria: "Empresa/Organizacion" });
+      console.log(result);
   } else if (verificador == 2) {
     result = await db
       .collection("gi")
-      .findOne({ rut: rut, categoria: "Persona Natural" });
+      .findOne({ rut: rutFiltrado, categoria: "Persona Natural" });
   }
 
   res.json(result);
