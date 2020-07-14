@@ -75,18 +75,18 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     const gi = await db.collection("gi").findOne({_id: ObjectID(result.ops[0].id_GI_Principal)});
 
     const respMail = sendinblue({
-      razon_social: result.ops[0].razon_social_CP,
-      codigo: result.ops[0].codigo,
-      fecha: result.ops[0].fecha_solicitud,
-      hora: result.ops[0].hora_solicitud,
-      categoria: result.ops[0].categoria1,
-      servicio: result.ops[0].nombre_servicio,
-      tipo_servicio: result.ops[0].tipo_servicio,
-      lugar: result.ops[0].lugar_servicio,
-      sucursal: result.ops[0].sucursal,
-    }, gi.email_central);
+      RAZON_SOCIAL_CP: result.ops[0].razon_social_CP,
+      CODIGO_SOL: result.ops[0].codigo,
+      FECHA_SOL: result.ops[0].fecha_solicitud,
+      HORA_SOL: result.ops[0].hora_solicitud,
+      CATEGORIA_UNO_SOL: result.ops[0].categoria1,
+      NOMBRE_SERVICIO: result.ops[0].nombre_servicio,
+      NOMBRE_TIPO_SERVICIO: result.ops[0].tipo_servicio,
+      LUGAR_SERVICIO: result.ops[0].lugar_servicio,
+      SUCURSAL_SERVICIO: result.ops[0].sucursal,
+    }, gi.email_central, 4);
 
-    console.log('resp sendinblue', respMail);
+    console.log(respMail);
   }
 
   res.json(result);

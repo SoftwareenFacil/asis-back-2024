@@ -245,12 +245,17 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     newGi.codigo = `ASIS-GI-${YEAR}-00001`;
   }
 
-  newGi.url_file_adjunto = {
-    name: req.file.originalname,
-    size: req.file.size,
-    path: req.file.path,
-    type: req.file.mimetype,
-  };
+  if(req.file){
+    newGi.url_file_adjunto = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
+  else{
+    newGi.url_file_adjunto = {};
+  }
 
   const result = await db.collection("gi").insertOne(newGi);
   res.json(result);

@@ -1,15 +1,4 @@
-export default function sendMail(info, to) {
-  const {
-    razon_social,
-    codigo,
-    fecha,
-    hora,
-    categoria,
-    servicio,
-    tipo_servicio,
-    lugar,
-    sucursal,
-  } = info;
+export default function sendMail(info, to, template) {
 
   var SibApiV3Sdk = require("sib-api-v3-sdk");
   var defaultClient = SibApiV3Sdk.ApiClient.instance;
@@ -31,21 +20,11 @@ export default function sendMail(info, to) {
     to: [
       {
         email: to,
-        name: razon_social,
+        name: info.RAZON_SOCIAL_CP,
       },
     ],
-    templateId: 4,
-    params: {
-      RAZON_SOCIAL_CP: razon_social,
-      CODIGO_SOL: codigo,
-      FECHA_SOL: fecha,
-      HORA_SOL: hora,
-      CATEGORIA_UNO_SOL: categoria,
-      NOMBRE_SERVICIO: servicio,
-      NOMBRE_TIPO_SERVICIO: tipo_servicio,
-      LUGAR_SERVICIO: lugar,
-      SUCURSAL_SERVICIO: sucursal,
-    },
+    templateId: template,
+    params: info,
     headers: {
       "X-Mailin-custom":
         "custom_header_1:custom_value_1|custom_header_2:custom_value_2",
