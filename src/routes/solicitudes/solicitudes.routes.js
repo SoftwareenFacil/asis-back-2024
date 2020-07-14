@@ -85,8 +85,6 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       LUGAR_SERVICIO: result.ops[0].lugar_servicio,
       SUCURSAL_SERVICIO: result.ops[0].sucursal,
     }, gi.email_central, 4);
-
-    console.log(respMail);
   }
 
   res.json(result);
@@ -244,7 +242,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         id_GI_Secundario: resp.id_GI_Secundario,
         id_GI_personalAsignado: resp.id_GI_PersonalAsignado,
         faena_seleccionada_cp: resp.faena_seleccionada_cp,
-        valor_servicio: resp.precio,
+        valor_servicio: resp.monto_total,
         rut_cp: resp.rut_CP,
         razon_social_cp: resp.razon_social_CP,
         rut_cs: resp.rut_cs,
@@ -268,6 +266,24 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         .collection("reservas")
         .insertOne(newReserva);
       res.json(resulReserva);
+
+      if(resulReserva.result.ok){
+        const respMail = sendinblue({
+          RAZON_SOCIAL_CP: resp.razon_social_CP,
+          CODIGO_SOL: resp.codigo,
+          FECHA_SOL: resp.fecha_solicitud,
+          HORA_SOL: resp.hora_solicitud,
+          CATEGORIA_UNO_SOL: resp.categoria1,
+          NOMBRE_SERVICIO: resp.nombre_servicio,
+          NOMBRE_TIPO_SERVICIO: resp.tipo_servicio,
+          LUGAR_SERVICIO: resp.lugar_servicio,
+          SUCURSAL_SERVICIO: resp.sucursal,
+          FECHA_CONFIRMACION_SOL: resp.fecha_confirmacion,
+          HORA_CONFIRMACION_SOL: resp.hora_confirmacion,
+          MEDIO_CONFIRMACION: resp.medio_confirmacion,
+          OBSERVACION_CONFIRMACION: resp.observacion_solicitud[resp.observacion_solicitud.length - 1].obs
+        }, solicitud.email_central, 5);
+      }
     }
   }
 });
