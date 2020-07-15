@@ -84,7 +84,12 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       NOMBRE_TIPO_SERVICIO: result.ops[0].tipo_servicio,
       LUGAR_SERVICIO: result.ops[0].lugar_servicio,
       SUCURSAL_SERVICIO: result.ops[0].sucursal,
-    }, gi.email_central, 4);
+    }, [
+      {
+        email: gi.email_central,
+        nombre: gi.razon_social
+      }
+    ], 4);
   }
 
   res.json(result);
@@ -282,7 +287,12 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
           HORA_CONFIRMACION_SOL: resp.hora_confirmacion,
           MEDIO_CONFIRMACION: resp.medio_confirmacion,
           OBSERVACION_CONFIRMACION: resp.observacion_solicitud[resp.observacion_solicitud.length - 1].obs
-        }, solicitud.email_central, 5);
+        }, [
+          {
+            email: solicitud.email_central,
+            nombre: resp.razon_social_CP
+          }
+        ], 5);
       }
     }
   }

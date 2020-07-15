@@ -128,8 +128,6 @@ router.post("/:rut", async (req, res) => {
     rutFiltrado = rut;
   }
 
-  
-
   if (verificador == 1) {
     result = await db
       .collection("gi")

@@ -4,6 +4,7 @@ import { getYear } from "../../functions/getYearActual";
 import { getMinusculas } from "../../functions/changeToMiniscula";
 import { getDate } from "../../functions/getDateNow";
 import multer from "../../libs/multer";
+import sendinblue from "../../libs/sendinblue/sendinblue";
 
 const router = Router();
 
@@ -29,50 +30,53 @@ router.get("/:id", async (req, res) => {
 });
 
 //EDITAR RESERVA
-router.put("/:id", multer.single('archivo'), async (req, res) =>{
+router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const datos = JSON.parse(req.body.data);
   const db = await connect();
-  let archivo = {}
+  let archivo = {};
   let obs = {};
   obs.obs = datos.observacion;
   obs.fecha = getDate(new Date());
 
-  if(req.file){
+  if (req.file) {
     archivo = {
       name: req.file.originalname,
       size: req.file.size,
       path: req.file.path,
-      type: req.file.mimetype
+      type: req.file.mimetype,
     };
   }
 
-  const result = await db.collection("reservas").updateOne({_id: ObjectID(id)}, {
-    $set:{
-      fecha_reserva: datos.fecha_reserva,
-      hora_reserva: datos.hora_reserva,
-      fecha_reserva_fin: datos.fecha_reserva_fin,
-      hora_reserva_fin: datos.hora_reserva_fin,
-      jornada: datos.jornada,
-      mes: datos.mes,
-      anio: datos.anio,
-      id_GI_personalAsignado: datos.id_GI_profesional_asignado,
-      sucursal: datos.sucursal,
-      url_file_adjunto: archivo
-    },
-    $push:{
-      observacion: obs
+  const result = await db.collection("reservas").updateOne(
+    { _id: ObjectID(id) },
+    {
+      $set: {
+        fecha_reserva: datos.fecha_reserva,
+        hora_reserva: datos.hora_reserva,
+        fecha_reserva_fin: datos.fecha_reserva_fin,
+        hora_reserva_fin: datos.hora_reserva_fin,
+        jornada: datos.jornada,
+        mes: datos.mes,
+        anio: datos.anio,
+        id_GI_personalAsignado: datos.id_GI_profesional_asignado,
+        sucursal: datos.sucursal,
+        url_file_adjunto: archivo,
+      },
+      $push: {
+        observacion: obs,
+      },
     }
-  })
+  );
 
-  res.json(result)
-})
+  res.json(result);
+});
 
 //CONFIRMAR RESERVA
 router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const datos = JSON.parse(req.body.data);
-  let archivo = {}
+  let archivo = {};
   const db = await connect();
   let obs = {};
   obs.obs = datos.observacion;
@@ -80,12 +84,12 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   let result = null;
   let codAsis = "";
 
-  if(req.file){
+  if (req.file) {
     archivo = {
       name: req.file.originalname,
       size: req.file.size,
       path: req.file.path,
-      type: req.file.mimetype
+      type: req.file.mimetype,
     };
   }
 
@@ -197,15 +201,56 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         descuento: 0,
         total: 0,
       });
-
     }
+
+    const profesionalAsignado = await db
+      .collection("gi")
+      .findOne({ _id: ObjectID(datos.id_GI_profesional_asignado) });
+
+    const clientePrincipal = await db
+      .collection("gi")
+      .findOne({ _id: ObjectID(reserva.id_GI_Principal) });
+
+    const clienteSecundario= await db
+      .collection("gi")
+      .findOne({ _id: ObjectID(reserva.id_GI_Secundario) });
+
+    sendinblue({
+      RAZON_SOCIAL_CP: reserva.razon_social_cp,
+      CODIGO_SOL: reserva.codigo,
+      FECHA_INICIO_RESERVA: reserva.fecha_reserva,
+      HORA_INICIO_RESERVA: reserva.hora_reserva,
+      FECHA_FIN_RESERVA: reserva.fecha_reserva_fin,
+      HORA_FIN_RESERVA: reserva.hora_reserva_fin,
+      NOMBRE_SERVICIO: reserva.nombre_servicio,
+      SUCURSAL_SERVICIO: reserva.sucursal,
+      JORNADA_RESERVA: reserva.jornada,
+      REQUIERE_EVALUACION: reserva.reqEvaluacion,
+      OBSERVACION_RESERVA: datos.observacion,
+      RUT_PROFESIONAL_ASIGNADO: profesionalAsignado.rut,
+      PROFESIONAL_ASIGNADO: profesionalAsignado.razon_social,
+      RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut,
+      NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social
+    }, [
+      {
+        email: clientePrincipal.email_central,
+        nombre: clientePrincipal.razon_social
+      },
+      {
+        email: profesionalAsignado.email_central,
+        nombre: profesionalAsignado.razon_social
+      },
+      {
+        email: clienteSecundario.email_central,
+        nombre: clienteSecundario.razon_social
+      }
+    ], 6);
 
     res.json({
       status: 200,
       message: "Reserva Confirmada",
     });
   } catch (err) {
-
     res.json({
       status: 500,
       message: "No se pudo concretar la confirmacion de la reserva",
@@ -219,19 +264,19 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   let datosJson = JSON.parse(req.body.data);
   let new_array = [];
-  let archivo = {}
+  let archivo = {};
   let obs = {};
   obs.obs = datosJson[0].observacion;
   obs.fecha = getDate(new Date());
 
-  //verificar si hay archivo o no 
-  if(req.file){
+  //verificar si hay archivo o no
+  if (req.file) {
     archivo = {
       name: req.file.originalname,
       size: req.file.size,
       path: req.file.path,
-      type: req.file.mimetype
-    }
+      type: req.file.mimetype,
+    };
   }
 
   datosJson[1].ids.forEach((element) => {
@@ -321,7 +366,9 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
       codigoAsis = element.codigo;
       codigoAsis = codigoAsis.replace("AGE", "FAC");
       // gi = GIs.map((gi) => gi._id === element.id_GI_Principal);
-      const gi = GIs.find(gi => (gi._id).toString() === element.id_GI_Principal)
+      const gi = GIs.find(
+        (gi) => gi._id.toString() === element.id_GI_Principal
+      );
 
       if (gi) {
         isOC = gi.orden_compra;
@@ -369,7 +416,6 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
         descuento: 0,
         total: 0,
       });
-
     });
 
     const resultFac = await db

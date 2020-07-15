@@ -17,12 +17,7 @@ export default function sendMail(info, to, template) {
   var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); // SendSmtpEmail | Values to send a transactional email
 
   sendSmtpEmail = {
-    to: [
-      {
-        email: to,
-        name: info.RAZON_SOCIAL_CP,
-      },
-    ],
+    to,
     templateId: template,
     params: info,
     headers: {
