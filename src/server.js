@@ -17,6 +17,7 @@ import GastosRoute from "./routes/gastos/gastos.routes";
 import SalidasRoutes from "./routes/salidas/salidas.routes";
 import ExistenciaRoute from "./routes/existencia/existencia.routes";
 import CatGeneralesRoute from "./routes/CategoriasGenerales/categoriasGenerales.routes";
+import EmpleadosRoute from "./routes/empleados/empleados.routes";
 
 const app = express();
 
@@ -47,5 +48,6 @@ app.use('/gastos', GastosRoute)
 app.use('/salidas', SalidasRoutes)
 app.use('/existencia', ExistenciaRoute)
 app.use('/catgenerales', CatGeneralesRoute)
+app.use('/empleados', EmpleadosRoute);
 
 export default app;
