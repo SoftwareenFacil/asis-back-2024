@@ -24,23 +24,6 @@ router.post("/:id", async (req, res) => {
   res.json(result);
 });
 
-//CREAR RAZON_SALIDA
-router.post("/nuevo/:id", async (req, res) => {
-  const { id } = req.params;
-  const data = req.body;
-  const db = await connect();
-  const result = await db.collection("empleados").findOneAndUpdate(
-    { _id: ObjectID(id) },
-    {
-      $push: {
-        razon_salida: data,
-      },
-    }
-  );
-
-  res.json(result);
-});
-
 //test para pasar los empleados desde gi a la coleccion empleados
 router.get("/test", async (req, res) => {
   const db = await connect();
