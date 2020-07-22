@@ -18,7 +18,7 @@ router.post('/show/:id', async (req, res) =>{
 
 //SHOW AUSENCIAS POR EMPLEADO, AÑO Y MES
 router.post('/show/:id/:mes/:anio', async (req, res) =>{
-    const { id, mes, anio } = req.params;
+    const { id } = req.params;
     const db = await connect();
 
     const result = await db.collection('empleados_ausencias').find({

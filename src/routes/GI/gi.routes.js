@@ -76,11 +76,10 @@ router.post("/buscar", async (req, res) => {
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
   let rutFiltrado;
-  if(identificador === 1 && filtro.includes('k')){
+  if (identificador === 1 && filtro.includes("k")) {
     rutFiltrado = filtro;
-    rutFiltrado.replace('k', 'K')
-  }
-  else{
+    rutFiltrado.replace("k", "K");
+  } else {
     rutFiltrado = filtro;
   }
   console.log(rutFiltrado);
@@ -88,7 +87,10 @@ router.post("/buscar", async (req, res) => {
   let result;
   let countGIs;
   if (identificador === 1) {
-    countGIs = await db.collection("gi").find({ rut: rexExpresionFiltro }).count();
+    countGIs = await db
+      .collection("gi")
+      .find({ rut: rexExpresionFiltro })
+      .count();
     result = await db
       .collection("gi")
       .find({ rut: rexExpresionFiltro })
@@ -96,7 +98,10 @@ router.post("/buscar", async (req, res) => {
       .limit(nPerPage)
       .toArray();
   } else {
-    countGIs = await db.collection("gi").find({ razon_social: rexExpresionFiltro }).count();
+    countGIs = await db
+      .collection("gi")
+      .find({ razon_social: rexExpresionFiltro })
+      .count();
     result = await db
       .collection("gi")
       .find({ razon_social: rexExpresionFiltro })
@@ -121,10 +126,9 @@ router.post("/:rut", async (req, res) => {
   let rutFiltrado;
   let result = "";
 
-  if(rut.includes('k')){
+  if (rut.includes("k")) {
     rutFiltrado = rut.replace("k", "K");
-  }
-  else{
+  } else {
     rutFiltrado = rut;
   }
 
@@ -132,7 +136,7 @@ router.post("/:rut", async (req, res) => {
     result = await db
       .collection("gi")
       .findOne({ rut: rutFiltrado, categoria: "Empresa/Organizacion" });
-      console.log(result);
+    console.log(result);
   } else if (verificador == 2) {
     result = await db
       .collection("gi")
@@ -181,7 +185,7 @@ router.post("/test/gonzalo", multer.single("archivo"), async (req, res) => {
 router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
   const { nombre } = req.body;
   const db = await connect();
-  const data = excelToJson(req.file.path, 'PLANTILLA GI_ASIS');
+  const data = excelToJson(req.file.path, "PLANTILLA GI_ASIS");
   let array_general_empresas = [];
   let array_general_personas = [];
   let array_general = [];
@@ -263,19 +267,52 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     newGi.codigo = `ASIS-GI-${YEAR}-00001`;
   }
 
-  if(req.file){
+  if (req.file) {
     newGi.url_file_adjunto = {
       name: req.file.originalname,
       size: req.file.size,
       path: req.file.path,
       type: req.file.mimetype,
     };
-  }
-  else{
+  } else {
     newGi.url_file_adjunto = {};
   }
 
   const result = await db.collection("gi").insertOne(newGi);
+
+  if (newGi.grupo_interes === "Empleados") {
+    //se crea tambien en empleados
+    let obj = {};
+    obj.nombre = newGi.razon_social;
+    obj.rut = newGi.rut;
+    obj.categoria = newGi.categoria;
+    obj.cargo = "";
+    obj.tipo_contrato = "";
+    obj.estado_contrato = "";
+    obj.fecha_inicio_contrato = "";
+    obj.fecha_fin_contrato = "";
+    obj.sueldo_bruto = 0;
+    obj.afp = "";
+    obj.isapre = "";
+    obj.seguridad_laboral = "";
+    obj.dias_vacaciones = 0;
+    obj.comentarios = "";
+    obj.adjuntos = {};
+    obj.dias_anio = 0;
+    obj.dias_acum_anios = 0;
+    obj.dias_tomados_mes = 0;
+    obj.dias_tomados_anio = 0;
+    obj.dias_pendientes = 0;
+    obj.enfermedad_cant = 0;
+    obj.vacaciones_cant = 0;
+    obj.maternidad_cant = 0;
+    obj.tramites_cant = 0;
+    obj.mediodia_cant = 0;
+    obj.razon_salida = [];
+
+    await db.collection("empleados").insertOne(obj);
+  }
+
   res.json(result);
 });
 
