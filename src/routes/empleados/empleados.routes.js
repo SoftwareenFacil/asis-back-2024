@@ -24,6 +24,19 @@ router.post("/:id", async (req, res) => {
   res.json(result);
 });
 
+//EDITAR EMPLEADO 
+router.put('/:id', async (req, res) =>{
+  const { id } = req.params;
+  const db = await connect();
+  const data = req.body;
+
+  const result = await db.collection('empleados').updateOne({_id: ObjectID(id)},{
+    $set: data
+  });
+
+  res.json(result);
+})
+
 //test para pasar los empleados desde gi a la coleccion empleados
 router.get("/test", async (req, res) => {
   const db = await connect();
