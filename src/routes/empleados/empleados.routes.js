@@ -37,7 +37,7 @@ router.put("/:id", async (req, res) => {
         cargo: data.cargo,
         tipo_contrato: data.tipo_contrato,
         estado_contrato:  data.estado_contrato,
-        fecha_inicio_contrato: data.fecha_fin_contrato,
+        fecha_inicio_contrato: data.fecha_inicio_contrato,
         fecha_fin_contrato: data.fecha_fin_contrato,
         sueldo_bruto: data.sueldo_bruto,
         afp: data.afp,
