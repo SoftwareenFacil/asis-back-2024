@@ -14,7 +14,7 @@ router.get("/", async (req, res) => {
 });
 
 //SELECT BY ID
-router.post("/:id", async (req, res) => {
+router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const result = await db
