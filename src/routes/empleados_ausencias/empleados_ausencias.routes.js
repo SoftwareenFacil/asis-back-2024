@@ -90,7 +90,7 @@ router.post("/", async (req, res) => {
         { _id: ObjectID(data.id_empleado) },
         {
           $inc: {
-            "detalle_empleado.mediodia_cant": Math.round((data.cantidad_dias/2), 0),
+            "detalle_empleado.mediodia_cant": data.cantidad_dias/2,
           },
         }
       );
@@ -164,7 +164,7 @@ router.put("/:id", async (req, res) => {
           { _id: ObjectID(data.id_empleado) },
           {
             $inc: {
-              "detalle_empleado.mediodia_cant": -data.cantidad_dias,
+              "detalle_empleado.mediodia_cant": -(data.cantidad_dias / 2),
             },
           }
         );
@@ -220,7 +220,7 @@ router.put("/:id", async (req, res) => {
             { _id: ObjectID(data.id_empleado) },
             {
               $inc: {
-                "detalle_empleado.mediodia_cant": result.value.cantidad_dias,
+                "detalle_empleado.mediodia_cant": result.value.cantidad_dias / 2,
               },
             }
           );
@@ -292,7 +292,7 @@ router.delete("/:id", async (req, res) => {
         { _id: ObjectID(data.id_empleado) },
         {
           $inc: {
-            "detalle_empleado.mediodia_cant": -Math.round((data.cantidad_dias/2), 0),
+            "detalle_empleado.mediodia_cant": -(data.cantidad_dias/2),
           },
         }
       );
