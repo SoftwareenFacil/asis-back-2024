@@ -286,7 +286,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     obj.nombre = newGi.razon_social;
     obj.rut = newGi.rut;
     obj.categoria = newGi.categoria;
-    obj.cargo = "";
+    obj.cargo = newGi.cargo;
     obj.tipo_contrato = "";
     obj.estado_contrato = "";
     obj.fecha_inicio_contrato = "";
@@ -299,7 +299,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     obj.comentarios = "";
     obj.detalle_empleado = {
       dias_acum_anios: 0,
-      dias_anio: 0,
+      dias_recuperados: 0,
       dias_pendientes: 0,
       dias_tomados_anio: 0,
       dias_tomados_mes: 0,
@@ -308,6 +308,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       mediodia_cant: 0,
       tramites_cant: 0,
       vacaciones_cant: 0,
+      recuperados_cant: 0,
+      mediodia_recuperados_cant: 0
     };
 
     await db.collection("empleados").insertOne(obj);

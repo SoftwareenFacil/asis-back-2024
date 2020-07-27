@@ -51,6 +51,8 @@ router.post("/", async (req, res) => {
         {
           $inc: {
             "detalle_empleado.enfermedad_cant": data.cantidad_dias,
+            "detalle_empleado.dias_total_ausencias": data.cantidad_dias,
+            "detalle_empleado.dias_pendientes": -data.cantidad_dias
           },
         }
       );
@@ -61,6 +63,9 @@ router.post("/", async (req, res) => {
         {
           $inc: {
             "detalle_empleado.vacaciones_cant": data.cantidad_dias,
+            "detalle_empleado.dias_total_ausencias": data.cantidad_dias,
+            dias_vacaciones: -data.cantidad_dias,
+            "detalle_empleado.dias_pendientes": -data.cantidad_dias
           },
         }
       );
@@ -71,6 +76,8 @@ router.post("/", async (req, res) => {
         {
           $inc: {
             "detalle_empleado.maternidad_cant": data.cantidad_dias,
+            "detalle_empleado.dias_total_ausencias": data.cantidad_dias,
+            "detalle_empleado.dias_pendientes": -data.cantidad_dias
           },
         }
       );
@@ -81,6 +88,8 @@ router.post("/", async (req, res) => {
         {
           $inc: {
             "detalle_empleado.tramites_cant": data.cantidad_dias,
+            "detalle_empleado.dias_total_ausencias": data.cantidad_dias,
+            "detalle_empleado.dias_pendientes": -data.cantidad_dias
           },
         }
       );
@@ -90,7 +99,34 @@ router.post("/", async (req, res) => {
         { _id: ObjectID(data.id_empleado) },
         {
           $inc: {
-            "detalle_empleado.mediodia_cant": data.cantidad_dias/2,
+            "detalle_empleado.mediodia_cant": data.cantidad_dias / 2,
+            "detalle_empleado.dias_total_ausencias": data.cantidad_dias / 2,
+            "detalle_empleado.dias_pendientes": -(data.cantidad_dias/2)
+          },
+        }
+      );
+      break;
+    case "CR":
+      r = await db.collection("empleados").updateOne(
+        { _id: ObjectID(data.id_empleado) },
+        {
+          $inc: {
+            "detalle_empleado.recuperados_cant": data.cantidad_dias,
+            "detalle_empleado.dias_recuperados": data.cantidad_dias,
+            "detalle_empleado.dias_acumulados": data.cantidad_dias
+          },
+        }
+      );
+      break;
+    case "MR":
+      r = await db.collection("empleados").updateOne(
+        { _id: ObjectID(data.id_empleado) },
+        {
+          $inc: {
+            "detalle_empleado.mediodia_recuperados_cant":
+              data.cantidad_dias / 2,
+            "detalle_empleado.dias_recuperados": data.cantidad_dias / 2,
+            "detalle_empleado.dias_acumulados": data.cantidad_dias / 2
           },
         }
       );
@@ -117,14 +153,16 @@ router.put("/:id", async (req, res) => {
   );
 
   if (result.value) {
-      //primero se resta el antiguo
+    //primero se resta el antiguo
     switch (result.value.abrev_ausencia) {
       case "E":
         r = await db.collection("empleados").updateOne(
           { _id: ObjectID(data.id_empleado) },
           {
             $inc: {
-              "detalle_empleado.enfermedad_cant": -data.cantidad_dias,
+              "detalle_empleado.enfermedad_cant": -result.value.cantidad_dias,
+              "detalle_empleado.dias_total_ausencias": -result.value.cantidad_dias,
+              "detalle_empleado.dias_pendientes": result.value.cantidad_dias
             },
           }
         );
@@ -134,7 +172,10 @@ router.put("/:id", async (req, res) => {
           { _id: ObjectID(data.id_empleado) },
           {
             $inc: {
-              "detalle_empleado.vacaciones_cant": -data.cantidad_dias,
+              "detalle_empleado.vacaciones_cant": -result.value.cantidad_dias,
+              dias_vacaciones: result.value.cantidad_dias,
+              "detalle_empleado.dias_total_ausencias": -result.value.cantidad_dias,
+              "detalle_empleado.dias_pendientes": result.value.cantidad_dias              
             },
           }
         );
@@ -144,7 +185,9 @@ router.put("/:id", async (req, res) => {
           { _id: ObjectID(data.id_empleado) },
           {
             $inc: {
-              "detalle_empleado.maternidad_cant": -data.cantidad_dias,
+              "detalle_empleado.maternidad_cant": -result.value.cantidad_dias,
+              "detalle_empleado.dias_total_ausencias": -result.value.cantidad_dias,
+              "detalle_empleado.dias_pendientes": result.value.cantidad_dias
             },
           }
         );
@@ -154,7 +197,9 @@ router.put("/:id", async (req, res) => {
           { _id: ObjectID(data.id_empleado) },
           {
             $inc: {
-              "detalle_empleado.tramites_cant": -data.cantidad_dias,
+              "detalle_empleado.tramites_cant": -result.value.cantidad_dias,
+              "detalle_empleado.dias_total_ausencias": -result.value.cantidad_dias,
+              "detalle_empleado.dias_pendientes": result.value.cantidad_dias
             },
           }
         );
@@ -164,70 +209,133 @@ router.put("/:id", async (req, res) => {
           { _id: ObjectID(data.id_empleado) },
           {
             $inc: {
-              "detalle_empleado.mediodia_cant": -(data.cantidad_dias / 2),
+              "detalle_empleado.mediodia_cant": -result.value.cantidad_dias,
+              "detalle_empleado.dias_total_ausencias": -result.value.cantidad_dias,
+              "detalle_empleado.dias_pendientes": result.value.cantidad_dias
+            },
+          }
+        );
+        break;
+      case "CR":
+        r = await db.collection("empleados").updateOne(
+          { _id: ObjectID(data.id_empleado) },
+          {
+            $inc: {
+              "detalle_empleado.recuperados_cant": -result.value.cantidad_dias,
+              "detalle_empleado.dias_recuperados": -result.value.cantidad_dias,
+              "detalle_empleado.dias_acumulados": -result.value.cantidad_dias,
+            },
+          }
+        );
+        break;
+      case "MR":
+        r = await db.collection("empleados").updateOne(
+          { _id: ObjectID(data.id_empleado) },
+          {
+            $inc: {
+              "detalle_empleado.mediodia_recuperados_cant": -result.value.cantidad_dias,
+              dias_vacaciones: -result.value.cantidad_dias,
+              "detalle_empleado.dias_recuperados": -result.value.cantidad_dias,
+              "detalle_empleado.dias_acumulados": -result.value.cantidad_dias
             },
           }
         );
         break;
       default:
         break;
-    };
+    }
 
     //y luego se suma el nuevo
     switch (data.abrev_ausencia) {
-        case "E":
-          r = await db.collection("empleados").updateOne(
-            { _id: ObjectID(data.id_empleado) },
-            {
-              $inc: {
-                "detalle_empleado.enfermedad_cant": result.value.cantidad_dias,
-              },
-            }
-          );
-          break;
-        case "V":
-          r = await db.collection("empleados").updateOne(
-            { _id: ObjectID(data.id_empleado) },
-            {
-              $inc: {
-                "detalle_empleado.vacaciones_cant": result.value.cantidad_dias,
-              },
-            }
-          );
-          break;
-        case "M":
-          r = await db.collection("empleados").updateOne(
-            { _id: ObjectID(data.id_empleado) },
-            {
-              $inc: {
-                "detalle_empleado.maternidad_cant": result.value.cantidad_dias,
-              },
-            }
-          );
-          break;
-        case "T":
-          r = await db.collection("empleados").updateOne(
-            { _id: ObjectID(data.id_empleado) },
-            {
-              $inc: {
-                "detalle_empleado.tramites_cant": result.value.cantidad_dias,
-              },
-            }
-          );
-          break;
-        case "MD":
-          r = await db.collection("empleados").updateOne(
-            { _id: ObjectID(data.id_empleado) },
-            {
-              $inc: {
-                "detalle_empleado.mediodia_cant": result.value.cantidad_dias / 2,
-              },
-            }
-          );
-          break;
-        default:
-          break;
-      };
+      case "E":
+        r = await db.collection("empleados").updateOne(
+          { _id: ObjectID(data.id_empleado) },
+          {
+            $inc: {
+              "detalle_empleado.enfermedad_cant": data.cantidad_dias,
+              "detalle_empleado.dias_total_ausencias": data.cantidad_dias,
+              "detalle_empleado.dias_pendientes": -data.cantidad_dias
+            },
+          }
+        );
+        break;
+      case "V":
+        r = await db.collection("empleados").updateOne(
+          { _id: ObjectID(data.id_empleado) },
+          {
+            $inc: {
+              "detalle_empleado.vacaciones_cant": data.cantidad_dias,
+              dias_vacaciones: -data.cantidad_dias,
+              "detalle_empleado.dias_total_ausencias": data.cantidad_dias,
+              "detalle_empleado.dias_pendientes": -data.cantidad_dias
+            },
+          }
+        );
+        break;
+      case "M":
+        r = await db.collection("empleados").updateOne(
+          { _id: ObjectID(data.id_empleado) },
+          {
+            $inc: {
+              "detalle_empleado.maternidad_cant": data.cantidad_dias,
+              "detalle_empleado.dias_total_ausencias": data.cantidad_dias,
+              "detalle_empleado.dias_pendientes": -data.cantidad_dias
+            },
+          }
+        );
+        break;
+      case "T":
+        r = await db.collection("empleados").updateOne(
+          { _id: ObjectID(data.id_empleado) },
+          {
+            $inc: {
+              "detalle_empleado.tramites_cant": data.cantidad_dias,
+              "detalle_empleado.dias_total_ausencias": data.cantidad_dias,
+              "detalle_empleado.dias_pendientes": -data.cantidad_dias
+            },
+          }
+        );
+        break;
+      case "MD":
+        r = await db.collection("empleados").updateOne(
+          { _id: ObjectID(data.id_empleado) },
+          {
+            $inc: {
+              "detalle_empleado.mediodia_cant": data.cantidad_dias / 2,
+              "detalle_empleado.dias_total_ausencias": data.cantidad_dias / 2,
+              "detalle_empleado.dias_pendientes": -(data.cantidad_dias/2)
+            },
+          }
+        );
+        break;
+      case "CR":
+        r = await db.collection("empleados").updateOne(
+          { _id: ObjectID(data.id_empleado) },
+          {
+            $inc: {
+              "detalle_empleado.recuperados_cant": data.cantidad_dias,
+              "detalle_empleado.dias_recuperados": data.cantidad_dias,
+              "detalle_empleado.dias_acumulados": data.cantidad_dias
+            },
+          }
+        );
+        break;
+      case "MR":
+        r = await db.collection("empleados").updateOne(
+          { _id: ObjectID(data.id_empleado) },
+          {
+            $inc: {
+              "detalle_empleado.mediodia_recuperados_cant":
+              data.cantidad_dias / 2,
+              "detalle_empleado.dias_recuperados": data.cantidad_dias / 2,
+              "detalle_empleado.dias_acumulados": data.cantidad_dias / 2
+            },
+          }
+        );
+        break;
+      default:
+        break;
+    }
   }
 
   res.json(result);
@@ -240,8 +348,6 @@ router.delete("/:id", async (req, res) => {
   const data = JSON.parse(req.query.data);
   let r = null;
 
-  console.log(data);
-
   const result = await db
     .collection("empleados_ausencias")
     .deleteOne({ _id: ObjectID(id) });
@@ -253,7 +359,10 @@ router.delete("/:id", async (req, res) => {
         {
           $inc: {
             "detalle_empleado.enfermedad_cant": -data.cantidad_dias,
+            "detalle_empleado.dias_total_ausencias": -data.cantidad_dias,
+            "detalle_empleado.dias_pendientes": data.cantidad_dias
           },
+          
         }
       );
       break;
@@ -263,6 +372,9 @@ router.delete("/:id", async (req, res) => {
         {
           $inc: {
             "detalle_empleado.vacaciones_cant": -data.cantidad_dias,
+            dias_vacaciones: data.cantidad_dias,
+            "detalle_empleado.dias_total_ausencias": -data.cantidad_dias,
+            "detalle_empleado.dias_pendientes": data.cantidad_dias
           },
         }
       );
@@ -273,6 +385,8 @@ router.delete("/:id", async (req, res) => {
         {
           $inc: {
             "detalle_empleado.maternidad_cant": -data.cantidad_dias,
+            "detalle_empleado.dias_total_ausencias": -data.cantidad_dias,
+            "detalle_empleado.dias_pendientes": data.cantidad_dias
           },
         }
       );
@@ -283,6 +397,8 @@ router.delete("/:id", async (req, res) => {
         {
           $inc: {
             "detalle_empleado.tramites_cant": -data.cantidad_dias,
+            "detalle_empleado.dias_total_ausencias": -data.cantidad_dias,
+            "detalle_empleado.dias_pendientes": data.cantidad_dias
           },
         }
       );
@@ -292,7 +408,35 @@ router.delete("/:id", async (req, res) => {
         { _id: ObjectID(data.id_empleado) },
         {
           $inc: {
-            "detalle_empleado.mediodia_cant": -(data.cantidad_dias/2),
+            "detalle_empleado.mediodia_cant": -(data.cantidad_dias / 2),
+            "detalle_empleado.dias_total_ausencias": -(data.cantidad_dias / 2),
+            "detalle_empleado.dias_pendientes": data.cantidad_dias / 2
+          },
+        }
+      );
+      break;
+    case "CR":
+      r = await db.collection("empleados").updateOne(
+        { _id: ObjectID(data.id_empleado) },
+        {
+          $inc: {
+            "detalle_empleado.recuperados_cant": -data.cantidad_dias,
+            "detalle_empleado.dias_recuperados": -data.cantidad_dias,
+            "detalle_empleado.dias_acumulados": -data.cantidad_dias,
+          },
+        }
+      );
+      break;
+    case "MR":
+      r = await db.collection("empleados").updateOne(
+        { _id: ObjectID(data.id_empleado) },
+        {
+          $inc: {
+            "detalle_empleado.mediodia_recuperados_cant": -(
+              data.cantidad_dias / 2
+            ),
+            "detalle_empleado.dias_recuperados": -(data.cantidad_dias/2),
+            "detalle_empleado.dias_acumulados": -(data.cantidad_dias/2),
           },
         }
       );

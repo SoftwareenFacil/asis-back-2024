@@ -1,4 +1,5 @@
-import { Router } from "express";
+import e, { Router } from "express";
+import calculateVacationByDay from "../../functions/calculateDaysVacation";
 
 const router = Router();
 
@@ -29,6 +30,27 @@ router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const data = req.body;
+  let diasVacaciones = 0;
+
+  if (data.fecha_inicio_contrato) {
+    if (
+      data.fecha_fin_contrato != null &&
+      data.fecha_fin_contrato != "" &&
+      data.fecha_fin_contrato != undefined
+    ) {
+      diasVacaciones = calculateVacationByDay(
+        data.fecha_inicio_contrato,
+        data.fecha_fin_contrato
+      );
+    } else {
+      diasVacaciones = calculateVacationByDay(
+        data.fecha_inicio_contrato,
+        new Date()
+      );
+    }
+  }
+
+  console.log(diasVacaciones);
 
   const result = await db.collection("empleados").updateOne(
     { _id: ObjectID(id) },
@@ -43,9 +65,12 @@ router.put("/:id", async (req, res) => {
         afp: data.afp,
         isapre: data.isapre,
         seguridad_laboral: data.seguridad_laboral,
-        dias_vacaciones: data.dias_vacaciones,
+        dias_vacaciones: diasVacaciones,
         comentarios: data.comentarios,
       },
+      $inc:{
+        "detalle_empleado.dias_acumulados": diasVacaciones
+      }
     }
   );
 
@@ -68,7 +93,7 @@ router.get("/traspaso/test", async (req, res) => {
       obj.nombre = element.razon_social;
       obj.rut = element.rut;
       obj.categoria = element.categoria;
-      obj.cargo = "";
+      obj.cargo = element.cargo;
       obj.tipo_contrato = "";
       obj.estado_contrato = "";
       obj.fecha_inicio_contrato = "";
@@ -81,7 +106,7 @@ router.get("/traspaso/test", async (req, res) => {
       obj.comentarios = "";
       obj.detalle_empleado = {
         dias_acum_anios: 0,
-        dias_anio: 0,
+        dias_recuperados: 0,
         dias_pendientes: 0,
         dias_tomados_anio: 0,
         dias_tomados_mes: 0,
@@ -90,6 +115,8 @@ router.get("/traspaso/test", async (req, res) => {
         mediodia_cant: 0,
         tramites_cant: 0,
         vacaciones_cant: 0,
+        recuperados_cant: 0,
+        mediodia_recuperados_cant: 0,
       };
 
       newArray.push(obj);
