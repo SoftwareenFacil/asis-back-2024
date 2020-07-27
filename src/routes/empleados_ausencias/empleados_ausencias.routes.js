@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, json } from "express";
 
 const router = Router();
 
@@ -43,8 +43,6 @@ router.post("/", async (req, res) => {
   let r = null;
 
   const result = await db.collection("empleados_ausencias").insertOne(data);
-
-  console.log('data', data)
 
   switch (data.abrev_ausencia) {
     case "E":
@@ -237,9 +235,12 @@ router.put("/:id", async (req, res) => {
 
 //DELETE AUSENCIA
 router.delete("/:id", async (req, res) => {
-  const { id, data } = req.params;
+  const { id } = req.params;
   const db = await connect();
-  // const data = req.body;
+  const data = JSON.parse(req.query.data);
+  let r = null;
+
+  console.log(data);
 
   const result = await db
     .collection("empleados_ausencias")
