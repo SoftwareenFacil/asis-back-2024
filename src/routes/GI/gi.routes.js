@@ -297,18 +297,18 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     obj.seguridad_laboral = "";
     obj.dias_vacaciones = 0;
     obj.comentarios = "";
-    obj.detalle_empleado = []
-    // obj.adjuntos = {};
-    // obj.dias_anio = 0;
-    // obj.dias_acum_anios = 0;
-    // obj.dias_tomados_mes = 0;
-    // obj.dias_tomados_anio = 0;
-    // obj.dias_pendientes = 0;
-    // obj.enfermedad_cant = 0;
-    // obj.vacaciones_cant = 0;
-    // obj.maternidad_cant = 0;
-    // obj.tramites_cant = 0;
-    // obj.mediodia_cant = 0;
+    obj.detalle_empleado = {
+      dias_acum_anios: 0,
+      dias_anio: 0,
+      dias_pendientes: 0,
+      dias_tomados_anio: 0,
+      dias_tomados_mes: 0,
+      enfermedad_cant: 0,
+      maternidad_cant: 0,
+      mediodia_cant: 0,
+      tramites_cant: 0,
+      vacaciones_cant: 0,
+    };
 
     await db.collection("empleados").insertOne(obj);
   }

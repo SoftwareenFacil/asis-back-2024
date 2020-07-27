@@ -36,7 +36,7 @@ router.put("/:id", async (req, res) => {
       $set: {
         cargo: data.cargo,
         tipo_contrato: data.tipo_contrato,
-        estado_contrato:  data.estado_contrato,
+        estado_contrato: data.estado_contrato,
         fecha_inicio_contrato: data.fecha_inicio_contrato,
         fecha_fin_contrato: data.fecha_fin_contrato,
         sueldo_bruto: data.sueldo_bruto,
@@ -44,7 +44,7 @@ router.put("/:id", async (req, res) => {
         isapre: data.isapre,
         seguridad_laboral: data.seguridad_laboral,
         dias_vacaciones: data.dias_vacaciones,
-        comentarios: data.comentarios 
+        comentarios: data.comentarios,
       },
     }
   );
@@ -53,7 +53,7 @@ router.put("/:id", async (req, res) => {
 });
 
 //test para pasar los empleados desde gi a la coleccion empleados
-router.get("/test", async (req, res) => {
+router.get("/traspaso/test", async (req, res) => {
   const db = await connect();
   let newArray = [];
   let result;
@@ -79,18 +79,18 @@ router.get("/test", async (req, res) => {
       obj.seguridad_laboral = "";
       obj.dias_vacaciones = 0;
       obj.comentarios = "";
-      obj.detalle_empleado = [];
-      // obj.adjuntos = {};
-      // obj.dias_anio = 0;
-      // obj.dias_acum_anios = 0;
-      // obj.dias_tomados_mes = 0;
-      // obj.dias_tomados_anio = 0;
-      // obj.dias_pendientes = 0;
-      // obj.enfermedad_cant = 0;
-      // obj.vacaciones_cant = 0;
-      // obj.maternidad_cant = 0;
-      // obj.tramites_cant = 0;
-      // obj.mediodia_cant = 0;
+      obj.detalle_empleado = {
+        dias_acum_anios: 0,
+        dias_anio: 0,
+        dias_pendientes: 0,
+        dias_tomados_anio: 0,
+        dias_tomados_mes: 0,
+        enfermedad_cant: 0,
+        maternidad_cant: 0,
+        mediodia_cant: 0,
+        tramites_cant: 0,
+        vacaciones_cant: 0,
+      };
 
       newArray.push(obj);
       obj = {};
