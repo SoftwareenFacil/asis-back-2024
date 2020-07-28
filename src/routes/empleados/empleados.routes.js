@@ -10,7 +10,7 @@ import { ObjectID } from "mongodb";
 //SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("empleados").find({}).toArray();
+  const result = await db.collection("empleados").find({activo_inactivo: true}).toArray();
   res.json(result);
 });
 
@@ -104,6 +104,7 @@ router.get("/traspaso/test", async (req, res) => {
       obj.seguridad_laboral = "";
       obj.dias_vacaciones = 0;
       obj.comentarios = "";
+      obj.activo_inactivo = true;
       obj.detalle_empleado = {
         dias_acum_anios: 0,
         dias_recuperados: 0,
@@ -133,5 +134,18 @@ router.get("/traspaso/test", async (req, res) => {
     });
   }
 });
+
+router.delete('/:id', async (req, res) =>{
+  const { id } = req.params;
+  const db = await connect();
+
+  const result = await db.collection('empleados').updateOne({_id: ObjectID(id)}, {
+    $set: {
+      activo_inactivo: false,
+    }
+  });
+
+  res.json(result);
+})
 
 export default router;
