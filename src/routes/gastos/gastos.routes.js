@@ -12,7 +12,6 @@ const YEAR = getYear();
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 
-
 // SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
@@ -21,9 +20,9 @@ router.get("/", async (req, res) => {
 });
 
 //INSERT GASTO
-router.post("/", multer.single('archivo'), async (req, res) => {
+router.post("/", multer.single("archivo"), async (req, res) => {
   const db = await connect();
-  const datos = JSON.parse(req.body.data)
+  const datos = JSON.parse(req.body.data);
   let newGasto = {};
   let archivo = {};
   const items = await db.collection("gastos").find({}).toArray();
@@ -50,6 +49,7 @@ router.post("/", multer.single('archivo'), async (req, res) => {
   newGasto.subcategoria_dos = datos.subcategoria_dos;
   newGasto.descripcion_gasto = datos.descripcion_gasto;
   newGasto.rut_proveedor = datos.rut_proveedor;
+  newGasto.categoria_proveedor = datos.categoria;
   newGasto.razon_social_proveedor = datos.razon_social_proveedor;
   newGasto.requiere_servicio = datos.requiere_servicio;
   newGasto.id_servicio = datos.id_servicio;
@@ -71,6 +71,35 @@ router.post("/", multer.single('archivo'), async (req, res) => {
   newGasto.entradas = [];
 
   const result = await db.collection("gastos").insertOne(newGasto);
+
+  //luego , si corresponde y existe el empleado
+  if (
+    (datos.categoria_general === "Mano de Obra Directa" ||
+      datos.categoria_general === "Gastos Generales") &&
+    (datos.subcategoria_uno === "Personal" ||
+      datos.subcategoria_uno === "Gastos Indirectos")
+  ) {
+    await db.collection("empleados").updateOne(
+      { rut: datos.rut_proveedor, categoria: datos.categoria },
+      {
+        $push: {
+          detalle_pagos: {
+            codigo: newGasto.codigo,
+            fecha: datos.fecha,
+            categoria_general: datos.categoria_general,
+            subcategoria_uno: datos.subcategoria_uno,
+            subcategoria_dos: datos.subcategoria_dos,
+            tipo_registro: datos.tipo_registro,
+            medio_pago: datos.medio_pago,
+            institucion_bancaria: datos.institucion_bancaria,
+            monto_total: datos.monto_total,
+            archivo_adjunto: archivo
+          },
+        },
+      }
+    );
+  }
+
   res.json(result);
 });
 
@@ -78,8 +107,8 @@ router.post("/", multer.single('archivo'), async (req, res) => {
 router.post("/entrada/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  let result = '';
-  let resultExistencia = ''
+  let result = "";
+  let resultExistencia = "";
 
   try {
     result = await db.collection("gastos").updateOne(
@@ -121,17 +150,16 @@ router.post("/entrada/:id", async (req, res) => {
 
     result = calculateExistencia(result);
 
-    result = getFinalExistencia(result)
+    result = getFinalExistencia(result);
     //limpiar existencia a 0 para recargarla con los nuevos datos
-    await db.collection('existencia').deleteMany({})
-    //insertar cada objeto como document en collection existencia 
-    result = await db.collection('existencia').insertMany(result)
+    await db.collection("existencia").deleteMany({});
+    //insertar cada objeto como document en collection existencia
+    result = await db.collection("existencia").insertMany(result);
 
     res.json(result);
-
   } catch (error) {
-      res.json(error)
-  };
+    res.json(error);
+  }
 });
 
 export default router;

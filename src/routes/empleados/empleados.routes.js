@@ -69,7 +69,8 @@ router.put("/:id", async (req, res) => {
         comentarios: data.comentarios,
       },
       $inc:{
-        "detalle_empleado.dias_acumulados": diasVacaciones
+        "detalle_empleado.dias_acumulados": diasVacaciones,
+        "detalle_empleado.dias_pendientes": diasVacaciones
       }
     }
   );
