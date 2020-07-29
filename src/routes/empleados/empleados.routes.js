@@ -50,8 +50,6 @@ router.put("/:id", async (req, res) => {
     }
   }
 
-  console.log(diasVacaciones);
-
   const result = await db.collection("empleados").updateOne(
     { _id: ObjectID(id) },
     {
