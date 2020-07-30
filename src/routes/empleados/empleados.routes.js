@@ -1,5 +1,6 @@
 import e, { Router } from "express";
 import calculateVacationByDay from "../../functions/calculateDaysVacation";
+import calculateDesgloseEmpleados from "../../functions/calculateDesgloseEmpleados";
 
 const router = Router();
 
@@ -50,30 +51,34 @@ router.put("/:id", async (req, res) => {
     }
   }
 
-  const result = await db.collection("empleados").updateOne(
-    { _id: ObjectID(id) },
-    {
-      $set: {
-        cargo: data.cargo,
-        tipo_contrato: data.tipo_contrato,
-        estado_contrato: data.estado_contrato,
-        fecha_inicio_contrato: data.fecha_inicio_contrato,
-        fecha_fin_contrato: data.fecha_fin_contrato,
-        sueldo_bruto: data.sueldo_bruto,
-        afp: data.afp,
-        isapre: data.isapre,
-        seguridad_laboral: data.seguridad_laboral,
-        dias_vacaciones: diasVacaciones,
-        comentarios: data.comentarios,
-      },
-      $inc:{
-        "detalle_empleado.dias_acumulados": diasVacaciones,
-        "detalle_empleado.dias_pendientes": diasVacaciones
-      }
-    }
-  );
+  const empleado = await db.collection("empleados").findOne({_id: ObjectID(id)})
 
-  res.json(result);
+  if(empleado){
+    const result = await db.collection("empleados").updateOne(
+      { _id: ObjectID(id) },
+      {
+        $set: {
+          cargo: data.cargo,
+          tipo_contrato: data.tipo_contrato,
+          estado_contrato: data.estado_contrato,
+          fecha_inicio_contrato: data.fecha_inicio_contrato,
+          fecha_fin_contrato: data.fecha_fin_contrato,
+          sueldo_bruto: data.sueldo_bruto,
+          afp: data.afp,
+          isapre: data.isapre,
+          seguridad_laboral: data.seguridad_laboral,
+          dias_vacaciones: diasVacaciones,
+          comentarios: data.comentarios,
+          detalle_empleado: calculateDesgloseEmpleados(empleado.detalle_empleado, "none", 0, diasVacaciones, "none", diasVacaciones),
+        },
+      }
+      );
+      res.json(result);
+  }
+  else{
+    res.status(500).json({msg: "No se ha encontrado el empleado"});
+  }
+
 });
 
 //test para pasar los empleados desde gi a la coleccion empleados
