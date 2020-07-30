@@ -207,11 +207,10 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
         obj.comentarios = "";
         obj.activo_inactivo = true;
         obj.detalle_empleado = {
-          dias_acum_anios: 0,
+          dias_acumulados: 0,
           dias_recuperados: 0,
+          dias_total_ausencias: 0,
           dias_pendientes: 0,
-          dias_tomados_anio: 0,
-          dias_tomados_mes: 0,
           enfermedad_cant: 0,
           maternidad_cant: 0,
           mediodia_cant: 0,
@@ -223,14 +222,16 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 
         await db.collection("empleados").insertOne(obj);
       }
-    }
-    else{
-      if(existEmpleado){
-        await db.collection("empleados").updateOne({rut: updatedGI.rut, categoria: updatedGI.categoria}, {
-          $set: {
-            activo_inactivo: false
+    } else {
+      if (existEmpleado) {
+        await db.collection("empleados").updateOne(
+          { rut: updatedGI.rut, categoria: updatedGI.categoria },
+          {
+            $set: {
+              activo_inactivo: false,
+            },
           }
-        });
+        );
       }
     }
     res.status(201).json({ message: "GI modificado correctamente" });
@@ -362,11 +363,10 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     obj.dias_vacaciones = 0;
     obj.comentarios = "";
     obj.detalle_empleado = {
-      dias_acum_anios: 0,
+      dias_acumulados: 0,
       dias_recuperados: 0,
+      dias_total_ausencias: 0,
       dias_pendientes: 0,
-      dias_tomados_anio: 0,
-      dias_tomados_mes: 0,
       enfermedad_cant: 0,
       maternidad_cant: 0,
       mediodia_cant: 0,

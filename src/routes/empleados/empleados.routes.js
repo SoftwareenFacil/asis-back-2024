@@ -11,7 +11,10 @@ import { ObjectID } from "mongodb";
 //SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("empleados").find({activo_inactivo: true}).toArray();
+  const result = await db
+    .collection("empleados")
+    .find({ activo_inactivo: true })
+    .toArray();
   res.json(result);
 });
 
@@ -51,9 +54,11 @@ router.put("/:id", async (req, res) => {
     }
   }
 
-  const empleado = await db.collection("empleados").findOne({_id: ObjectID(id)})
+  const empleado = await db
+    .collection("empleados")
+    .findOne({ _id: ObjectID(id) });
 
-  if(empleado){
+  if (empleado) {
     const result = await db.collection("empleados").updateOne(
       { _id: ObjectID(id) },
       {
@@ -69,16 +74,21 @@ router.put("/:id", async (req, res) => {
           seguridad_laboral: data.seguridad_laboral,
           dias_vacaciones: diasVacaciones,
           comentarios: data.comentarios,
-          detalle_empleado: calculateDesgloseEmpleados(empleado.detalle_empleado, "none", 0, diasVacaciones, "none", diasVacaciones),
+          detalle_empleado: calculateDesgloseEmpleados(
+            empleado.detalle_empleado,
+            "none",
+            0,
+            diasVacaciones,
+            "none",
+            diasVacaciones
+          ),
         },
       }
-      );
-      res.json(result);
+    );
+    res.json(result);
+  } else {
+    res.status(500).json({ msg: "No se ha encontrado el empleado" });
   }
-  else{
-    res.status(500).json({msg: "No se ha encontrado el empleado"});
-  }
-
 });
 
 //test para pasar los empleados desde gi a la coleccion empleados
@@ -110,11 +120,10 @@ router.get("/traspaso/test", async (req, res) => {
       obj.comentarios = "";
       obj.activo_inactivo = true;
       obj.detalle_empleado = {
-        dias_acum_anios: 0,
+        dias_acumulados: 0,
         dias_recuperados: 0,
+        dias_total_ausencias: 0,
         dias_pendientes: 0,
-        dias_tomados_anio: 0,
-        dias_tomados_mes: 0,
         enfermedad_cant: 0,
         maternidad_cant: 0,
         mediodia_cant: 0,
@@ -139,17 +148,20 @@ router.get("/traspaso/test", async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) =>{
+router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
 
-  const result = await db.collection('empleados').updateOne({_id: ObjectID(id)}, {
-    $set: {
-      activo_inactivo: false,
+  const result = await db.collection("empleados").updateOne(
+    { _id: ObjectID(id) },
+    {
+      $set: {
+        activo_inactivo: false,
+      },
     }
-  });
+  );
 
   res.json(result);
-})
+});
 
 export default router;
