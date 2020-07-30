@@ -76,9 +76,7 @@ export default function calculateDesgloseEmpleados(
     obj.maternidad_cant +
     obj.mediodia_cant +
     obj.tramites_cant +
-    obj.vacaciones_cant +
-    obj.recuperados_cant +
-    obj.mediodia_recuperados_cant;
+    obj.vacaciones_cant;
   //   4.- al total de dias acumulados le resto el total de ausencias para los dias pendientes
   obj.dias_pendientes = obj.dias_acumulados - obj.dias_total_ausencias;
 
