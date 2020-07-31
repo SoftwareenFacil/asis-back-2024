@@ -15,10 +15,29 @@ import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 
 //SELECT
-router.get("/", async (req, res) => {
+router.post("/pagination", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("reservas").find({}).toArray();
-  res.json(result);
+  const { pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+
+  try {
+    const countRes = await db.collection("reservas").find().count();
+    const result = await db
+      .collection("reservas")
+      .find()
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    res.json({
+      total_items: countRes,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countRes / nPerPage + 1),
+      reservas: result,
+    });
+  } catch (error) {
+    res.status(501).json(error);
+  }
 });
 
 //SELECT ONE
@@ -211,40 +230,44 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       .collection("gi")
       .findOne({ _id: ObjectID(reserva.id_GI_Principal) });
 
-    const clienteSecundario= await db
+    const clienteSecundario = await db
       .collection("gi")
       .findOne({ _id: ObjectID(reserva.id_GI_Secundario) });
 
-    sendinblue({
-      RAZON_SOCIAL_CP: reserva.razon_social_cp,
-      CODIGO_SOL: reserva.codigo,
-      FECHA_INICIO_RESERVA: reserva.fecha_reserva,
-      HORA_INICIO_RESERVA: reserva.hora_reserva,
-      FECHA_FIN_RESERVA: reserva.fecha_reserva_fin,
-      HORA_FIN_RESERVA: reserva.hora_reserva_fin,
-      NOMBRE_SERVICIO: reserva.nombre_servicio,
-      SUCURSAL_SERVICIO: reserva.sucursal,
-      JORNADA_RESERVA: reserva.jornada,
-      REQUIERE_EVALUACION: reserva.reqEvaluacion,
-      OBSERVACION_RESERVA: datos.observacion,
-      RUT_PROFESIONAL_ASIGNADO: profesionalAsignado.rut,
-      PROFESIONAL_ASIGNADO: profesionalAsignado.razon_social,
-      RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut,
-      NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social
-    }, [
+    sendinblue(
       {
-        email: clientePrincipal.email_central,
-        nombre: clientePrincipal.razon_social
+        RAZON_SOCIAL_CP: reserva.razon_social_cp,
+        CODIGO_SOL: reserva.codigo,
+        FECHA_INICIO_RESERVA: reserva.fecha_reserva,
+        HORA_INICIO_RESERVA: reserva.hora_reserva,
+        FECHA_FIN_RESERVA: reserva.fecha_reserva_fin,
+        HORA_FIN_RESERVA: reserva.hora_reserva_fin,
+        NOMBRE_SERVICIO: reserva.nombre_servicio,
+        SUCURSAL_SERVICIO: reserva.sucursal,
+        JORNADA_RESERVA: reserva.jornada,
+        REQUIERE_EVALUACION: reserva.reqEvaluacion,
+        OBSERVACION_RESERVA: datos.observacion,
+        RUT_PROFESIONAL_ASIGNADO: profesionalAsignado.rut,
+        PROFESIONAL_ASIGNADO: profesionalAsignado.razon_social,
+        RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut,
+        NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social,
       },
-      {
-        email: profesionalAsignado.email_central,
-        nombre: profesionalAsignado.razon_social
-      },
-      {
-        email: clienteSecundario.email_central,
-        nombre: clienteSecundario.razon_social
-      }
-    ], 6);
+      [
+        {
+          email: clientePrincipal.email_central,
+          nombre: clientePrincipal.razon_social,
+        },
+        {
+          email: profesionalAsignado.email_central,
+          nombre: profesionalAsignado.razon_social,
+        },
+        {
+          email: clienteSecundario.email_central,
+          nombre: clienteSecundario.razon_social,
+        },
+      ],
+      6
+    );
 
     res.json({
       status: 200,

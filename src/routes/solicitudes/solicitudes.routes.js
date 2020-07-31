@@ -17,10 +17,30 @@ import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 
 //SELECT
-router.get("/", async (req, res) => {
+router.post("/pagination", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("solicitudes").find({}).toArray();
-  res.json(result);
+  const { pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+
+  try {
+    const countSol = await db.collection("solicitudes").find().count();
+    const result = await db
+      .collection("solicitudes")
+      .find()
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    res.json({
+      total_items: countSol,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countSol / nPerPage + 1),
+      solicitudes: result
+    });
+
+  } catch (error) {
+    res.status(501).json(error);
+  }
 });
 
 //SELECT FIELDS TO CONFIRM SOLICITUD
@@ -70,39 +90,46 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
   const result = await db.collection("solicitudes").insertOne(newSolicitud);
   //envio correo
-  if(result.result.ok === 1){
+  if (result.result.ok === 1) {
+    const gi = await db
+      .collection("gi")
+      .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
 
-    const gi = await db.collection("gi").findOne({_id: ObjectID(result.ops[0].id_GI_Principal)});
-
-    const respMail = sendinblue({
-      RAZON_SOCIAL_CP: result.ops[0].razon_social_CP,
-      CODIGO_SOL: result.ops[0].codigo,
-      FECHA_SOL: result.ops[0].fecha_solicitud,
-      HORA_SOL: result.ops[0].hora_solicitud,
-      CATEGORIA_UNO_SOL: result.ops[0].categoria1,
-      NOMBRE_SERVICIO: result.ops[0].nombre_servicio,
-      NOMBRE_TIPO_SERVICIO: result.ops[0].tipo_servicio,
-      LUGAR_SERVICIO: result.ops[0].lugar_servicio,
-      SUCURSAL_SERVICIO: result.ops[0].sucursal,
-    }, [
+    const respMail = sendinblue(
       {
-        email: gi.email_central,
-        nombre: gi.razon_social
-      }
-    ], 4);
+        RAZON_SOCIAL_CP: result.ops[0].razon_social_CP,
+        CODIGO_SOL: result.ops[0].codigo,
+        FECHA_SOL: result.ops[0].fecha_solicitud,
+        HORA_SOL: result.ops[0].hora_solicitud,
+        CATEGORIA_UNO_SOL: result.ops[0].categoria1,
+        NOMBRE_SERVICIO: result.ops[0].nombre_servicio,
+        NOMBRE_TIPO_SERVICIO: result.ops[0].tipo_servicio,
+        LUGAR_SERVICIO: result.ops[0].lugar_servicio,
+        SUCURSAL_SERVICIO: result.ops[0].sucursal,
+      },
+      [
+        {
+          email: gi.email_central,
+          nombre: gi.razon_social,
+        },
+      ],
+      4
+    );
   }
 
   res.json(result);
 });
 
-router.post('/test', async (req, res) =>{
+router.post("/test", async (req, res) => {
   const { id } = req.body;
   const db = await connect();
-  
-  const gi = await db.collection("gi").findOne({_id: ObjectID(id)}, {email_central: 1});
+
+  const gi = await db
+    .collection("gi")
+    .findOne({ _id: ObjectID(id) }, { email_central: 1 });
 
   res.json(gi.email_central);
-})
+});
 
 //TEST PARA RECIBIR EXCEL DE INGRESO MASIVO DE SOLICITUDES
 router.post("/masivo", multer.single("archivo"), async (req, res) => {
@@ -272,27 +299,33 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         .insertOne(newReserva);
       res.json(resulReserva);
 
-      if(resulReserva.result.ok){
-        const respMail = sendinblue({
-          RAZON_SOCIAL_CP: resp.razon_social_CP,
-          CODIGO_SOL: resp.codigo,
-          FECHA_SOL: resp.fecha_solicitud,
-          HORA_SOL: resp.hora_solicitud,
-          CATEGORIA_UNO_SOL: resp.categoria1,
-          NOMBRE_SERVICIO: resp.nombre_servicio,
-          NOMBRE_TIPO_SERVICIO: resp.tipo_servicio,
-          LUGAR_SERVICIO: resp.lugar_servicio,
-          SUCURSAL_SERVICIO: resp.sucursal,
-          FECHA_CONFIRMACION_SOL: resp.fecha_confirmacion,
-          HORA_CONFIRMACION_SOL: resp.hora_confirmacion,
-          MEDIO_CONFIRMACION: resp.medio_confirmacion,
-          OBSERVACION_CONFIRMACION: resp.observacion_solicitud[resp.observacion_solicitud.length - 1].obs
-        }, [
+      if (resulReserva.result.ok) {
+        const respMail = sendinblue(
           {
-            email: solicitud.email_central,
-            nombre: resp.razon_social_CP
-          }
-        ], 5);
+            RAZON_SOCIAL_CP: resp.razon_social_CP,
+            CODIGO_SOL: resp.codigo,
+            FECHA_SOL: resp.fecha_solicitud,
+            HORA_SOL: resp.hora_solicitud,
+            CATEGORIA_UNO_SOL: resp.categoria1,
+            NOMBRE_SERVICIO: resp.nombre_servicio,
+            NOMBRE_TIPO_SERVICIO: resp.tipo_servicio,
+            LUGAR_SERVICIO: resp.lugar_servicio,
+            SUCURSAL_SERVICIO: resp.sucursal,
+            FECHA_CONFIRMACION_SOL: resp.fecha_confirmacion,
+            HORA_CONFIRMACION_SOL: resp.hora_confirmacion,
+            MEDIO_CONFIRMACION: resp.medio_confirmacion,
+            OBSERVACION_CONFIRMACION:
+              resp.observacion_solicitud[resp.observacion_solicitud.length - 1]
+                .obs,
+          },
+          [
+            {
+              email: solicitud.email_central,
+              nombre: resp.razon_social_CP,
+            },
+          ],
+          5
+        );
       }
     }
   }
