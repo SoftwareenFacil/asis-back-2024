@@ -82,7 +82,7 @@ router.post("/buscar", async (req, res) => {
   } else {
     rutFiltrado = filtro;
   }
-  console.log(rutFiltrado);
+
   const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
   let result;
   let countGIs;

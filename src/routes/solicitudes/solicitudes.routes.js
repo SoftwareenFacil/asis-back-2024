@@ -17,12 +17,12 @@ import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 
 //SELECT
-router.get('/', async (req, res) =>{
+router.get("/", async (req, res) => {
   const db = await connect();
   const result = await db.collection("solicitudes").find().toArray();
 
   res.json(result);
-})
+});
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
@@ -43,11 +43,67 @@ router.post("/pagination", async (req, res) => {
       total_items: countSol,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countSol / nPerPage + 1),
-      solicitudes: result
+      solicitudes: result,
+    });
+  } catch (error) {
+    res.status(501).json(error);
+  }
+});
+
+//BUSCAR POR RUT O NOMBRE
+router.post("/buscar", async (req, res) => {
+  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const db = await connect();
+  let rutFiltrado;
+  if (identificador === 1 && filtro.includes("k")) {
+    rutFiltrado = filtro;
+    rutFiltrado.replace("k", "K");
+  } else {
+    rutFiltrado = filtro;
+  }
+
+  const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+
+  let result;
+  let countSol;
+
+  try {
+    if (identificador === 1) {
+      countSol = await db
+        .collection("solicitudes")
+        .find({ rut_CP: rexExpresionFiltro })
+        .count();
+  
+      result = await db
+        .collection("solicitudes")
+        .find({ rut_CP: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else{
+      countSol = await db
+        .collection("solicitudes")
+        .find({ razon_social_CP: rexExpresionFiltro })
+        .count();
+      result = await db
+        .collection("solicitudes")
+        .find({ razon_social_CP: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+
+    res.json({
+      total_items: countSol,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countSol / nPerPage + 1),
+      solicitudes: result,
     });
 
   } catch (error) {
-    res.status(501).json(error);
+    res.status(501).json({mgs: `ha ocurrido un error ${error}`});
   }
 });
 
