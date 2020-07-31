@@ -11,7 +11,7 @@ import calculateDesgloseEmpleados from "../../functions/calculateDesgloseEmplead
 router.post("/show/:id", async (req, res) => {
   const { id } = req.params;
   const { pageNumber } = req.body;
-  const nPerPage = 15;
+  const nPerPage = 10;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
 
