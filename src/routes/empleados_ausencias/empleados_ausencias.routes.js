@@ -15,14 +15,27 @@ router.post("/show/:id", async (req, res) => {
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
 
-  const result = await db
-    .collection("empleados_ausencias")
-    .find({ id_empleado: id })
-    .skip(skip_page)
-    .limit(nPerPage)
-    .toArray();
+  try {
+    const countAusencias = await db
+      .collection("empleados_ausencias")
+      .find()
+      .count();
+    const result = await db
+      .collection("empleados_ausencias")
+      .find({ id_empleado: id })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
 
-  res.json(result);
+    res.json({
+      total_items: countAusencias,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countAusencias / nPerPage + 1),
+      ausencias: result
+    });
+  } catch (error) {
+    res.status(501).json(error);
+  }
 });
 
 //SHOW AUSENCIAS POR EMPLEADO, AÑO Y MES
