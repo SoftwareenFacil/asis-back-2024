@@ -10,11 +10,16 @@ import calculateDesgloseEmpleados from "../../functions/calculateDesgloseEmplead
 //SHOW AUSENCIAS POR EMPLEADO
 router.post("/show/:id", async (req, res) => {
   const { id } = req.params;
+  const { pageNumber } = req.body;
+  const nPerPage = 15;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
 
   const result = await db
     .collection("empleados_ausencias")
     .find({ id_empleado: id })
+    .skip(skip_page)
+    .limit(nPerPage)
     .toArray();
 
   res.json(result);
