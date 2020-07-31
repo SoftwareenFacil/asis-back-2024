@@ -17,6 +17,14 @@ import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 
 //SELECT
+router.get('/', async (req, res) =>{
+  const db = await connect();
+  const result = await db.collection("solicitudes").find().toArray();
+
+  res.json(result);
+})
+
+//SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
