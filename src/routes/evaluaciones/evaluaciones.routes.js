@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { calculate } from "../../functions/NewCode";
-import { getYear } from "../../functions/getYearActual";
-import { CalculateFechaVenc } from "../../functions/getFechaVenc";
 import { getDate } from "../../functions/getDateNow";
 import multer from "../../libs/multer";
+// import { calculate } from "../../functions/NewCode";
+// import { getYear } from "../../functions/getYearActual";
+// import { CalculateFechaVenc } from "../../functions/getFechaVenc";
 
 const router = Router();
 
@@ -16,6 +16,115 @@ router.get("/", async (req, res) => {
   const db = await connect();
   const result = await db.collection("evaluaciones").find({}).toArray();
   res.json(result);
+});
+
+//SELECT WITH PAGINATION
+router.post("/pagination", async (req, res) => {
+  const db = await connect();
+  const { pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+
+  try {
+    const countEva = await db.collection("evaluaciones").find().count();
+    const result = await db
+      .collection("evaluaciones")
+      .find()
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    res.json({
+      total_items: countEva,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countEva / nPerPage + 1),
+      evaluaciones: result,
+    });
+  } catch (error) {
+    res.status(501).json(error);
+  }
+});
+
+//BUSCAR POR NOMBRE O RUT
+router.post("/buscar", async (req, res) => {
+  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const db = await connect();
+  let rutFiltrado;
+  if (identificador === 1 && filtro.includes("k")) {
+    rutFiltrado = filtro;
+    rutFiltrado.replace("k", "K");
+  } else {
+    rutFiltrado = filtro;
+  }
+
+  const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+
+  let result;
+  let countEva;
+
+  try {
+    if (identificador === 1) {
+      countEva = await db
+        .collection("evaluaciones")
+        .find({ rut_cp: rexExpresionFiltro })
+        .count();
+
+      result = await db
+        .collection("evaluaciones")
+        .find({ rut_cp: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    } else {
+      countEva = await db
+        .collection("evaluaciones")
+        .find({ razon_social_cp: rexExpresionFiltro })
+        .count();
+      result = await db
+        .collection("evaluaciones")
+        .find({ razon_social_cp: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+
+    res.json({
+      total_items: countEva,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countEva / nPerPage + 1),
+      evaluaciones: result,
+    });
+  } catch (error) {
+    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+  }
+});
+
+//EDIT
+router.put("/:id", multer.single("archivo"), async (req, res) => {
+  const { id } = req.params;
+  const evaluacion = JSON.parse(req.body.data);
+  const db = await connect();
+
+  if (req.file) {
+    evaluacion.url_file_adjunto = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
+
+  try {
+    const result = await db.collection("evaluaciones").updateOne(
+      { _id: ObjectID(id) },
+      {
+        $set: {},
+      }
+    );
+    res.status(201).json({ message: "Evaluacion modificada correctamente" });
+  } catch (error) {
+    res.status(501).json({ message: "ha ocurrido un error", error });
+  }
 });
 
 //PASAR A EN EVALUACION
@@ -93,9 +202,11 @@ router.post("/evaluado/:id", async (req, res) => {
     { sort: { codigo: 1 }, returnNewDocument: true }
   );
 
-  if (result.ok == 1 &&
+  if (
+    result.ok == 1 &&
     (datos.estado_archivo == "Aprobado" ||
-    datos.estado_archivo == "Aprobado con Obs")) {
+      datos.estado_archivo == "Aprobado con Obs")
+  ) {
     let codAsis = result.value.codigo;
     codAsis = codAsis.replace("EVA", "RES");
     const resultinsert = await db.collection("resultados").insertOne({
