@@ -55,7 +55,9 @@ router.post("/buscar", async (req, res) => {
   const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
+
   let rutFiltrado;
+  
   if (identificador === 1 && filtro.includes("k")) {
     rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");

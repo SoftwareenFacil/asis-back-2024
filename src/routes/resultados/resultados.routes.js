@@ -19,6 +19,92 @@ router.get("/", async (req, res) => {
   res.json(result);
 });
 
+//SELECT WITH PAGINATION
+router.post("/pagination", async (req, res) => {
+  const db = await connect();
+  const { pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+
+  try {
+    const countRes = await db.collection("resultados").find().count();
+    const result = await db
+      .collection("resultados")
+      .find()
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    res.json({
+      total_items: countRes,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countRes / nPerPage + 1),
+      resultados: result,
+    });
+  } catch (error) {
+    res.status(501).json(error);
+  }
+});
+
+//BUSCAR POR RUT O NOMBRE
+router.post('/buscar', async (req, res) =>{
+  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const db = await connect();
+
+  let rutFiltrado;
+  
+  if (identificador === 1 && filtro.includes("k")) {
+    rutFiltrado = filtro;
+    rutFiltrado.replace("k", "K");
+  } else {
+    rutFiltrado = filtro;
+  }
+
+  const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+
+  let result;
+  let countRes;
+
+  try {
+    if (identificador === 1) {
+      countRes = await db
+        .collection("resultados")
+        .find({ rut_cp: rexExpresionFiltro })
+        .count();
+  
+      result = await db
+        .collection("resultados")
+        .find({ rut_cp: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else{
+      countRes = await db
+        .collection("resultados")
+        .find({ razon_social_cp: rexExpresionFiltro })
+        .count();
+      result = await db
+        .collection("resultados")
+        .find({ razon_social_cp: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+
+    res.json({
+      total_items: countRes,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countRes / nPerPage + 1),
+      resultado: result,
+    });
+
+  } catch (error) {
+    res.status(501).json({mgs: `ha ocurrido un error ${error}`});
+  }
+
+})
+
 //SUBIR ARCHIVO RESUILTADO
 router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
