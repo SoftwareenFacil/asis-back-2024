@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
 });
 
 //SELECT ONE 
-router.post('/:id', async (req, res) =>{
+router.post('/selectone/:id', async (req, res) =>{
   const { id } = req.params;
   const db = await connect();
   
