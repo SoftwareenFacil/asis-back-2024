@@ -96,7 +96,7 @@ router.post('/buscar', async (req, res) =>{
       total_items: countRes,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countRes / nPerPage + 1),
-      resultado: result,
+      resultados: result,
     });
 
   } catch (error) {
