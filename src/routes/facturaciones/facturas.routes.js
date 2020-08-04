@@ -51,13 +51,13 @@ router.post("/pagination", async (req, res) => {
 });
 
 //BUSCAR POR RUT O NOMBRE
-router.post('/buscar', async (req, res) =>{
+router.post("/buscar", async (req, res) => {
   const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
 
   let rutFiltrado;
-  
+
   if (identificador === 1 && filtro.includes("k")) {
     rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");
@@ -76,15 +76,14 @@ router.post('/buscar', async (req, res) =>{
         .collection("facturaciones")
         .find({ rut_cp: rexExpresionFiltro })
         .count();
-  
+
       result = await db
         .collection("facturaciones")
         .find({ rut_cp: rexExpresionFiltro })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
-    }
-    else{
+    } else {
       countFac = await db
         .collection("facturaciones")
         .find({ razon_social_cp: rexExpresionFiltro })
@@ -104,9 +103,51 @@ router.post('/buscar', async (req, res) =>{
       facturaciones: result,
     });
   } catch (error) {
-    res.status(501).json({mgs: `ha ocurrido un error ${error}`});
+    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
   }
-})
+});
+
+//EDIT
+router.put("/:id", multer.single("archivo"), async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+  const factura = JSON.parse(req.body.data);
+
+  if (req.file) {
+    factura.url_file_adjunto = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
+
+  try {
+    const result = await db.collection("facturaciones").updateOne(
+      { _id: ObjectID(id) },
+      {
+        $set: {
+          nro_factura: factura.nro_factura,
+          archivo_factura: archivo,
+          monto_neto: factura.monto_neto,
+          porcentaje_impuesto: factura.porcentaje_impuesto,
+          valor_impuesto: factura.valor_impuesto,
+          sub_total: factura.sub_total,
+          exento: factura.exento,
+          descuento: factura.descuento,
+          total: factura.total,
+        },
+      }
+    );
+
+    res.status(201).json({
+      message: "Factura modificada correctamente",
+      result,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "ha ocurrido un error", error });
+  }
+});
 
 //INSERTAR DATOS DE FACTURACION
 router.post("/:id", multer.single("archivo"), async (req, res) => {
