@@ -18,6 +18,89 @@ router.get("/", async (req, res) => {
   res.json(result);
 });
 
+//SELECT WITH PAGINATION
+router.post("/pagination", async (req, res) => {
+  const db = await connect();
+  const { pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+
+  try {
+    const countEmpleados = await db.collection("empleados").find().count();
+    const result = await db
+      .collection("empleados")
+      .find()
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    res.json({
+      total_items: countEmpleados,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countEmpleados / nPerPage + 1),
+      empleados: result,
+    });
+  } catch (error) {
+    res.status(501).json(error);
+  }
+});
+
+//BUSCAR POR NOMBRE O RUT
+router.post("/buscar", async (req, res) => {
+  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const db = await connect();
+
+  let rutFiltrado;
+
+  if (identificador === 1 && filtro.includes("k")) {
+    rutFiltrado = filtro;
+    rutFiltrado.replace("k", "K");
+  } else {
+    rutFiltrado = filtro;
+  }
+
+  const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+
+  let result;
+  let countEmpleados;
+
+  try {
+    if (identificador === 1) {
+      countEmpleados = await db
+        .collection("empleados")
+        .find({ rut: rexExpresionFiltro })
+        .count();
+
+      result = await db
+        .collection("empleados")
+        .find({ rut: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    } else {
+      countEmpleados = await db
+        .collection("empleados")
+        .find({ nombre: rexExpresionFiltro })
+        .count();
+      result = await db
+        .collection("empleados")
+        .find({ nombre: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+
+    res.json({
+      total_items: countEmpleados,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countEmpleados / nPerPage + 1),
+      empleados: result,
+    });
+  } catch (error) {
+    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+  }
+});
+
 //SELECT BY ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
