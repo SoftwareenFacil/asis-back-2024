@@ -19,15 +19,98 @@ router.get("/", async (req, res) => {
   let empresa = await db.collection("empresa").findOne({});
   res.json({
     datos: result,
-    empresa: empresa
+    empresa: empresa,
   });
 });
 
+//SELECT WITH PAGINATION
+router.post("/pagination", async (req, res) => {
+  const db = await connect();
+  const { pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+
+  try {
+    const countFac = await db.collection("facturaciones").find().count();
+    const result = await db
+      .collection("facturaciones")
+      .find()
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+    res.json({
+      total_items: countFac,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countFac / nPerPage + 1),
+      facturaciones: result,
+    });
+  } catch (error) {
+    res.status(501).json(error);
+  }
+});
+
+//BUSCAR POR RUT O NOMBRE
+router.post('/buscar', async (req, res) =>{
+  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const db = await connect();
+
+  let rutFiltrado;
+  
+  if (identificador === 1 && filtro.includes("k")) {
+    rutFiltrado = filtro;
+    rutFiltrado.replace("k", "K");
+  } else {
+    rutFiltrado = filtro;
+  }
+
+  const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+
+  let result;
+  let countFac;
+
+  try {
+    if (identificador === 1) {
+      countFac = await db
+        .collection("facturaciones")
+        .find({ rut_cp: rexExpresionFiltro })
+        .count();
+  
+      result = await db
+        .collection("facturaciones")
+        .find({ rut_cp: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else{
+      countFac = await db
+        .collection("facturaciones")
+        .find({ razon_social_cp: rexExpresionFiltro })
+        .count();
+      result = await db
+        .collection("facturaciones")
+        .find({ razon_social_cp: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+
+    res.json({
+      total_items: countFac,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countFac / nPerPage + 1),
+      facturaciones: result,
+    });
+  } catch (error) {
+    res.status(501).json({mgs: `ha ocurrido un error ${error}`});
+  }
+})
+
 //INSERTAR DATOS DE FACTURACION
-router.post("/:id", multer.single('archivo'), async (req, res) => {
+router.post("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  let datos = JSON.parse(req.body.data)
+  let datos = JSON.parse(req.body.data);
   let archivo = {};
   let obs = {};
   obs.obs = datos.observacion_factura;
@@ -70,7 +153,7 @@ router.post("/:id", multer.single('archivo'), async (req, res) => {
 });
 
 //INSERTAR FACTURA MASIVO
-router.post("/", multer.single('archivo'), async (req, res) => {
+router.post("/", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   let new_array = [];
   let datos = JSON.parse(req.body.data);
@@ -121,7 +204,7 @@ router.post("/", multer.single('archivo'), async (req, res) => {
 });
 
 //SUBIR OC
-router.post("/subiroc/:id", multer.single('archivo'), async (req, res) => {
+router.post("/subiroc/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   let datos = JSON.parse(req.body.data);
@@ -161,10 +244,10 @@ router.post("/subiroc/:id", multer.single('archivo'), async (req, res) => {
 });
 
 //SUBIR OC MASIVO
-router.post("/oc/subiroc/many", multer.single('archivo'), async (req, res) => {
+router.post("/oc/subiroc/many", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   let new_array = [];
-  let datos = JSON.parse(req.body.data)
+  let datos = JSON.parse(req.body.data);
   let archivo = {};
   let obs = {};
   obs.obs = datos[0].observacion_oc;
@@ -490,7 +573,6 @@ router.post("/validar/factura/asis/many", async (req, res) => {
       .collection("pagos")
       .insertMany(arrayFacturaciones);
 
-
     //si no tiene dias credito , pasa directo a cobranza
     arrayFacturaciones = [];
     resp.forEach((element) => {
@@ -503,7 +585,7 @@ router.post("/validar/factura/asis/many", async (req, res) => {
           serv.codigo.replace("SOL", "FAC").toString() === element.codigo
       );
       //-
-      if(getMinusculas(gi.credito) == "no"){     
+      if (getMinusculas(gi.credito) == "no") {
         arrayFacturaciones.push({
           codigo: servicio.codigo.replace("SOL", "COB"),
           nombre_servicio: element.nombre_servicio,
@@ -527,18 +609,15 @@ router.post("/validar/factura/asis/many", async (req, res) => {
       }
     });
 
-    if(arrayFacturaciones.length > 0){
+    if (arrayFacturaciones.length > 0) {
       const resultCobranza = await db
-      .collection("cobranza")
-      .insertMany(arrayFacturaciones);
+        .collection("cobranza")
+        .insertMany(arrayFacturaciones);
 
       res.json(resultCobranza);
+    } else {
+      res.json(resultPagos);
     }
-    else{
-      res.json(resultPagos)   
-    }
-
-   
   }
 });
 
