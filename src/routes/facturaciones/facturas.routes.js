@@ -15,8 +15,8 @@ import { ObjectID } from "mongodb";
 //SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  let result = await db.collection("facturaciones").find({}).toArray();
-  let empresa = await db.collection("empresa").findOne({});
+  const result = await db.collection("facturaciones").find({}).toArray();
+  const empresa = await db.collection("empresa").findOne({});
   res.json({
     datos: result,
     empresa: empresa,
@@ -31,6 +31,7 @@ router.post("/pagination", async (req, res) => {
 
   try {
     const countFac = await db.collection("facturaciones").find().count();
+    const empresa = await db.collection("empresa").findOne({});
     const result = await db
       .collection("facturaciones")
       .find()
@@ -41,6 +42,7 @@ router.post("/pagination", async (req, res) => {
       total_items: countFac,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countFac / nPerPage + 1),
+      empresa,
       facturaciones: result,
     });
   } catch (error) {
