@@ -19,6 +19,75 @@ router.get("/", async (req, res) => {
   res.json(result);
 });
 
+//SELECT WITH PAGINATION
+router.post("/pagination", async (req, res) => {
+  const db = await connect();
+  const { pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+
+  try {
+    const countSalidas = await db.collection("salidas").find().count();
+    const result = await db
+      .collection("salidas")
+      .find()
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    res.json({
+      total_items: countSalidas,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countSalidas / nPerPage + 1),
+      salidas: result,
+    });
+  } catch (error) {
+    res.status(501).json(error);
+  }
+});
+
+//BUSCAR POR RUT O NOMBRE
+router.post("/buscar", async (req, res) => {
+  const { filtro, pageNumber, nPerPage } = req.body;
+  const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const db = await connect();
+
+  // let rutFiltrado;
+
+  // if (identificador === 1 && filtro.includes("k")) {
+  //   rutFiltrado = filtro;
+  //   rutFiltrado.replace("k", "K");
+  // } else {
+  //   rutFiltrado = filtro;
+  // }
+
+  const rexExpresionFiltro = new RegExp(filtro, "i");
+
+  let result;
+  let countSalidas;
+
+  try {
+    countSalidas = await db
+        .collection("salidas")
+        .find({ categoria_general: rexExpresionFiltro })
+        .count();
+      result = await db
+        .collection("salidas")
+        .find({ categoria_general: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+
+    res.json({
+      total_items: countSalidas,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countSalidas / nPerPage + 1),
+      salidas: result,
+    });
+  } catch (error) {
+    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+  }
+});
+
 //INSERT SALIDA
 router.post("/", async (req, res) => {
   const db = await connect();
