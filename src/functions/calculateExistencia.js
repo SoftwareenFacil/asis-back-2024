@@ -5,9 +5,9 @@ export default function calculateExistencia(result){
     let obj = {};
 
     resultado.forEach(objGeneral => {
-        tipo = objGeneral.tipo
+        tipo = objGeneral.tipo        
         objGeneral.datos.forEach(objParticular => {
-            if(array.length === 0){
+            if(array.length === 0){                
                 obj.categoria_general = objParticular.categoria_general,
                 obj.subcategoria_uno = objParticular.subcategoria_uno,
                 obj.subcategoria_dos = objParticular.subcategoria_dos,
@@ -22,7 +22,8 @@ export default function calculateExistencia(result){
                 obj.costo_unitario_promedio = 0,
                 obj.estado = ''
 
-                array.push(obj)
+                array.push(obj);
+                
             }else{
                 if(array.some(code => code.codigo_categoria_tres === objParticular.codigo_categoria_tres)){
                     array.forEach((element, index) => {
