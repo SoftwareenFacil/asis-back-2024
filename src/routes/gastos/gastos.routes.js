@@ -377,7 +377,7 @@ router.put("/entrada/:id", async (req, res) => {
 });
 
 //DELETE ENTRADAS
-router.delete("/:id", async (req, res) => {
+router.delete("/entradas/:id", async (req, res) => {
   const { id } = req.params;
   const entrada = req.body;
   const db = await connect();
@@ -409,11 +409,11 @@ router.delete("/:id", async (req, res) => {
       }
     );
 
-    result = await db.collection("prexistencia").find({ id: id }).toArray();
+    result = await db.collection("prexistencia").findOne({ id: id });
 
-    if (result.length > 0) {
+    if (result) {
       let datos = result.datos;
-      
+
       for (let index = 0; index < datos.length; index++) {
         const element = datos[index];
         if (element.id === entrada.id) {
@@ -421,8 +421,7 @@ router.delete("/:id", async (req, res) => {
         }
       }
 
-      console.log(datos);
-
+     
       result = await db.collection("prexistencia").updateOne({ id: id }, {
         $set:{
           datos: datos
