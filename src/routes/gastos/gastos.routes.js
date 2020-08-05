@@ -20,15 +20,15 @@ router.get("/", async (req, res) => {
   res.json(result);
 });
 
-//SELECT ONE 
-router.get('/:id', async (req, res) => {
+//SELECT ONE
+router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
 
-  const result = await db.collection("gastos").findOne({_id: ObjectID(id)});
+  const result = await db.collection("gastos").findOne({ _id: ObjectID(id) });
 
   res.json(result);
-})
+});
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
@@ -273,7 +273,8 @@ router.post("/entrada/:id", async (req, res) => {
   }
 });
 
-router.put('/:id', multer.single("archivo"), async (req, res) => {
+//EDIT GASTO
+router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const gasto = JSON.parse(req.body.data);
   const db = await connect();
@@ -288,40 +289,43 @@ router.put('/:id', multer.single("archivo"), async (req, res) => {
   }
 
   try {
-    const result = await db.collection('solicitudes').updateOne({_id: ObjectID(id)}, {
-      $set:{
-        fecha: gasto.fecha,
-        categoria_general: gasto.categoria_general,
-        subcategoria_uno: gasto.subcategoria_uno,
-        subcategoria_dos: gasto.subcategoria_dos,
-        descripcion_gasto: gasto.subcategoria_tres,
-        rut_proveedor: gasto.rut_proveedor,
-        razon_social_proveedor: gasto.razon_social_proveedor,
-        requiere_servicio: gasto.requiere_servicio,
-        id_servicio: gasto.id_servicio,
-        servicio: gasto.servicio,
-        tipo_registro: gasto.tipo_registro,
-        tipo_documento: gasto.tipo_documento,
-        nro_documento: gasto.nro_documento,
-        medio_pago: gasto.medio_pago,
-        institucion_bancaria: gasto.institucion_bancaria,
-        inventario: gasto.inventario,
-        cantidad_factor: gasto.cantidad_factor,
-        precio_unitario: gasto.precio_unitario,
-        monto_neto: gasto.monto_neto,
-        impuesto: gasto.impuesto,
-        monto_exento: gasto.monto_exento,
-        monto_total: gasto.monto_total,
-        observaciones: gasto.observaciones,
-        archivo_adjunto: gasto.archivo_adjunto,
+    const result = await db.collection("solicitudes").updateOne(
+      { _id: ObjectID(id) },
+      {
+        $set: {
+          fecha: gasto.fecha,
+          categoria_general: gasto.categoria_general,
+          subcategoria_uno: gasto.subcategoria_uno,
+          subcategoria_dos: gasto.subcategoria_dos,
+          descripcion_gasto: gasto.subcategoria_tres,
+          rut_proveedor: gasto.rut_proveedor,
+          razon_social_proveedor: gasto.razon_social_proveedor,
+          requiere_servicio: gasto.requiere_servicio,
+          id_servicio: gasto.id_servicio,
+          servicio: gasto.servicio,
+          tipo_registro: gasto.tipo_registro,
+          tipo_documento: gasto.tipo_documento,
+          nro_documento: gasto.nro_documento,
+          medio_pago: gasto.medio_pago,
+          institucion_bancaria: gasto.institucion_bancaria,
+          inventario: gasto.inventario,
+          cantidad_factor: gasto.cantidad_factor,
+          precio_unitario: gasto.precio_unitario,
+          monto_neto: gasto.monto_neto,
+          impuesto: gasto.impuesto,
+          monto_exento: gasto.monto_exento,
+          monto_total: gasto.monto_total,
+          observaciones: gasto.observaciones,
+          archivo_adjunto: gasto.archivo_adjunto,
+        },
       }
-    });
+    );
 
     res.status(201).json({ message: "Gasto modificado correctamente", result });
   } catch (error) {
     res.status(500).json({ message: "ha ocurrido un error", error });
   }
-})
+});
 
 //EDIT ENTRADA AND EDIT PREXISTENCIA
 router.put("/entrada/:id", async (req, res) => {
@@ -366,7 +370,7 @@ router.put("/entrada/:id", async (req, res) => {
 
     if (result.length > 0) {
       if (entrada) {
-        result = await db.collection("prexistencia").findOne({ id: id });        
+        result = await db.collection("prexistencia").findOne({ id: id });
         if (result) {
           let datos = result.datos;
           datos.map(function (e) {
@@ -394,11 +398,11 @@ router.put("/entrada/:id", async (req, res) => {
               },
             }
           );
-        }        
+        }
       } else {
         result = await db.collection("prexistencia").deleteOne({ id: id });
       }
-    } 
+    }
     // else {
     //   if (entrada.length > 0) {
     //     let objInsert = {
@@ -423,6 +427,43 @@ router.put("/entrada/:id", async (req, res) => {
     res.status(201).json(result);
   } catch (error) {
     res.status(501).json({ msg: "Ha ocurrido un error", error });
+  }
+});
+
+//DELETE GASTO
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  const gasto = req.body;
+  const db = await connect();
+  let result = "";
+
+  try {
+    //1.- traigo la coleccion
+    const coleccionGasto = await db
+      .collection("gastos")
+      .findOne({ _id: ObjectID(id) });
+
+    let entradas = coleccionGasto.entradas;
+
+    //2.- elimino el gasto
+    result = await db.collection("gastos").deleteOne({ _id: ObjectID(id) });
+
+    //3.- elimino la prexisrtencia
+    result = await db.collection("prexistencia").deleteOne({ id: id });
+
+    //4.- se recalcula la existencia
+    result = await db.collection("prexistencia").find({}).toArray();
+    result = calculateExistencia(result);
+    result = getFinalExistencia(result);
+
+    //limpiar existencia a 0 para recargarla con los nuevos datos
+    await db.collection("existencia").deleteMany({});
+    //insertar cada objeto como document en collection existencia
+    result = await db.collection("existencia").insertMany(result);
+
+    res.json(result);
+  } catch (error) {
+    res.status(401).json({msg: "ha ocurrido un error", error})
   }
 });
 
@@ -471,15 +512,17 @@ router.delete("/entrada/:id", async (req, res) => {
         }
       }
 
-      if(datos.length > 0){
-        result = await db.collection("prexistencia").updateOne({ id: id }, {
-          $set:{
-            datos: datos
+      if (datos.length > 0) {
+        result = await db.collection("prexistencia").updateOne(
+          { id: id },
+          {
+            $set: {
+              datos: datos,
+            },
           }
-        })
-      }
-      else{
-        result = await db.collection("prexistencia").deleteOne({id: id});
+        );
+      } else {
+        result = await db.collection("prexistencia").deleteOne({ id: id });
       }
     }
 
