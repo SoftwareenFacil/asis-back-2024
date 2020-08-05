@@ -290,7 +290,7 @@ router.put('/:id', multer.single("archivo"), async (req, res) => {
   try {
     const result = await db.collection('solicitudes').updateOne({_id: ObjectID(id)}, {
       $set:{
-        fecha: "",
+        fecha: gasto.fecha,
         categoria_general: gasto.categoria_general,
         subcategoria_uno: gasto.subcategoria_uno,
         subcategoria_dos: gasto.subcategoria_dos,
