@@ -35,7 +35,7 @@ router.post("/pagination", async (req, res) => {
       total_items: countExistencia,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countExistencia / nPerPage + 1),
-      existencia: result,
+      existencias: result,
     });
   } catch (error) {
     res.status(501).json(error);

@@ -412,28 +412,45 @@ router.delete("/:id", async (req, res) => {
     result = await db.collection("prexistencia").find({ id: id }).toArray();
 
     if (result.length > 0) {
-      if (entradas.length > 0) {
-        result = await db.collection("prexistencia").updateOne(
-          { id: id },
-          {
-            $set: {
-              datos: entradas,
-            },
-          }
-        );
-      } else {
-        result = await db.collection("prexistencia").deleteOne({ id: id });
+      let datos = result.datos;
+      
+      for (let index = 0; index < datos.length; index++) {
+        const element = datos[index];
+        if (element.id === entrada.id) {
+          datos.splice(index, 1);
+        }
       }
-    } else {
-      if (entradas.length > 0) {
-        let objInsert = {
-          id: id,
-          tipo: "entrada",
-          datos: entradas,
-        };
-        result = await db.collection("prexistencia").insertOne(objInsert);
-      }
-    }
+
+      console.log(datos);
+
+      result = await db.collection("prexistencia").updateOne({ id: id }, {
+        $set:{
+          datos: datos
+        }
+      })
+      // if (entradas.length > 0) {
+      //   result = await db.collection("prexistencia").updateOne(
+      //     { id: id },
+      //     {
+      //       $set: {
+      //         datos: entradas,
+      //       },
+      //     }
+      //   );
+      // } else {
+      //   result = await db.collection("prexistencia").deleteOne({ id: id });
+      // }
+    } 
+    // else {
+    //   if (entradas.length > 0) {
+    //     let objInsert = {
+    //       id: id,
+    //       tipo: "entrada",
+    //       datos: entradas,
+    //     };
+    //     result = await db.collection("prexistencia").insertOne(objInsert);
+    //   }
+    // }
 
     result = await db.collection("prexistencia").find({}).toArray();
 
