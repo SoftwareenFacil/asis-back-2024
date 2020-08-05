@@ -273,6 +273,56 @@ router.post("/entrada/:id", async (req, res) => {
   }
 });
 
+router.put('/:id', multer.single("archivo"), async (req, res) => {
+  const { id } = req.params;
+  const gasto = JSON.parse(req.body.data);
+  const db = await connect();
+
+  if (req.file) {
+    gasto.archivo_adjunto = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
+
+  try {
+    const result = await db.collection('solicitudes').updateOne({_id: ObjectID(id)}, {
+      $set:{
+        fecha: "",
+        categoria_general: gasto.categoria_general,
+        subcategoria_uno: gasto.subcategoria_uno,
+        subcategoria_dos: gasto.subcategoria_dos,
+        descripcion_gasto: gasto.subcategoria_tres,
+        rut_proveedor: gasto.rut_proveedor,
+        razon_social_proveedor: gasto.razon_social_proveedor,
+        requiere_servicio: gasto.requiere_servicio,
+        id_servicio: gasto.id_servicio,
+        servicio: gasto.servicio,
+        tipo_registro: gasto.tipo_registro,
+        tipo_documento: gasto.tipo_documento,
+        nro_documento: gasto.nro_documento,
+        medio_pago: gasto.medio_pago,
+        institucion_bancaria: gasto.institucion_bancaria,
+        inventario: gasto.inventario,
+        cantidad_factor: gasto.cantidad_factor,
+        precio_unitario: gasto.precio_unitario,
+        monto_neto: gasto.monto_neto,
+        impuesto: gasto.impuesto,
+        monto_exento: gasto.monto_exento,
+        monto_total: gasto.monto_total,
+        observaciones: gasto.observaciones,
+        archivo_adjunto: gasto.archivo_adjunto,
+      }
+    });
+
+    res.status(201).json({ message: "Gasto modificado correctamente", result });
+  } catch (error) {
+    res.status(500).json({ message: "ha ocurrido un error", error });
+  }
+})
+
 //EDIT ENTRADA AND EDIT PREXISTENCIA
 router.put("/entrada/:id", async (req, res) => {
   const { id } = req.params;
