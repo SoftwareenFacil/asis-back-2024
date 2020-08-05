@@ -47,7 +47,7 @@ router.post("/pagination", async (req, res) => {
 
 //BUSCAR POR CATEGORIA GENERAL Y SUBCATEGORIA 1
 router.post("/buscar", async (req, res) => {
-  const { filtro, pageNumber, nPerPage } = req.body;
+  const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
 
