@@ -45,20 +45,11 @@ router.post("/pagination", async (req, res) => {
   }
 });
 
-//BUSCAR POR RUT O NOMBRE
+//BUSCAR POR CATEGORIA GENERAL Y SUBCATEGORIA 1
 router.post("/buscar", async (req, res) => {
   const { filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
-
-  // let rutFiltrado;
-
-  // if (identificador === 1 && filtro.includes("k")) {
-  //   rutFiltrado = filtro;
-  //   rutFiltrado.replace("k", "K");
-  // } else {
-  //   rutFiltrado = filtro;
-  // }
 
   const rexExpresionFiltro = new RegExp(filtro, "i");
 
@@ -66,16 +57,30 @@ router.post("/buscar", async (req, res) => {
   let countSalidas;
 
   try {
-    countSalidas = await db
+    if (identificador === 1) {
+      countSalidas = await db
         .collection("salidas")
         .find({ categoria_general: rexExpresionFiltro })
         .count();
+
       result = await db
         .collection("salidas")
         .find({ categoria_general: rexExpresionFiltro })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
+    } else {
+      countSalidas = await db
+        .collection("salidas")
+        .find({ subcategoria_uno: rexExpresionFiltro })
+        .count();
+      result = await db
+        .collection("salidas")
+        .find({ subcategoria_uno: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
 
     res.json({
       total_items: countSalidas,
