@@ -377,7 +377,7 @@ router.put("/entrada/:id", async (req, res) => {
 });
 
 //DELETE ENTRADAS
-router.delete("/entradas/:id", async (req, res) => {
+router.delete("/entrada/:id", async (req, res) => {
   const { id } = req.params;
   const entrada = req.body;
   const db = await connect();
@@ -421,35 +421,17 @@ router.delete("/entradas/:id", async (req, res) => {
         }
       }
 
-     
-      result = await db.collection("prexistencia").updateOne({ id: id }, {
-        $set:{
-          datos: datos
-        }
-      })
-      // if (entradas.length > 0) {
-      //   result = await db.collection("prexistencia").updateOne(
-      //     { id: id },
-      //     {
-      //       $set: {
-      //         datos: entradas,
-      //       },
-      //     }
-      //   );
-      // } else {
-      //   result = await db.collection("prexistencia").deleteOne({ id: id });
-      // }
-    } 
-    // else {
-    //   if (entradas.length > 0) {
-    //     let objInsert = {
-    //       id: id,
-    //       tipo: "entrada",
-    //       datos: entradas,
-    //     };
-    //     result = await db.collection("prexistencia").insertOne(objInsert);
-    //   }
-    // }
+      if(datos.length > 0){
+        result = await db.collection("prexistencia").updateOne({ id: id }, {
+          $set:{
+            datos: datos
+          }
+        })
+      }
+      else{
+        result = await db.collection("prexistencia").deleteOne({id: id});
+      }
+    }
 
     result = await db.collection("prexistencia").find({}).toArray();
 
