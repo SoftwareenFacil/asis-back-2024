@@ -298,7 +298,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
           categoria_general: gasto.categoria_general,
           subcategoria_uno: gasto.subcategoria_uno,
           subcategoria_dos: gasto.subcategoria_dos,
-          descripcion_gasto: gasto.subcategoria_tres,
+          descripcion_gasto: gasto.descripcion_gasto,
           id_proveedor: gasto.id_proveedor,
           rut_proveedor: gasto.rut_proveedor,
           razon_social_proveedor: gasto.razon_social_proveedor,
