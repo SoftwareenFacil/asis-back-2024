@@ -142,6 +142,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   newGasto.subcategoria_uno = datos.subcategoria_uno;
   newGasto.subcategoria_dos = datos.subcategoria_dos;
   newGasto.descripcion_gasto = datos.descripcion_gasto;
+  newGasto.id_proveedor = datos.id_proveedor;
   newGasto.rut_proveedor = datos.rut_proveedor;
   newGasto.categoria_proveedor = datos.categoria;
   newGasto.razon_social_proveedor = datos.razon_social_proveedor;
@@ -298,6 +299,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
           subcategoria_uno: gasto.subcategoria_uno,
           subcategoria_dos: gasto.subcategoria_dos,
           descripcion_gasto: gasto.subcategoria_tres,
+          id_proveedor: gasto.id_proveedor,
           rut_proveedor: gasto.rut_proveedor,
           razon_social_proveedor: gasto.razon_social_proveedor,
           requiere_servicio: gasto.requiere_servicio,
