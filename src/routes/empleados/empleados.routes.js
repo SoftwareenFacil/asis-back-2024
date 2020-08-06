@@ -113,11 +113,20 @@ router.get("/:id", async (req, res) => {
 });
 
 //EDITAR EMPLEADO
-router.put("/:id", async (req, res) => {
+router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const data = req.body;
+  const data = JSON.parse(req.body.data);
   let diasVacaciones = 0;
+
+  if (req.file) {
+    data.archivo_adjunto = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
 
   if (data.fecha_inicio_contrato) {
     if (
@@ -165,6 +174,7 @@ router.put("/:id", async (req, res) => {
             "none",
             diasVacaciones
           ),
+          archivo_adjunto: datos.archivo_adjunto
         },
       }
     );
