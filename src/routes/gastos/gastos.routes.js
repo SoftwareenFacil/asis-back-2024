@@ -289,7 +289,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   }
 
   try {
-    const result = await db.collection("solicitudes").updateOne(
+    const result = await db.collection("gastos").updateOne(
       { _id: ObjectID(id) },
       {
         $set: {
