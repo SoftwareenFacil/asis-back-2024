@@ -155,7 +155,7 @@ router.post("/", async (req, res) => {
 
       result = calculateExistencia(result);
 
-      result = getFinalExistencia(result)
+      result = getFinalExistencia(result);
 
       //limpiar existencia a 0 para recargarla con los nuevos datos
       await db.collection("existencia").deleteMany({});

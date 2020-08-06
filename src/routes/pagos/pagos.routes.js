@@ -419,7 +419,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 //DELETE PAGO
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  const pago = req.body;
+  const pago = JSON.parse(req.query.data);
   const db = await connect();
 
   //1.- traigo la coleccion

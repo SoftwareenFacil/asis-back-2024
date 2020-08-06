@@ -433,7 +433,6 @@ router.put("/entrada/:id", async (req, res) => {
 //DELETE GASTO
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  const gasto = req.body;
   const db = await connect();
   let result = "";
 
