@@ -169,4 +169,108 @@ router.post("/", async (req, res) => {
   }
 });
 
+//EDIT
+router.put("/:id", async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+  const datos = req.body;
+
+  try {
+    let result = await db.collection("salidas").findOneAndUpdate(
+      { _id: ObjectID(id) },
+      {
+        $set: {
+          fecha: datos.fecha,
+          tipo_salida: datos.tipo_salida,
+          nro_documento: datos.nro_documento,
+          usuario: datos.usuario,
+          categoria_general: datos.categoria_general,
+          subcategoria_uno: datos.subcategoria_uno,
+          subcategoria_dos: datos.subcategoria_dos,
+          subcategoria_tres: datos.subcategoria_tres,
+          codigo_categoria_tres: datos.codigo_categoria_tres,
+          descripcion: datos.descripcion,
+          motivo_salida: datos.motivo_salida,
+          cantidad: datos.cantidad,
+          costo_unitario: datos.costo_unitario,
+          costo_total: datos.costo_total,
+          precio_venta_unitario: datos.precio_venta_unitario,
+          ingreso_total: datos.ingreso_total,
+        },
+      },
+      { returnOriginal: false }
+    );
+
+    result = await db.collection("prexistencia").updateOne(
+      { id: id },
+      {
+        $set: {
+          datos: {
+            fecha: result.value.fecha,
+            tipo_salida: result.value.tipo_salida,
+            nro_documento: result.value.nro_documento,
+            usuario: result.value.usuario,
+            categoria_general: result.value.categoria_general,
+            subcategoria_uno: result.value.subcategoria_uno,
+            subcategoria_dos: result.value.subcategoria_dos,
+            subcategoria_tres: result.value.subcategoria_tres,
+            codigo_categoria_tres: result.value.codigo_categoria_tres,
+            descripcion: result.value.descripcion,
+            motivo_salida: result.value.motivo_salida,
+            cantidad: result.value.cantidad,
+            costo_unitario: result.value.costo_unitario,
+            costo_total: result.value.costo_total,
+            precio_venta_unitario: result.value.precio_venta_unitario,
+            ingreso_total: result.value.ingreso_total,
+          },
+        },
+      }
+    );
+
+    result = await db.collection("prexistencia").find({}).toArray();
+
+    result = calculateExistencia(result);
+
+    result = getFinalExistencia(result);
+
+    //limpiar existencia a 0 para recargarla con los nuevos datos
+    await db.collection("existencia").deleteMany({});
+    //insertar cada objeto como document en collection existencia
+    result = await db.collection("existencia").insertMany(result);
+
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(400).json({msg: "ha ocurrido un error ", error});
+  }
+});
+
+//DELETE
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+
+  try {
+    let result = await db
+      .collection("salidas")
+      .deleteOne({ _id: ObjectID(id) });
+
+    result = await db.collection("prexistencia").deleteOne({ id: id });
+
+    result = await db.collection("prexistencia").find({}).toArray();
+
+    result = calculateExistencia(result);
+
+    result = getFinalExistencia(result);
+
+    //limpiar existencia a 0 para recargarla con los nuevos datos
+    await db.collection("existencia").deleteMany({});
+    //insertar cada objeto como document en collection existencia
+    result = await db.collection("existencia").insertMany(result);
+
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(400).json({msg: "ha ocurrido un error ", error});
+  }
+});
+
 export default router;
