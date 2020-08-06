@@ -2,6 +2,8 @@ import e, { Router } from "express";
 import calculateVacationByDay from "../../functions/calculateDaysVacation";
 import calculateDesgloseEmpleados from "../../functions/calculateDesgloseEmpleados";
 
+import multer from "../../libs/multer";
+
 const router = Router();
 
 //database connection
