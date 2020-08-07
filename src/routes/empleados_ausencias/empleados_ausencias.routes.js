@@ -101,11 +101,20 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 });
 
 //UPDATE AUSENCIA
-router.put("/:id", async (req, res) => {
+router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const data = req.body;
+  const data = JSON.parse(req.body.data);
   let r = null;
+
+  if (req.file) {
+    data.archivo_adjunto = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  };
 
   const resultEdit = await db
     .collection("empleados_ausencias")
