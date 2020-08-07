@@ -199,12 +199,21 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 });
 
 //INSERT ENTRADA AND EDIT PREXISTENCIA
-router.post("/entrada/:id", async (req, res) => {
+router.post("/entrada/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  let entrada = req.body;
+  let entrada = JSON.parse(req.body.data);
   entrada.id = v4();
   let result = "";
+
+  if (req.file) {
+    entrada.archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
 
   try {
     result = await db.collection("gastos").updateOne(
@@ -226,6 +235,7 @@ router.post("/entrada/:id", async (req, res) => {
             valor_impuesto: entrada.valor_impuesto,
             costo_unitario: entrada.costo_unitario,
             costo_total: entrada.costo_total,
+            archivo_adjunto: entrada.archivo
           },
         },
       }
@@ -330,11 +340,20 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 });
 
 //EDIT ENTRADA AND EDIT PREXISTENCIA
-router.put("/entrada/:id", async (req, res) => {
+router.put("/entrada/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const entrada = req.body;
+  const entrada = JSON.parse(req.body.data);
   const db = await connect();
   let result = "";
+
+  if (req.file) {
+    entrada.archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
 
   try {
     const gasto = await db.collection("gastos").findOne({ _id: ObjectID(id) });
@@ -354,6 +373,7 @@ router.put("/entrada/:id", async (req, res) => {
         e.valor_impuesto = entrada.valor_impuesto;
         e.costo_unitario = entrada.costo_unitario;
         e.costo_total = entrada.costo_total;
+        e.archivo_adjunto = entrada.archivo;
       }
 
       return e;
