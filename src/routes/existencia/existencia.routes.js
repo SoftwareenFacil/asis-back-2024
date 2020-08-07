@@ -93,7 +93,9 @@ router.post("/buscar", async (req, res) => {
 //CONSULTAR POR ENTRADAS PARA INSERCION DE SALIDAS
 router.post("/consultar", async (req, res) => {
   const db = await connect();
-  const { code } = req.body;
+  const { code, indicador, cant } = req.body;
+  let cupos_disponibles = 0;
+
   const result = await db
     .collection("existencia")
     .findOne({ codigo_categoria_tres: code });
@@ -104,9 +106,17 @@ router.post("/consultar", async (req, res) => {
       isOK: false,
     });
   } else {
+
+    if(indicador === 2){
+      cupos_disponibles = result.existencia - cant;
+    }
+    else{
+      cupos_disponibles = result.existencia;
+    }
+
     res.json({
       isOK: true,
-      cupos_disponibles: result.existencia,
+      cupos_disponibles: cupos_disponibles,
       costo_unitario_promedio: result.costo_unitario_promedio,
     });
   }
