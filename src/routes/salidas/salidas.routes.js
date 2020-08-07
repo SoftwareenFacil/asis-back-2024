@@ -260,10 +260,12 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
       }
     );
 
+    
     result = await db.collection("prexistencia").find({}).toArray();
-
+    
+    console.log('resultado',result);
     result = calculateExistencia(result);
-
+    
     result = getFinalExistencia(result);
 
     //limpiar existencia a 0 para recargarla con los nuevos datos

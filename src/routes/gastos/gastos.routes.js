@@ -199,44 +199,35 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 });
 
 //INSERT ENTRADA AND EDIT PREXISTENCIA
-router.post("/entrada/:id", multer.single("archivo"), async (req, res) => {
+router.post("/entrada/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  let entrada = JSON.parse(req.body.data);
-  entrada.id = v4();
+  let entrada = req.body;
+  // entrada.id = v4();
   let result = "";
-
-  if (req.file) {
-    entrada.archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
 
   try {
     result = await db.collection("gastos").updateOne(
       { _id: ObjectID(id) },
       {
-        $push: {
-          entradas: {
-            id: entrada.id,
-            nombre_proveedor: entrada.nombre_proveedor,
-            categoria_general: entrada.categoria_general,
-            subcategoria_uno: entrada.subcategoria_uno,
-            subcategoria_dos: entrada.subcategoria_dos,
-            subcategoria_tres: entrada.subcategoria_tres,
-            codigo_categoria_tres: entrada.codigo_categoria_tres,
-            cant_maxima_categoria_tres: entrada.cant_maxima_categoria_tres,
-            detalle: entrada.detalle,
-            cantidad: entrada.cantidad,
-            porcentaje_impuesto: entrada.porcentaje_impuesto,
-            valor_impuesto: entrada.valor_impuesto,
-            costo_unitario: entrada.costo_unitario,
-            costo_total: entrada.costo_total,
-            archivo_adjunto: entrada.archivo
-          },
+        $set: {
+          entradas: entrada.entradas
+          // entradas: {
+          //   id: entrada.id,
+          //   nombre_proveedor: entrada.nombre_proveedor,
+          //   categoria_general: entrada.categoria_general,
+          //   subcategoria_uno: entrada.subcategoria_uno,
+          //   subcategoria_dos: entrada.subcategoria_dos,
+          //   subcategoria_tres: entrada.subcategoria_tres,
+          //   codigo_categoria_tres: entrada.codigo_categoria_tres,
+          //   cant_maxima_categoria_tres: entrada.cant_maxima_categoria_tres,
+          //   detalle: entrada.detalle,
+          //   cantidad: entrada.cantidad,
+          //   porcentaje_impuesto: entrada.porcentaje_impuesto,
+          //   valor_impuesto: entrada.valor_impuesto,
+          //   costo_unitario: entrada.costo_unitario,
+          //   costo_total: entrada.costo_total
+          // },
         },
       }
     );
@@ -244,12 +235,12 @@ router.post("/entrada/:id", multer.single("archivo"), async (req, res) => {
     result = await db.collection("prexistencia").find({ id: id }).toArray();
 
     if (result.length > 0) {
-      if (entrada) {
+      if (entrada.entradas) {
         result = await db.collection("prexistencia").updateOne(
           { id: id },
           {
-            $push: {
-              datos: entrada,
+            $set: {
+              datos: entrada.entradas,
             },
           }
         );
@@ -257,11 +248,11 @@ router.post("/entrada/:id", multer.single("archivo"), async (req, res) => {
         result = await db.collection("prexistencia").deleteOne({ id: id });
       }
     } else {
-      if (entrada) {
+      if (entrada.entradas) {
         let objInsert = {
           id: id,
           tipo: "entrada",
-          datos: [entrada],
+          datos: [entrada.entradas],
         };
         result = await db.collection("prexistencia").insertOne(objInsert);
       }
@@ -269,8 +260,8 @@ router.post("/entrada/:id", multer.single("archivo"), async (req, res) => {
 
     result = await db.collection("prexistencia").find({}).toArray();
 
-    result = calculateExistencia(result);
     console.log("resultado", result);
+    result = calculateExistencia(result);
 
     result = getFinalExistencia(result);
     //limpiar existencia a 0 para recargarla con los nuevos datos
@@ -340,117 +331,117 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 });
 
 //EDIT ENTRADA AND EDIT PREXISTENCIA
-router.put("/entrada/:id", multer.single("archivo"), async (req, res) => {
-  const { id } = req.params;
-  const entrada = JSON.parse(req.body.data);
-  const db = await connect();
-  let result = "";
+// router.put("/entrada/:id", multer.single("archivo"), async (req, res) => {
+//   const { id } = req.params;
+//   const entrada = JSON.parse(req.body.data);
+//   const db = await connect();
+//   let result = "";
 
-  if (req.file) {
-    entrada.archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
+//   if (req.file) {
+//     entrada.archivo = {
+//       name: req.file.originalname,
+//       size: req.file.size,
+//       path: req.file.path,
+//       type: req.file.mimetype,
+//     };
+//   }
 
-  try {
-    const gasto = await db.collection("gastos").findOne({ _id: ObjectID(id) });
-    const arrayEntradas = gasto.entradas;
-    const entradas = arrayEntradas.map(function (e) {
-      if (e.id === entrada.id) {
-        e.nombre_proveedor = entrada.nombre_proveedor;
-        e.categoria_general = entrada.categoria_general;
-        e.subcategoria_uno = entrada.subcategoria_uno;
-        e.subcategoria_dos = entrada.subcategoria_dos;
-        e.subcategoria_tres = entrada.subcategoria_tres;
-        e.codigo_categoria_tres = entrada.codigo_categoria_tres;
-        e.cant_maxima_categoria_tres = entrada.cant_maxima_categoria_tres;
-        e.detalle = entrada.detalle;
-        e.cantidad = entrada.cantidad;
-        e.porcentaje_impuesto = entrada.porcentaje_impuesto;
-        e.valor_impuesto = entrada.valor_impuesto;
-        e.costo_unitario = entrada.costo_unitario;
-        e.costo_total = entrada.costo_total;
-        e.archivo_adjunto = entrada.archivo;
-      }
+//   try {
+//     const gasto = await db.collection("gastos").findOne({ _id: ObjectID(id) });
+//     const arrayEntradas = gasto.entradas;
+//     const entradas = arrayEntradas.map(function (e) {
+//       if (e.id === entrada.id) {
+//         e.nombre_proveedor = entrada.nombre_proveedor;
+//         e.categoria_general = entrada.categoria_general;
+//         e.subcategoria_uno = entrada.subcategoria_uno;
+//         e.subcategoria_dos = entrada.subcategoria_dos;
+//         e.subcategoria_tres = entrada.subcategoria_tres;
+//         e.codigo_categoria_tres = entrada.codigo_categoria_tres;
+//         e.cant_maxima_categoria_tres = entrada.cant_maxima_categoria_tres;
+//         e.detalle = entrada.detalle;
+//         e.cantidad = entrada.cantidad;
+//         e.porcentaje_impuesto = entrada.porcentaje_impuesto;
+//         e.valor_impuesto = entrada.valor_impuesto;
+//         e.costo_unitario = entrada.costo_unitario;
+//         e.costo_total = entrada.costo_total;
+//         e.archivo_adjunto = entrada.archivo;
+//       }
 
-      return e;
-    });
+//       return e;
+//     });
 
-    result = await db.collection("gastos").findOneAndUpdate(
-      { _id: ObjectID(id) },
-      {
-        $set: {
-          entradas: entradas,
-        },
-      }
-    );
+//     result = await db.collection("gastos").findOneAndUpdate(
+//       { _id: ObjectID(id) },
+//       {
+//         $set: {
+//           entradas: entradas,
+//         },
+//       }
+//     );
 
-    result = await db.collection("prexistencia").find({ id: id }).toArray();
+//     result = await db.collection("prexistencia").find({ id: id }).toArray();
 
-    if (result.length > 0) {
-      if (entrada) {
-        result = await db.collection("prexistencia").findOne({ id: id });
-        if (result) {
-          let datos = result.datos;
-          datos.map(function (e) {
-            if (e.id === entrada.id) {
-              e.nombre_proveedor = entrada.nombre_proveedor;
-              e.categoria_general = entrada.categoria_general;
-              e.subcategoria_uno = entrada.subcategoria_uno;
-              e.subcategoria_dos = entrada.subcategoria_dos;
-              e.subcategoria_tres = entrada.subcategoria_tres;
-              e.codigo_categoria_tres = entrada.codigo_categoria_tres;
-              e.cant_maxima_categoria_tres = entrada.cant_maxima_categoria_tres;
-              e.detalle = entrada.detalle;
-              e.cantidad = entrada.cantidad;
-              e.porcentaje_impuesto = entrada.porcentaje_impuesto;
-              e.valor_impuesto = entrada.valor_impuesto;
-              e.costo_unitario = entrada.costo_unitario;
-              e.costo_total = entrada.costo_total;
-            }
-          });
-          result = await db.collection("prexistencia").updateOne(
-            { id: id },
-            {
-              $set: {
-                datos: datos,
-              },
-            }
-          );
-        }
-      } else {
-        result = await db.collection("prexistencia").deleteOne({ id: id });
-      }
-    }
-    // else {
-    //   if (entrada.length > 0) {
-    //     let objInsert = {
-    //       id: id,
-    //       tipo: "entrada",
-    //       datos: entrada.entradas,
-    //     };
-    //     result = await db.collection("prexistencia").insertOne(objInsert);
-    //   }
-    // }
+//     if (result.length > 0) {
+//       if (entrada) {
+//         result = await db.collection("prexistencia").findOne({ id: id });
+//         if (result) {
+//           let datos = result.datos;
+//           datos.map(function (e) {
+//             if (e.id === entrada.id) {
+//               e.nombre_proveedor = entrada.nombre_proveedor;
+//               e.categoria_general = entrada.categoria_general;
+//               e.subcategoria_uno = entrada.subcategoria_uno;
+//               e.subcategoria_dos = entrada.subcategoria_dos;
+//               e.subcategoria_tres = entrada.subcategoria_tres;
+//               e.codigo_categoria_tres = entrada.codigo_categoria_tres;
+//               e.cant_maxima_categoria_tres = entrada.cant_maxima_categoria_tres;
+//               e.detalle = entrada.detalle;
+//               e.cantidad = entrada.cantidad;
+//               e.porcentaje_impuesto = entrada.porcentaje_impuesto;
+//               e.valor_impuesto = entrada.valor_impuesto;
+//               e.costo_unitario = entrada.costo_unitario;
+//               e.costo_total = entrada.costo_total;
+//             }
+//           });
+//           result = await db.collection("prexistencia").updateOne(
+//             { id: id },
+//             {
+//               $set: {
+//                 datos: datos,
+//               },
+//             }
+//           );
+//         }
+//       } else {
+//         result = await db.collection("prexistencia").deleteOne({ id: id });
+//       }
+//     }
+//     // else {
+//     //   if (entrada.length > 0) {
+//     //     let objInsert = {
+//     //       id: id,
+//     //       tipo: "entrada",
+//     //       datos: entrada.entradas,
+//     //     };
+//     //     result = await db.collection("prexistencia").insertOne(objInsert);
+//     //   }
+//     // }
 
-    result = await db.collection("prexistencia").find({}).toArray();
+//     result = await db.collection("prexistencia").find({}).toArray();
 
-    result = calculateExistencia(result);
+//     result = calculateExistencia(result);
 
-    result = getFinalExistencia(result);
-    //limpiar existencia a 0 para recargarla con los nuevos datos
-    await db.collection("existencia").deleteMany({});
-    //insertar cada objeto como document en collection existencia
-    result = await db.collection("existencia").insertMany(result);
+//     result = getFinalExistencia(result);
+//     //limpiar existencia a 0 para recargarla con los nuevos datos
+//     await db.collection("existencia").deleteMany({});
+//     //insertar cada objeto como document en collection existencia
+//     result = await db.collection("existencia").insertMany(result);
 
-    res.status(201).json(result);
-  } catch (error) {
-    res.status(501).json({ msg: "Ha ocurrido un error", error });
-  }
-});
+//     res.status(201).json(result);
+//   } catch (error) {
+//     res.status(501).json({ msg: "Ha ocurrido un error", error });
+//   }
+// });
 
 //DELETE GASTO
 router.delete("/:id", async (req, res) => {
