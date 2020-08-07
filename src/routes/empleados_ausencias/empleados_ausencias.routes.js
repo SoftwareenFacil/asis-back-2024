@@ -1,4 +1,5 @@
 import { Router, json } from "express";
+import multer from "../../libs/multer";
 
 const router = Router();
 
@@ -31,7 +32,7 @@ router.post("/show/:id", async (req, res) => {
       total_items: countAusencias,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countAusencias / nPerPage + 1),
-      ausencias: result
+      ausencias: result,
     });
   } catch (error) {
     res.status(501).json(error);
@@ -56,10 +57,21 @@ router.post("/show/:id/:mes/:anio", async (req, res) => {
 });
 
 //INSERT AUSENCIA BY EMPLEADO
-router.post("/", async (req, res) => {
+router.post("/", multer.single("archivo"), async (req, res) => {
   const db = await connect();
-  const data = req.body;
+  const data = JSON.parse(req.body.data);
   let r = null;
+
+  if (req.file) {
+    data.archivo_adjunto = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  } else {
+    data.archivo_adjunto = {};
+  }
 
   await db.collection("empleados_ausencias").insertOne(data);
 
