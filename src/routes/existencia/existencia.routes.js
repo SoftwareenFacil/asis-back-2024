@@ -108,7 +108,7 @@ router.post("/consultar", async (req, res) => {
   } else {
 
     if(indicador === 2){
-      cupos_disponibles = result.existencia - cant;
+      cupos_disponibles = result.existencia + cant;
     }
     else{
       cupos_disponibles = result.existencia;
