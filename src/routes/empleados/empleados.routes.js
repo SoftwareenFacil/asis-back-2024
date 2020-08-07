@@ -176,7 +176,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
             "none",
             diasVacaciones
           ),
-          archivo_adjunto: datos.archivo_adjunto
+          archivo_adjunto: data.archivo_adjunto
         },
       }
     );
