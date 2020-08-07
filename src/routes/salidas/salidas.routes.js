@@ -21,14 +21,14 @@ router.get("/", async (req, res) => {
 });
 
 //SELECT ONE
-router.get('/:id', async (req, res) => {
+router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
 
-  const result = await db.collection("salidas").findOne({_id: ObjectID(id)});
+  const result = await db.collection("salidas").findOne({ _id: ObjectID(id) });
 
   res.json(result);
-})
+});
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
@@ -127,7 +127,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       path: req.file.path,
       type: req.file.mimetype,
     };
-  }else{
+  } else {
     newSalida.archivo = {};
   }
 
@@ -228,7 +228,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
           costo_total: datos.costo_total,
           precio_venta_unitario: datos.precio_venta_unitario,
           ingreso_total: datos.ingreso_total,
-          archivo_adjunto: datos.archivo
+          archivo_adjunto: datos.archivo,
         },
       },
       { returnOriginal: false }
@@ -238,34 +238,35 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
       { id: id },
       {
         $set: {
-          datos: {
-            fecha: result.value.fecha,
-            tipo_salida: result.value.tipo_salida,
-            nro_documento: result.value.nro_documento,
-            usuario: result.value.usuario,
-            categoria_general: result.value.categoria_general,
-            subcategoria_uno: result.value.subcategoria_uno,
-            subcategoria_dos: result.value.subcategoria_dos,
-            subcategoria_tres: result.value.subcategoria_tres,
-            codigo_categoria_tres: result.value.codigo_categoria_tres,
-            descripcion: result.value.descripcion,
-            motivo_salida: result.value.motivo_salida,
-            cantidad: result.value.cantidad,
-            costo_unitario: result.value.costo_unitario,
-            costo_total: result.value.costo_total,
-            precio_venta_unitario: result.value.precio_venta_unitario,
-            ingreso_total: result.value.ingreso_total,
-          },
+          datos: [
+            {
+              fecha: result.value.fecha,
+              tipo_salida: result.value.tipo_salida,
+              nro_documento: result.value.nro_documento,
+              usuario: result.value.usuario,
+              categoria_general: result.value.categoria_general,
+              subcategoria_uno: result.value.subcategoria_uno,
+              subcategoria_dos: result.value.subcategoria_dos,
+              subcategoria_tres: result.value.subcategoria_tres,
+              codigo_categoria_tres: result.value.codigo_categoria_tres,
+              descripcion: result.value.descripcion,
+              motivo_salida: result.value.motivo_salida,
+              cantidad: result.value.cantidad,
+              costo_unitario: result.value.costo_unitario,
+              costo_total: result.value.costo_total,
+              precio_venta_unitario: result.value.precio_venta_unitario,
+              ingreso_total: result.value.ingreso_total,
+            },
+          ],
         },
       }
     );
 
-    
     result = await db.collection("prexistencia").find({}).toArray();
-    
-    console.log('resultado',result);
+
+    console.log("resultado", result);
     result = calculateExistencia(result);
-    
+
     result = getFinalExistencia(result);
 
     //limpiar existencia a 0 para recargarla con los nuevos datos
@@ -275,7 +276,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(400).json({msg: "ha ocurrido un error ", error});
+    res.status(400).json({ msg: "ha ocurrido un error ", error });
   }
 });
 
@@ -304,7 +305,7 @@ router.delete("/:id", async (req, res) => {
 
     res.status(201).json(result);
   } catch (error) {
-    res.status(400).json({msg: "ha ocurrido un error ", error});
+    res.status(400).json({ msg: "ha ocurrido un error ", error });
   }
 });
 
