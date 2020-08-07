@@ -104,9 +104,9 @@ router.post("/buscar", async (req, res) => {
 });
 
 //INSERT SALIDA
-router.post("/", async (req, res) => {
+router.post("/", multer.single("archivo"), async (req, res) => {
   const db = await connect();
-  const datos = req.body;
+  const datos = JSON.parse(req.body.data);
   let newSalida = {};
   const items = await db.collection("salidas").find({}).toArray();
   let result = "";
@@ -118,6 +118,18 @@ router.post("/", async (req, res) => {
   } else {
     newSalida.codigo = `ASIS-GTS-SAL-${YEAR}-00001`;
   }
+
+  if (req.file) {
+    newSalida.archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }else{
+    newSalida.archivo = {};
+  }
+
   newSalida.fecha = datos.fecha;
   newSalida.tipo_salida = datos.tipo_salida;
   newSalida.nro_documento = datos.nro_documento;
@@ -180,10 +192,19 @@ router.post("/", async (req, res) => {
 });
 
 //EDIT
-router.put("/:id", async (req, res) => {
+router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const datos = req.body;
+  const datos = JSON.parse(req.body.data);
+
+  if (req.file) {
+    datos.archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
 
   try {
     let result = await db.collection("salidas").findOneAndUpdate(
@@ -206,6 +227,7 @@ router.put("/:id", async (req, res) => {
           costo_total: datos.costo_total,
           precio_venta_unitario: datos.precio_venta_unitario,
           ingreso_total: datos.ingreso_total,
+          archivo_adjunto: datos.archivo
         },
       },
       { returnOriginal: false }
