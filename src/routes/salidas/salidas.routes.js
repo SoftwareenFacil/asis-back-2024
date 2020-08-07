@@ -3,6 +3,7 @@ import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import calculateExistencia from "../../functions/calculateExistencia";
 import getFinalExistencia from "../../functions/getFinalToExistencia";
+import multer from "../../libs/multer";
 
 const router = Router();
 
