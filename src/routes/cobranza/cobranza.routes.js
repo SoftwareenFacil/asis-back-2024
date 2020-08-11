@@ -8,6 +8,24 @@ const router = Router();
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 
+
+//SELECT
+router.get("/", async (req, res) => {
+  const db = await connect();
+  const result = await db.collection("cobranza").find({}).toArray();
+  res.json(result);
+});
+
+//SELECT ONE
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+
+  const result = await db.collection('cobranza').findOne({_id: ObjectID(id)});
+
+  res.json(result);
+})
+
 //TEST CREACION DE PDF PARA ENVIO POR CORREO
 router.get("/pdf", async (req, res) => {
   var fs = require("fs");
@@ -40,12 +58,6 @@ router.get("/pdf", async (req, res) => {
   }
 });
 
-//SELECT
-router.get("/", async (req, res) => {
-  const db = await connect();
-  const result = await db.collection("cobranza").find({}).toArray();
-  res.json(result);
-});
 
 //SELECT WITH PAGINATION
 router.post('/pagination', async (req, res) =>{

@@ -23,6 +23,19 @@ router.get("/", async (req, res) => {
   });
 });
 
+//SELECT ONE 
+router.get('/:id', async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+  const result = await db.collection('facturaciones').findOne({_id: ObjectID(id)});
+  const empresa = await db.collection('empresa').findOne();
+
+  res.json({
+    facturaciones: result,
+    empresa: empresa
+  });
+})
+
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
   const db = await connect();
