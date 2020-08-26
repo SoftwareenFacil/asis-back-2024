@@ -1,7 +1,13 @@
 import { Router } from "express";
 import { getDate } from "../../functions/getDateNow";
 import multer from "../../libs/multer";
-// import { calculate } from "../../functions/NewCode";
+import moment from "moment";
+var fs = require("fs");
+var path = require("path");
+import pdfAversionRiesgo from "../../functions/createPdf/aversionRiesgo/createPdf";
+// import pdfPsicosensotecnico from "../../functions/createPdf/psicosensotecnico/createpdf";
+// import { generateQR } from "../../functions/createPdf/constant";
+var path = require("path");
 // import { getYear } from "../../functions/getYearActual";
 // import { CalculateFechaVenc } from "../../functions/getFechaVenc";
 
@@ -10,6 +16,7 @@ const router = Router();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
+import { conclusion } from "../../functions/createPdf/aversionRiesgo/constant";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -19,13 +26,104 @@ router.get("/", async (req, res) => {
 });
 
 //SELECT ONE 
-router.post('/selectone/:id', async (req, res) =>{
+router.post('/selectone/:id', async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  
-  const result = await db.collection("evaluaciones").findOne({_id: ObjectID(id)});
+
+  const result = await db.collection("evaluaciones").findOne({ _id: ObjectID(id) });
 
   res.json(result);
+})
+
+//GENERAR PDF DE LA EVALUACION
+router.post('/evaluacionmanual', async (req, res) => {
+  const db = await connect();
+
+  const data = req.body;
+  const I = { razonamiento_abstracto: data.razonamiento_abstracto, percepcion_concentracion: data.percepcion_concentracion, comprension_instrucciones: data.comprension_instrucciones };
+
+  const AN = { acato_autoridad: data.acato_autoridad, relacion_grupo_pares: data.relacion_grupo_pares, comportamiento_social: data.comportamiento_social };
+
+  const EE = { locus_control_impulsividad: data.locus_control_impulsividad, manejo_frustracion: data.manejo_frustracion, empatia: data.empatia, grado_ansiedad: data.grado_ansiedad };
+
+  const APR = { actitud_prevencion_accidentes: data.actitud_prevencion_accidentes, confianza_acciones_realizadas: data.confianza_acciones_realizadas, capacidad_modificar_ambiente_seguridad: data.capacidad_modificar_ambiente_seguridad };
+
+  const MC = { orientacion_tarea: data.orientacion_tarea, energia_vital: data.energia_vital };
+
+  const fortalezas = data.fortalezas;
+  const areas_mejorar = data.area_mejora;
+  const conclusionRiesgos = data.conclusion;
+  const rutClienteSecundario = data.rut_cs;
+  const rutClientePrincipal = data.rut_cp;
+  const maquinariasConducir = data.maquinarias_conducir;
+  const nombre_servicio = data.nombre_servicio;
+  const nombrePdf = `RESULTADO_${data.codigo}_AVERSION_RIESGO.pdf`;
+
+  try {
+    // generateQR(`${path.resolve("./")}/uploads/qr_sdsdsd.png`, 'sdsdsd');
+
+    const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
+    const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
+
+    if (cp && cs) {
+      const informacionPersonal = {
+        empresa: cp.razon_social,
+        nombre: cs.razon_social,
+        edad: cs.edad_gi,
+        rut: cs.rut,
+        educacion: cs.nivel_educacional,
+        cargo: cs.cargo,
+        ciudad: cs.localidad,
+        maquinarias_conducir: maquinariasConducir,
+        fecha_evaluacion: conclusionRiesgos === 1 || conclusionRiesgos === 2 ? moment().format('DD-MM-YYYY') : '',
+      };
+
+
+      switch (nombre_servicio) {
+        case 'Psicosensotecnico Riguroso':
+
+          break;
+        case 'Aversión al Riesgo':
+          let doc = pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf);
+          // let archivo = fs.statSync(doc);
+          // console.log([archivo]);
+
+          break;
+      }
+
+
+
+      // fs.readFile(path.resolve("./") + "/uploads/" + nombrePdf, 'utf-8', (err, data) => {
+      //   if(err) {
+      //     console.log('error: ', err);
+      //   } else {
+      //     console.log(data);
+      //   }
+      // });
+
+      // console.log(fs.readFile(path.resolve("./") + "/uploads/" + nombrePdf));
+
+      const result = await db.collection('evaluaciones').updateOne({codigo: data.codigo}, {
+        $set:{
+          url_file_adjunto_EE: {
+            name: nombrePdf,
+            size: 0,
+            path: "uploads/"+nombrePdf,
+            type: "application/pdf"
+          }
+        }
+      });
+
+      res.status(201).json({ msg: 'pdf creado', result });
+    }
+    else {
+      res.status(400).json({ msg: 'Cliente secundario no encontrado' });
+    }
+
+  } catch (error) {
+    res.json({ msg: 'error al crear el pdf' })
+    console.log('error ', error);
+  }
 })
 
 //SELECT WITH PAGINATION

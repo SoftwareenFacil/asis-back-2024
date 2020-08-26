@@ -72,11 +72,11 @@ router.get("/", /*#__PURE__*/function () {
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
-}()); //INSERTAR DATOS DE FACTURACION
+}()); //SELECT ONE 
 
-router.post("/:id", _multer["default"].single('archivo'), /*#__PURE__*/function () {
+router.get('/:id', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var id, db, datos, archivo, obs, result;
+    var id, db, result, empresa;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -87,6 +87,274 @@ router.post("/:id", _multer["default"].single('archivo'), /*#__PURE__*/function 
 
           case 3:
             db = _context2.sent;
+            _context2.next = 6;
+            return db.collection('facturaciones').findOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            });
+
+          case 6:
+            result = _context2.sent;
+            _context2.next = 9;
+            return db.collection('empresa').findOne();
+
+          case 9:
+            empresa = _context2.sent;
+            res.json({
+              facturaciones: result,
+              empresa: empresa
+            });
+
+          case 11:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+
+  return function (_x3, _x4) {
+    return _ref2.apply(this, arguments);
+  };
+}()); //SELECT WITH PAGINATION
+
+router.post("/pagination", /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
+    var db, _req$body, pageNumber, nPerPage, skip_page, countFac, empresa, result;
+
+    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.next = 2;
+            return (0, _database.connect)();
+
+          case 2:
+            db = _context3.sent;
+            _req$body = req.body, pageNumber = _req$body.pageNumber, nPerPage = _req$body.nPerPage;
+            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+            _context3.prev = 5;
+            _context3.next = 8;
+            return db.collection("facturaciones").find().count();
+
+          case 8:
+            countFac = _context3.sent;
+            _context3.next = 11;
+            return db.collection("empresa").findOne({});
+
+          case 11:
+            empresa = _context3.sent;
+            _context3.next = 14;
+            return db.collection("facturaciones").find().skip(skip_page).limit(nPerPage).toArray();
+
+          case 14:
+            result = _context3.sent;
+            res.json({
+              total_items: countFac,
+              pagina_actual: pageNumber,
+              nro_paginas: parseInt(countFac / nPerPage + 1),
+              empresa: empresa,
+              facturaciones: result
+            });
+            _context3.next = 21;
+            break;
+
+          case 18:
+            _context3.prev = 18;
+            _context3.t0 = _context3["catch"](5);
+            res.status(501).json(_context3.t0);
+
+          case 21:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3, null, [[5, 18]]);
+  }));
+
+  return function (_x5, _x6) {
+    return _ref3.apply(this, arguments);
+  };
+}()); //BUSCAR POR RUT O NOMBRE
+
+router.post("/buscar", /*#__PURE__*/function () {
+  var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
+    var _req$body2, identificador, filtro, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countFac;
+
+    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
+            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+            _context4.next = 4;
+            return (0, _database.connect)();
+
+          case 4:
+            db = _context4.sent;
+
+            if (identificador === 1 && filtro.includes("k")) {
+              rutFiltrado = filtro;
+              rutFiltrado.replace("k", "K");
+            } else {
+              rutFiltrado = filtro;
+            }
+
+            rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+            _context4.prev = 7;
+
+            if (!(identificador === 1)) {
+              _context4.next = 17;
+              break;
+            }
+
+            _context4.next = 11;
+            return db.collection("facturaciones").find({
+              rut_cp: rexExpresionFiltro
+            }).count();
+
+          case 11:
+            countFac = _context4.sent;
+            _context4.next = 14;
+            return db.collection("facturaciones").find({
+              rut_cp: rexExpresionFiltro
+            }).skip(skip_page).limit(nPerPage).toArray();
+
+          case 14:
+            result = _context4.sent;
+            _context4.next = 23;
+            break;
+
+          case 17:
+            _context4.next = 19;
+            return db.collection("facturaciones").find({
+              razon_social_cp: rexExpresionFiltro
+            }).count();
+
+          case 19:
+            countFac = _context4.sent;
+            _context4.next = 22;
+            return db.collection("facturaciones").find({
+              razon_social_cp: rexExpresionFiltro
+            }).skip(skip_page).limit(nPerPage).toArray();
+
+          case 22:
+            result = _context4.sent;
+
+          case 23:
+            res.json({
+              total_items: countFac,
+              pagina_actual: pageNumber,
+              nro_paginas: parseInt(countFac / nPerPage + 1),
+              facturaciones: result
+            });
+            _context4.next = 29;
+            break;
+
+          case 26:
+            _context4.prev = 26;
+            _context4.t0 = _context4["catch"](7);
+            res.status(501).json({
+              mgs: "ha ocurrido un error ".concat(_context4.t0)
+            });
+
+          case 29:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, _callee4, null, [[7, 26]]);
+  }));
+
+  return function (_x7, _x8) {
+    return _ref4.apply(this, arguments);
+  };
+}()); //EDIT
+
+router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+  var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
+    var id, db, factura, result;
+    return regeneratorRuntime.wrap(function _callee5$(_context5) {
+      while (1) {
+        switch (_context5.prev = _context5.next) {
+          case 0:
+            id = req.params.id;
+            _context5.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context5.sent;
+            factura = JSON.parse(req.body.data);
+
+            if (req.file) {
+              factura.url_file_adjunto = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            }
+
+            _context5.prev = 6;
+            _context5.next = 9;
+            return db.collection("facturaciones").updateOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            }, {
+              $set: {
+                nro_factura: factura.nro_factura,
+                archivo_factura: archivo,
+                monto_neto: factura.monto_neto,
+                porcentaje_impuesto: factura.porcentaje_impuesto,
+                valor_impuesto: factura.valor_impuesto,
+                sub_total: factura.sub_total,
+                exento: factura.exento,
+                descuento: factura.descuento,
+                total: factura.total
+              }
+            });
+
+          case 9:
+            result = _context5.sent;
+            res.status(201).json({
+              message: "Factura modificada correctamente",
+              result: result
+            });
+            _context5.next = 16;
+            break;
+
+          case 13:
+            _context5.prev = 13;
+            _context5.t0 = _context5["catch"](6);
+            res.status(500).json({
+              message: "ha ocurrido un error",
+              error: _context5.t0
+            });
+
+          case 16:
+          case "end":
+            return _context5.stop();
+        }
+      }
+    }, _callee5, null, [[6, 13]]);
+  }));
+
+  return function (_x9, _x10) {
+    return _ref5.apply(this, arguments);
+  };
+}()); //INSERTAR DATOS DE FACTURACION
+
+router.post("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+  var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
+    var id, db, datos, archivo, obs, result;
+    return regeneratorRuntime.wrap(function _callee6$(_context6) {
+      while (1) {
+        switch (_context6.prev = _context6.next) {
+          case 0:
+            id = req.params.id;
+            _context6.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context6.sent;
             datos = JSON.parse(req.body.data);
             archivo = {};
             obs = {};
@@ -104,7 +372,7 @@ router.post("/:id", _multer["default"].single('archivo'), /*#__PURE__*/function 
               };
             }
 
-            _context2.next = 14;
+            _context6.next = 14;
             return db.collection("facturaciones").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -127,34 +395,34 @@ router.post("/:id", _multer["default"].single('archivo'), /*#__PURE__*/function 
             });
 
           case 14:
-            result = _context2.sent;
+            result = _context6.sent;
             res.json(result);
 
           case 16:
           case "end":
-            return _context2.stop();
+            return _context6.stop();
         }
       }
-    }, _callee2);
+    }, _callee6);
   }));
 
-  return function (_x3, _x4) {
-    return _ref2.apply(this, arguments);
+  return function (_x11, _x12) {
+    return _ref6.apply(this, arguments);
   };
 }()); //INSERTAR FACTURA MASIVO
 
-router.post("/", _multer["default"].single('archivo'), /*#__PURE__*/function () {
-  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
+router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(req, res) {
     var db, new_array, datos, archivo, obs, result;
-    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+    return regeneratorRuntime.wrap(function _callee7$(_context7) {
       while (1) {
-        switch (_context3.prev = _context3.next) {
+        switch (_context7.prev = _context7.next) {
           case 0:
-            _context3.next = 2;
+            _context7.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context3.sent;
+            db = _context7.sent;
             new_array = [];
             datos = JSON.parse(req.body.data);
             archivo = {};
@@ -176,7 +444,7 @@ router.post("/", _multer["default"].single('archivo'), /*#__PURE__*/function () 
               };
             }
 
-            _context3.next = 15;
+            _context7.next = 15;
             return db.collection("facturaciones").updateMany({
               _id: {
                 $in: new_array
@@ -201,35 +469,35 @@ router.post("/", _multer["default"].single('archivo'), /*#__PURE__*/function () 
             });
 
           case 15:
-            result = _context3.sent;
+            result = _context7.sent;
             res.json(result);
 
           case 17:
           case "end":
-            return _context3.stop();
+            return _context7.stop();
         }
       }
-    }, _callee3);
+    }, _callee7);
   }));
 
-  return function (_x5, _x6) {
-    return _ref3.apply(this, arguments);
+  return function (_x13, _x14) {
+    return _ref7.apply(this, arguments);
   };
 }()); //SUBIR OC
 
-router.post("/subiroc/:id", _multer["default"].single('archivo'), /*#__PURE__*/function () {
-  var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
+router.post("/subiroc/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(req, res) {
     var id, db, datos, archivo, obs, result;
-    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+    return regeneratorRuntime.wrap(function _callee8$(_context8) {
       while (1) {
-        switch (_context4.prev = _context4.next) {
+        switch (_context8.prev = _context8.next) {
           case 0:
             id = req.params.id;
-            _context4.next = 3;
+            _context8.next = 3;
             return (0, _database.connect)();
 
           case 3:
-            db = _context4.sent;
+            db = _context8.sent;
             datos = JSON.parse(req.body.data);
             archivo = {};
             obs = {};
@@ -246,7 +514,7 @@ router.post("/subiroc/:id", _multer["default"].single('archivo'), /*#__PURE__*/f
               };
             }
 
-            _context4.next = 13;
+            _context8.next = 13;
             return db.collection("facturaciones").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -264,34 +532,34 @@ router.post("/subiroc/:id", _multer["default"].single('archivo'), /*#__PURE__*/f
             });
 
           case 13:
-            result = _context4.sent;
+            result = _context8.sent;
             res.json(result);
 
           case 15:
           case "end":
-            return _context4.stop();
+            return _context8.stop();
         }
       }
-    }, _callee4);
+    }, _callee8);
   }));
 
-  return function (_x7, _x8) {
-    return _ref4.apply(this, arguments);
+  return function (_x15, _x16) {
+    return _ref8.apply(this, arguments);
   };
 }()); //SUBIR OC MASIVO
 
-router.post("/oc/subiroc/many", _multer["default"].single('archivo'), /*#__PURE__*/function () {
-  var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
+router.post("/oc/subiroc/many", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+  var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(req, res) {
     var db, new_array, datos, archivo, obs, result;
-    return regeneratorRuntime.wrap(function _callee5$(_context5) {
+    return regeneratorRuntime.wrap(function _callee9$(_context9) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context9.prev = _context9.next) {
           case 0:
-            _context5.next = 2;
+            _context9.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context5.sent;
+            db = _context9.sent;
             new_array = [];
             datos = JSON.parse(req.body.data);
             archivo = {};
@@ -312,7 +580,7 @@ router.post("/oc/subiroc/many", _multer["default"].single('archivo'), /*#__PURE_
               };
             }
 
-            _context5.next = 14;
+            _context9.next = 14;
             return db.collection("facturaciones").updateMany({
               _id: {
                 $in: new_array
@@ -332,42 +600,42 @@ router.post("/oc/subiroc/many", _multer["default"].single('archivo'), /*#__PURE_
             });
 
           case 14:
-            result = _context5.sent;
+            result = _context9.sent;
             res.json(result);
 
           case 16:
           case "end":
-            return _context5.stop();
+            return _context9.stop();
         }
       }
-    }, _callee5);
+    }, _callee9);
   }));
 
-  return function (_x9, _x10) {
-    return _ref5.apply(this, arguments);
+  return function (_x17, _x18) {
+    return _ref9.apply(this, arguments);
   };
 }()); //CONFIRMAR OC
 
 router.post("/confirmaroc/:id", /*#__PURE__*/function () {
-  var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
+  var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(req, res) {
     var id, db, obs, estado, result;
-    return regeneratorRuntime.wrap(function _callee6$(_context6) {
+    return regeneratorRuntime.wrap(function _callee10$(_context10) {
       while (1) {
-        switch (_context6.prev = _context6.next) {
+        switch (_context10.prev = _context10.next) {
           case 0:
             id = req.params.id;
-            _context6.next = 3;
+            _context10.next = 3;
             return (0, _database.connect)();
 
           case 3:
-            db = _context6.sent;
+            db = _context10.sent;
             obs = {};
             obs.obs = req.body.observaciones;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
             obs.estado = req.body.estado_archivo;
             estado = "";
             req.body.estado_archivo == "Aprobado" ? estado = "En Facturacion" : estado = "Ingresado";
-            _context6.next = 12;
+            _context10.next = 12;
             return db.collection("facturaciones").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -381,34 +649,34 @@ router.post("/confirmaroc/:id", /*#__PURE__*/function () {
             });
 
           case 12:
-            result = _context6.sent;
+            result = _context10.sent;
             res.json(result);
 
           case 14:
           case "end":
-            return _context6.stop();
+            return _context10.stop();
         }
       }
-    }, _callee6);
+    }, _callee10);
   }));
 
-  return function (_x11, _x12) {
-    return _ref6.apply(this, arguments);
+  return function (_x19, _x20) {
+    return _ref10.apply(this, arguments);
   };
 }()); //CONFIRMAR OC MASIVO
 
 router.post("/oc/confirmaroc/many", /*#__PURE__*/function () {
-  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(req, res) {
+  var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(req, res) {
     var db, new_array, obs, estado, result;
-    return regeneratorRuntime.wrap(function _callee7$(_context7) {
+    return regeneratorRuntime.wrap(function _callee11$(_context11) {
       while (1) {
-        switch (_context7.prev = _context7.next) {
+        switch (_context11.prev = _context11.next) {
           case 0:
-            _context7.next = 2;
+            _context11.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context7.sent;
+            db = _context11.sent;
             new_array = [];
             obs = {};
             obs.obs = req.body[0].observaciones;
@@ -419,7 +687,7 @@ router.post("/oc/confirmaroc/many", /*#__PURE__*/function () {
             req.body[1].ids.forEach(function (element) {
               new_array.push((0, _mongodb.ObjectID)(element));
             });
-            _context7.next = 13;
+            _context11.next = 13;
             return db.collection("facturaciones").updateMany({
               _id: {
                 $in: new_array
@@ -435,44 +703,44 @@ router.post("/oc/confirmaroc/many", /*#__PURE__*/function () {
             });
 
           case 13:
-            result = _context7.sent;
+            result = _context11.sent;
             res.json(result);
 
           case 15:
           case "end":
-            return _context7.stop();
+            return _context11.stop();
         }
       }
-    }, _callee7);
+    }, _callee11);
   }));
 
-  return function (_x13, _x14) {
-    return _ref7.apply(this, arguments);
+  return function (_x21, _x22) {
+    return _ref11.apply(this, arguments);
   };
 }()); // VALIDAR FACTURA
 
 router.post("/validar/:id", /*#__PURE__*/function () {
-  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(req, res) {
-    var id, _req$body, estado_archivo, observaciones, nro_nota_credito, fecha_nota_credito, monto_nota_credito, factura_anular, db, obs, estado, result, _db$collection$insert, codAsis, gi, servicio, _db$collection$insert2;
+  var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(req, res) {
+    var id, _req$body3, estado_archivo, observaciones, nro_nota_credito, fecha_nota_credito, monto_nota_credito, factura_anular, db, obs, estado, result, _db$collection$insert, codAsis, gi, servicio, _db$collection$insert2;
 
-    return regeneratorRuntime.wrap(function _callee8$(_context8) {
+    return regeneratorRuntime.wrap(function _callee12$(_context12) {
       while (1) {
-        switch (_context8.prev = _context8.next) {
+        switch (_context12.prev = _context12.next) {
           case 0:
             id = req.params.id;
-            _req$body = req.body, estado_archivo = _req$body.estado_archivo, observaciones = _req$body.observaciones, nro_nota_credito = _req$body.nro_nota_credito, fecha_nota_credito = _req$body.fecha_nota_credito, monto_nota_credito = _req$body.monto_nota_credito, factura_anular = _req$body.factura_anular;
-            _context8.next = 4;
+            _req$body3 = req.body, estado_archivo = _req$body3.estado_archivo, observaciones = _req$body3.observaciones, nro_nota_credito = _req$body3.nro_nota_credito, fecha_nota_credito = _req$body3.fecha_nota_credito, monto_nota_credito = _req$body3.monto_nota_credito, factura_anular = _req$body3.factura_anular;
+            _context12.next = 4;
             return (0, _database.connect)();
 
           case 4:
-            db = _context8.sent;
+            db = _context12.sent;
             obs = {};
             obs.obs = observaciones;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
             obs.estado = estado_archivo;
             estado = "";
             estado_archivo == "Rechazado" ? estado = "En Facturacion" : estado = "Facturado";
-            _context8.next = 13;
+            _context12.next = 13;
             return db.collection("facturaciones").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -490,31 +758,31 @@ router.post("/validar/:id", /*#__PURE__*/function () {
             });
 
           case 13:
-            result = _context8.sent;
+            result = _context12.sent;
 
             if (!(estado_archivo == "Aprobado")) {
-              _context8.next = 28;
+              _context12.next = 28;
               break;
             }
 
             //insertar pago en modulo pago
             codAsis = result.value.codigo;
-            _context8.next = 18;
+            _context12.next = 18;
             return db.collection("gi").findOne({
               rut: result.value.rut_cp,
               razon_social: result.value.razon_social_cp
             });
 
           case 18:
-            gi = _context8.sent;
-            _context8.next = 21;
+            gi = _context12.sent;
+            _context12.next = 21;
             return db.collection("solicitudes").findOne({
               codigo: codAsis.replace("FAC", "SOL")
             });
 
           case 21:
-            servicio = _context8.sent;
-            _context8.next = 24;
+            servicio = _context12.sent;
+            _context12.next = 24;
             return db.collection("pagos").insertOne((_db$collection$insert = {
               codigo: codAsis.replace("FAC", "PAG"),
               nombre_servicio: result.value.nombre_servicio,
@@ -536,11 +804,11 @@ router.post("/validar/:id", /*#__PURE__*/function () {
 
           case 24:
             if (!((0, _changeToMiniscula.getMinusculas)(gi.credito) == "no")) {
-              _context8.next = 28;
+              _context12.next = 28;
               break;
             }
 
-            _context8.next = 27;
+            _context12.next = 27;
             return db.collection("cobranza").insertOne((_db$collection$insert2 = {
               codigo: codAsis.replace("FAC", "COB"),
               nombre_servicio: result.value.nombre_servicio,
@@ -559,36 +827,36 @@ router.post("/validar/:id", /*#__PURE__*/function () {
             }, _defineProperty(_db$collection$insert2, "valor_servicio", Number(servicio.precio)), _defineProperty(_db$collection$insert2, "valor_cancelado", 0), _defineProperty(_db$collection$insert2, "valor_deuda", Number(servicio.precio)), _defineProperty(_db$collection$insert2, "cartas_cobranza", []), _db$collection$insert2));
 
           case 27:
-            result = _context8.sent;
+            result = _context12.sent;
 
           case 28:
             res.json(result);
 
           case 29:
           case "end":
-            return _context8.stop();
+            return _context12.stop();
         }
       }
-    }, _callee8);
+    }, _callee12);
   }));
 
-  return function (_x15, _x16) {
-    return _ref8.apply(this, arguments);
+  return function (_x23, _x24) {
+    return _ref12.apply(this, arguments);
   };
 }()); //VALIDAR FACTURA MASIVO
 
 router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
-  var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(req, res) {
+  var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(req, res) {
     var db, obs, estado, estadoArchivo, result, new_array, resp, codigoAsis, arrayIDsCP, serviciosArray, arrayFacturaciones, GIs, gi, Servicios, servicio, resultPagos, resultCobranza;
-    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+    return regeneratorRuntime.wrap(function _callee13$(_context13) {
       while (1) {
-        switch (_context9.prev = _context9.next) {
+        switch (_context13.prev = _context13.next) {
           case 0:
-            _context9.next = 2;
+            _context13.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context9.sent;
+            db = _context13.sent;
             obs = {};
             estado = "";
             estadoArchivo = "";
@@ -601,7 +869,7 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
             req.body[1].ids.forEach(function (element) {
               new_array.push((0, _mongodb.ObjectID)(element));
             });
-            _context9.next = 15;
+            _context13.next = 15;
             return db.collection("facturaciones").updateMany({
               _id: {
                 $in: new_array
@@ -621,10 +889,10 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
             });
 
           case 15:
-            result = _context9.sent;
+            result = _context13.sent;
 
             if (!(req.body[0].estado_archivo == "Aprobado")) {
-              _context9.next = 51;
+              _context13.next = 51;
               break;
             }
 
@@ -637,7 +905,7 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
             gi = {};
             Servicios = [];
             servicio = {};
-            _context9.next = 28;
+            _context13.next = 28;
             return db.collection("facturaciones").find({
               _id: {
                 $in: new_array
@@ -645,14 +913,14 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
             }).toArray();
 
           case 28:
-            resp = _context9.sent;
+            resp = _context13.sent;
             resp.forEach(function (element) {
               arrayIDsCP.push(element.rut_cp.toString());
             });
             resp.forEach(function (element) {
               serviciosArray.push(element.codigo.replace("FAC", "SOL"));
             });
-            _context9.next = 33;
+            _context13.next = 33;
             return db.collection("gi").find({
               rut: {
                 $in: arrayIDsCP
@@ -660,8 +928,8 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
             }).toArray();
 
           case 33:
-            GIs = _context9.sent;
-            _context9.next = 36;
+            GIs = _context13.sent;
+            _context13.next = 36;
             return db.collection("solicitudes").find({
               codigo: {
                 $in: serviciosArray
@@ -669,7 +937,7 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
             }).toArray();
 
           case 36:
-            Servicios = _context9.sent;
+            Servicios = _context13.sent;
             resp.forEach(function (element) {
               var _arrayFacturaciones$p;
 
@@ -704,11 +972,11 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
                 dias_credito: gi.dias_credito
               }, _defineProperty(_arrayFacturaciones$p, "valor_servicio", Number(servicio.precio)), _defineProperty(_arrayFacturaciones$p, "valor_cancelado", 0), _defineProperty(_arrayFacturaciones$p, "fecha_pago", (0, _calculateFechaPago.getFechaPago)(element.fecha_facturacion, Number(gi.dias_credito))), _defineProperty(_arrayFacturaciones$p, "pagos", []), _arrayFacturaciones$p));
             });
-            _context9.next = 40;
+            _context13.next = 40;
             return db.collection("pagos").insertMany(arrayFacturaciones);
 
           case 40:
-            resultPagos = _context9.sent;
+            resultPagos = _context13.sent;
             //si no tiene dias credito , pasa directo a cobranza
             arrayFacturaciones = [];
             resp.forEach(function (element) {
@@ -745,17 +1013,17 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
             });
 
             if (!(arrayFacturaciones.length > 0)) {
-              _context9.next = 50;
+              _context13.next = 50;
               break;
             }
 
-            _context9.next = 46;
+            _context13.next = 46;
             return db.collection("cobranza").insertMany(arrayFacturaciones);
 
           case 46:
-            resultCobranza = _context9.sent;
+            resultCobranza = _context13.sent;
             res.json(resultCobranza);
-            _context9.next = 51;
+            _context13.next = 51;
             break;
 
           case 50:
@@ -763,14 +1031,14 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
 
           case 51:
           case "end":
-            return _context9.stop();
+            return _context13.stop();
         }
       }
-    }, _callee9);
+    }, _callee13);
   }));
 
-  return function (_x17, _x18) {
-    return _ref9.apply(this, arguments);
+  return function (_x25, _x26) {
+    return _ref13.apply(this, arguments);
   };
 }());
 var _default = router;

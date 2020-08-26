@@ -178,7 +178,7 @@ router.get("/empresas", /*#__PURE__*/function () {
 
 router.post("/buscar", /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
-    var _req$body2, identificador, filtro, pageNumber, nPerPage, skip_page, db, rexExpresionFiltro, result, countGIs;
+    var _req$body2, identificador, filtro, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countGIs;
 
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
@@ -191,47 +191,55 @@ router.post("/buscar", /*#__PURE__*/function () {
 
           case 4:
             db = _context4.sent;
-            rexExpresionFiltro = new RegExp(filtro, "i");
+
+            if (identificador === 1 && filtro.includes("k")) {
+              rutFiltrado = filtro;
+              rutFiltrado.replace("k", "K");
+            } else {
+              rutFiltrado = filtro;
+            }
+
+            rexExpresionFiltro = new RegExp(rutFiltrado, "i");
 
             if (!(identificador === 1)) {
-              _context4.next = 15;
+              _context4.next = 16;
               break;
             }
 
-            _context4.next = 9;
+            _context4.next = 10;
             return db.collection("gi").find({
               rut: rexExpresionFiltro
             }).count();
 
-          case 9:
+          case 10:
             countGIs = _context4.sent;
-            _context4.next = 12;
+            _context4.next = 13;
             return db.collection("gi").find({
               rut: rexExpresionFiltro
             }).skip(skip_page).limit(nPerPage).toArray();
 
-          case 12:
+          case 13:
             result = _context4.sent;
-            _context4.next = 21;
+            _context4.next = 22;
             break;
 
-          case 15:
-            _context4.next = 17;
+          case 16:
+            _context4.next = 18;
             return db.collection("gi").find({
               razon_social: rexExpresionFiltro
             }).count();
 
-          case 17:
+          case 18:
             countGIs = _context4.sent;
-            _context4.next = 20;
+            _context4.next = 21;
             return db.collection("gi").find({
               razon_social: rexExpresionFiltro
             }).skip(skip_page).limit(nPerPage).toArray();
 
-          case 20:
+          case 21:
             result = _context4.sent;
 
-          case 21:
+          case 22:
             res.json({
               total_items: countGIs,
               pagina_actual: pageNumber,
@@ -239,7 +247,7 @@ router.post("/buscar", /*#__PURE__*/function () {
               gis: result
             });
 
-          case 22:
+          case 23:
           case "end":
             return _context4.stop();
         }
@@ -254,7 +262,7 @@ router.post("/buscar", /*#__PURE__*/function () {
 
 router.post("/:rut", /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
-    var rut, verificador, db, result;
+    var rut, verificador, db, rutFiltrado, result;
     return regeneratorRuntime.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
@@ -268,41 +276,48 @@ router.post("/:rut", /*#__PURE__*/function () {
             db = _context5.sent;
             result = "";
 
+            if (rut.includes("k")) {
+              rutFiltrado = rut.replace("k", "K");
+            } else {
+              rutFiltrado = rut;
+            }
+
             if (!(verificador == 1)) {
-              _context5.next = 12;
+              _context5.next = 14;
               break;
             }
 
-            _context5.next = 9;
+            _context5.next = 10;
             return db.collection("gi").findOne({
-              rut: rut,
+              rut: rutFiltrado,
               categoria: "Empresa/Organizacion"
             });
 
-          case 9:
+          case 10:
             result = _context5.sent;
-            _context5.next = 16;
+            console.log(result);
+            _context5.next = 18;
             break;
 
-          case 12:
+          case 14:
             if (!(verificador == 2)) {
-              _context5.next = 16;
+              _context5.next = 18;
               break;
             }
 
-            _context5.next = 15;
+            _context5.next = 17;
             return db.collection("gi").findOne({
-              rut: rut,
+              rut: rutFiltrado,
               categoria: "Persona Natural"
             });
 
-          case 15:
+          case 17:
             result = _context5.sent;
 
-          case 16:
+          case 18:
             res.json(result);
 
-          case 17:
+          case 19:
           case "end":
             return _context5.stop();
         }
@@ -352,7 +367,7 @@ router.get("/:id", /*#__PURE__*/function () {
 
 router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(req, res) {
-    var id, updatedGI, db, result;
+    var id, updatedGI, db, result, existEmpleado, obj;
     return regeneratorRuntime.wrap(function _callee7$(_context7) {
       while (1) {
         switch (_context7.prev = _context7.next) {
@@ -378,14 +393,106 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
 
           case 9:
             result = _context7.sent;
+            _context7.next = 12;
+            return db.collection("empleados").findOne({
+              rut: updatedGI.rut,
+              categoria: updatedGI.categoria
+            });
+
+          case 12:
+            existEmpleado = _context7.sent;
+
+            if (!(updatedGI.grupo_interes === "Empleados")) {
+              _context7.next = 40;
+              break;
+            }
+
+            if (!existEmpleado) {
+              _context7.next = 19;
+              break;
+            }
+
+            _context7.next = 17;
+            return db.collection("empleados").updateOne({
+              rut: updatedGI.rut,
+              categoria: updatedGI.categoria
+            }, {
+              $set: {
+                nombre: updatedGI.razon_social,
+                rut: updatedGI.rut,
+                categoria: updatedGI.categoria,
+                cargo: updatedGI.cargo,
+                activo_inactivo: true
+              }
+            });
+
+          case 17:
+            _context7.next = 38;
+            break;
+
+          case 19:
+            //se crea tambien en empleados
+            obj = {};
+            obj.nombre = updatedGI.razon_social;
+            obj.rut = updatedGI.rut;
+            obj.categoria = updatedGI.categoria;
+            obj.cargo = updatedGI.cargo;
+            obj.tipo_contrato = "";
+            obj.estado_contrato = "";
+            obj.fecha_inicio_contrato = "";
+            obj.fecha_fin_contrato = "";
+            obj.sueldo_bruto = 0;
+            obj.afp = "";
+            obj.isapre = "";
+            obj.seguridad_laboral = "";
+            obj.dias_vacaciones = 0;
+            obj.comentarios = "";
+            obj.activo_inactivo = true;
+            obj.detalle_empleado = {
+              dias_acumulados: 0,
+              dias_recuperados: 0,
+              dias_total_ausencias: 0,
+              dias_pendientes: 0,
+              enfermedad_cant: 0,
+              maternidad_cant: 0,
+              mediodia_cant: 0,
+              tramites_cant: 0,
+              vacaciones_cant: 0,
+              recuperados_cant: 0,
+              mediodia_recuperados_cant: 0
+            };
+            _context7.next = 38;
+            return db.collection("empleados").insertOne(obj);
+
+          case 38:
+            _context7.next = 43;
+            break;
+
+          case 40:
+            if (!existEmpleado) {
+              _context7.next = 43;
+              break;
+            }
+
+            _context7.next = 43;
+            return db.collection("empleados").updateOne({
+              rut: updatedGI.rut,
+              categoria: updatedGI.categoria
+            }, {
+              $set: {
+                activo_inactivo: false
+              }
+            });
+
+          case 43:
             res.status(201).json({
               message: "GI modificado correctamente"
             });
-            _context7.next = 17;
+            _context7.next = 50;
             break;
 
-          case 13:
-            _context7.prev = 13;
+          case 46:
+            _context7.prev = 46;
             _context7.t0 = _context7["catch"](6);
             res.status(500).json({
               message: "ha ocurrido un error",
@@ -393,12 +500,12 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
             });
             console.log(_context7.t0);
 
-          case 17:
+          case 50:
           case "end":
             return _context7.stop();
         }
       }
-    }, _callee7, null, [[6, 13]]);
+    }, _callee7, null, [[6, 46]]);
   }));
 
   return function (_x13, _x14) {
@@ -425,7 +532,7 @@ router.post("/test/gonzalo", _multer["default"].single("archivo"), /*#__PURE__*/
   return function (_x15, _x16) {
     return _ref8.apply(this, arguments);
   };
-}()); //TEST PARA recibir EXCEL DE INGRESO DE GIS
+}()); //TEST PARA RECIBIR EXCEL DE INGRESO DE GIS
 
 router.post("/masivo/file", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(req, res) {
@@ -440,7 +547,7 @@ router.post("/masivo/file", _multer["default"].single("archivo"), /*#__PURE__*/f
 
           case 3:
             db = _context9.sent;
-            data = (0, _excelToJson["default"])(req.file.path);
+            data = (0, _excelToJson["default"])(req.file.path, "PLANTILLA GI_ASIS");
             array_general_empresas = [];
             array_general_personas = [];
             array_general = [];
@@ -528,7 +635,7 @@ router.post("/masivo/file", _multer["default"].single("archivo"), /*#__PURE__*/f
 
 router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(req, res) {
-    var db, newGi, items, result;
+    var db, newGi, items, result, obj;
     return regeneratorRuntime.wrap(function _callee10$(_context10) {
       while (1) {
         switch (_context10.prev = _context10.next) {
@@ -551,20 +658,64 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
               newGi.codigo = "ASIS-GI-".concat(YEAR, "-00001");
             }
 
-            newGi.url_file_adjunto = {
-              name: req.file.originalname,
-              size: req.file.size,
-              path: req.file.path,
-              type: req.file.mimetype
-            };
+            if (req.file) {
+              newGi.url_file_adjunto = {
+                name: req.file.originalname,
+                size: req.file.size,
+                path: req.file.path,
+                type: req.file.mimetype
+              };
+            } else {
+              newGi.url_file_adjunto = {};
+            }
+
             _context10.next = 11;
             return db.collection("gi").insertOne(newGi);
 
           case 11:
             result = _context10.sent;
+
+            if (!(newGi.grupo_interes === "Empleados")) {
+              _context10.next = 31;
+              break;
+            }
+
+            //se crea tambien en empleados
+            obj = {};
+            obj.nombre = newGi.razon_social;
+            obj.rut = newGi.rut;
+            obj.categoria = newGi.categoria;
+            obj.cargo = newGi.cargo;
+            obj.tipo_contrato = "";
+            obj.estado_contrato = "";
+            obj.fecha_inicio_contrato = "";
+            obj.fecha_fin_contrato = "";
+            obj.sueldo_bruto = 0;
+            obj.afp = "";
+            obj.isapre = "";
+            obj.seguridad_laboral = "";
+            obj.dias_vacaciones = 0;
+            obj.comentarios = "";
+            obj.detalle_empleado = {
+              dias_acumulados: 0,
+              dias_recuperados: 0,
+              dias_total_ausencias: 0,
+              dias_pendientes: 0,
+              enfermedad_cant: 0,
+              maternidad_cant: 0,
+              mediodia_cant: 0,
+              tramites_cant: 0,
+              vacaciones_cant: 0,
+              recuperados_cant: 0,
+              mediodia_recuperados_cant: 0
+            };
+            _context10.next = 31;
+            return db.collection("empleados").insertOne(obj);
+
+          case 31:
             res.json(result);
 
-          case 13:
+          case 32:
           case "end":
             return _context10.stop();
         }

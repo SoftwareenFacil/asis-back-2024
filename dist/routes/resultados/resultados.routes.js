@@ -62,11 +62,11 @@ router.get("/", /*#__PURE__*/function () {
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
-}()); //SUBIR ARCHIVO RESUILTADO
+}()); //SELECT ONE 
 
-router.post("/subir/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+router.get('/:id', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var id, db, datos, archivo, obs, result;
+    var id, db, result;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
@@ -77,6 +77,188 @@ router.post("/subir/:id", _multer["default"].single("archivo"), /*#__PURE__*/fun
 
           case 3:
             db = _context2.sent;
+            _context2.next = 6;
+            return db.collection('resultados').findOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            });
+
+          case 6:
+            result = _context2.sent;
+            res.json(result);
+
+          case 8:
+          case "end":
+            return _context2.stop();
+        }
+      }
+    }, _callee2);
+  }));
+
+  return function (_x3, _x4) {
+    return _ref2.apply(this, arguments);
+  };
+}()); //SELECT WITH PAGINATION
+
+router.post("/pagination", /*#__PURE__*/function () {
+  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
+    var db, _req$body, pageNumber, nPerPage, skip_page, countRes, result;
+
+    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            _context3.next = 2;
+            return (0, _database.connect)();
+
+          case 2:
+            db = _context3.sent;
+            _req$body = req.body, pageNumber = _req$body.pageNumber, nPerPage = _req$body.nPerPage;
+            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+            _context3.prev = 5;
+            _context3.next = 8;
+            return db.collection("resultados").find().count();
+
+          case 8:
+            countRes = _context3.sent;
+            _context3.next = 11;
+            return db.collection("resultados").find().skip(skip_page).limit(nPerPage).toArray();
+
+          case 11:
+            result = _context3.sent;
+            res.json({
+              total_items: countRes,
+              pagina_actual: pageNumber,
+              nro_paginas: parseInt(countRes / nPerPage + 1),
+              resultados: result
+            });
+            _context3.next = 18;
+            break;
+
+          case 15:
+            _context3.prev = 15;
+            _context3.t0 = _context3["catch"](5);
+            res.status(501).json(_context3.t0);
+
+          case 18:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3, null, [[5, 15]]);
+  }));
+
+  return function (_x5, _x6) {
+    return _ref3.apply(this, arguments);
+  };
+}()); //BUSCAR POR RUT O NOMBRE
+
+router.post('/buscar', /*#__PURE__*/function () {
+  var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
+    var _req$body2, identificador, filtro, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countRes;
+
+    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      while (1) {
+        switch (_context4.prev = _context4.next) {
+          case 0:
+            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
+            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+            _context4.next = 4;
+            return (0, _database.connect)();
+
+          case 4:
+            db = _context4.sent;
+
+            if (identificador === 1 && filtro.includes("k")) {
+              rutFiltrado = filtro;
+              rutFiltrado.replace("k", "K");
+            } else {
+              rutFiltrado = filtro;
+            }
+
+            rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+            _context4.prev = 7;
+
+            if (!(identificador === 1)) {
+              _context4.next = 17;
+              break;
+            }
+
+            _context4.next = 11;
+            return db.collection("resultados").find({
+              rut_cp: rexExpresionFiltro
+            }).count();
+
+          case 11:
+            countRes = _context4.sent;
+            _context4.next = 14;
+            return db.collection("resultados").find({
+              rut_cp: rexExpresionFiltro
+            }).skip(skip_page).limit(nPerPage).toArray();
+
+          case 14:
+            result = _context4.sent;
+            _context4.next = 23;
+            break;
+
+          case 17:
+            _context4.next = 19;
+            return db.collection("resultados").find({
+              razon_social_cp: rexExpresionFiltro
+            }).count();
+
+          case 19:
+            countRes = _context4.sent;
+            _context4.next = 22;
+            return db.collection("resultados").find({
+              razon_social_cp: rexExpresionFiltro
+            }).skip(skip_page).limit(nPerPage).toArray();
+
+          case 22:
+            result = _context4.sent;
+
+          case 23:
+            res.json({
+              total_items: countRes,
+              pagina_actual: pageNumber,
+              nro_paginas: parseInt(countRes / nPerPage + 1),
+              resultados: result
+            });
+            _context4.next = 29;
+            break;
+
+          case 26:
+            _context4.prev = 26;
+            _context4.t0 = _context4["catch"](7);
+            res.status(501).json({
+              mgs: "ha ocurrido un error ".concat(_context4.t0)
+            });
+
+          case 29:
+          case "end":
+            return _context4.stop();
+        }
+      }
+    }, _callee4, null, [[7, 26]]);
+  }));
+
+  return function (_x7, _x8) {
+    return _ref4.apply(this, arguments);
+  };
+}()); //SUBIR ARCHIVO RESUILTADO
+
+router.post("/subir/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+  var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
+    var id, db, datos, archivo, obs, result;
+    return regeneratorRuntime.wrap(function _callee5$(_context5) {
+      while (1) {
+        switch (_context5.prev = _context5.next) {
+          case 0:
+            id = req.params.id;
+            _context5.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context5.sent;
             datos = JSON.parse(req.body.data);
             archivo = {};
             obs = {};
@@ -93,7 +275,7 @@ router.post("/subir/:id", _multer["default"].single("archivo"), /*#__PURE__*/fun
               };
             }
 
-            _context2.next = 13;
+            _context5.next = 13;
             return db.collection("resultados").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -107,35 +289,35 @@ router.post("/subir/:id", _multer["default"].single("archivo"), /*#__PURE__*/fun
             });
 
           case 13:
-            result = _context2.sent;
+            result = _context5.sent;
             res.json(result);
 
           case 15:
           case "end":
-            return _context2.stop();
+            return _context5.stop();
         }
       }
-    }, _callee2);
+    }, _callee5);
   }));
 
-  return function (_x3, _x4) {
-    return _ref2.apply(this, arguments);
+  return function (_x9, _x10) {
+    return _ref5.apply(this, arguments);
   };
 }()); //confirmar resultado
 
 router.post("/confirmar/:id", /*#__PURE__*/function () {
-  var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
+  var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
     var id, db, datos, result, obs, codAsis, gi, isOC, estado_archivo, estado;
-    return regeneratorRuntime.wrap(function _callee3$(_context3) {
+    return regeneratorRuntime.wrap(function _callee6$(_context6) {
       while (1) {
-        switch (_context3.prev = _context3.next) {
+        switch (_context6.prev = _context6.next) {
           case 0:
             id = req.params.id;
-            _context3.next = 3;
+            _context6.next = 3;
             return (0, _database.connect)();
 
           case 3:
-            db = _context3.sent;
+            db = _context6.sent;
             datos = req.body;
             result = "";
             obs = {};
@@ -143,18 +325,18 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
             obs.fecha = (0, _getDateNow.getDate)(new Date());
 
             if (!(datos.estado_archivo == "Aprobado")) {
-              _context3.next = 34;
+              _context6.next = 34;
               break;
             }
 
             obs.estado = datos.estado_archivo;
 
             if (!(datos.estado_resultado == "Aprobado con Obs" || datos.estado_resultado == "Aprobado")) {
-              _context3.next = 17;
+              _context6.next = 17;
               break;
             }
 
-            _context3.next = 14;
+            _context6.next = 14;
             return db.collection("resultados").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -174,12 +356,12 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
             });
 
           case 14:
-            result = _context3.sent;
-            _context3.next = 20;
+            result = _context6.sent;
+            _context6.next = 20;
             break;
 
           case 17:
-            _context3.next = 19;
+            _context6.next = 19;
             return db.collection("resultados").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -196,19 +378,19 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
             });
 
           case 19:
-            result = _context3.sent;
+            result = _context6.sent;
 
           case 20:
             //insercion de la facturación
             codAsis = result.value.codigo;
-            _context3.next = 23;
+            _context6.next = 23;
             return db.collection("gi").findOne({
               rut: result.value.rut_cp,
               categoria: "Empresa/Organizacion"
             });
 
           case 23:
-            gi = _context3.sent;
+            gi = _context6.sent;
             isOC = "";
             estado_archivo = "";
             estado = "";
@@ -227,11 +409,11 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
             }
 
             if (!result) {
-              _context3.next = 32;
+              _context6.next = 32;
               break;
             }
 
-            _context3.next = 31;
+            _context6.next = 31;
             return db.collection("facturaciones").insertOne({
               codigo: codAsis.replace("RES", "FAC"),
               nombre_servicio: result.value.nombre_servicio,
@@ -268,15 +450,15 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
             });
 
           case 31:
-            result = _context3.sent;
+            result = _context6.sent;
 
           case 32:
-            _context3.next = 38;
+            _context6.next = 38;
             break;
 
           case 34:
             obs.estado = datos.estado_archivo;
-            _context3.next = 37;
+            _context6.next = 37;
             return db.collection("resultados").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -289,21 +471,21 @@ router.post("/confirmar/:id", /*#__PURE__*/function () {
             });
 
           case 37:
-            result = _context3.sent;
+            result = _context6.sent;
 
           case 38:
             res.json(result);
 
           case 39:
           case "end":
-            return _context3.stop();
+            return _context6.stop();
         }
       }
-    }, _callee3);
+    }, _callee6);
   }));
 
-  return function (_x5, _x6) {
-    return _ref3.apply(this, arguments);
+  return function (_x11, _x12) {
+    return _ref6.apply(this, arguments);
   };
 }());
 var _default = router;

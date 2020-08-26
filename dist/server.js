@@ -43,6 +43,10 @@ var _existencia = _interopRequireDefault(require("./routes/existencia/existencia
 
 var _categoriasGenerales = _interopRequireDefault(require("./routes/CategoriasGenerales/categoriasGenerales.routes"));
 
+var _empleados = _interopRequireDefault(require("./routes/empleados/empleados.routes"));
+
+var _empleados_ausencias = _interopRequireDefault(require("./routes/empleados_ausencias/empleados_ausencias.routes"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
@@ -77,5 +81,7 @@ app.use('/gastos', _gastos["default"]);
 app.use('/salidas', _salidas["default"]);
 app.use('/existencia', _existencia["default"]);
 app.use('/catgenerales', _categoriasGenerales["default"]);
+app.use('/empleados', _empleados["default"]);
+app.use('/ausencias', _empleados_ausencias["default"]);
 var _default = app;
 exports["default"] = _default;
