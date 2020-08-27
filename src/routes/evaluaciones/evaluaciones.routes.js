@@ -5,7 +5,7 @@ import moment from "moment";
 var fs = require("fs");
 var path = require("path");
 import pdfAversionRiesgo from "../../functions/createPdf/aversionRiesgo/createPdf";
-// import pdfPsicosensotecnico from "../../functions/createPdf/psicosensotecnico/createpdf";
+import pdfPsicosensotecnico from "../../functions/createPdf/psicosensotecnico/createpdf";
 // import { generateQR } from "../../functions/createPdf/constant";
 var path = require("path");
 // import { getYear } from "../../functions/getYearActual";
@@ -33,10 +33,193 @@ router.post('/selectone/:id', async (req, res) => {
   const result = await db.collection("evaluaciones").findOne({ _id: ObjectID(id) });
 
   res.json(result);
-})
+});
 
-//GENERAR PDF DE LA EVALUACION
-router.post('/evaluacionmanual', async (req, res) => {
+//GENERAR PDF DE PSICOSENSOTECNICO
+router.post('/evaluacionpsico', async (req, res) => {
+  const db = await connect();
+  const data = req.body;
+
+  const nombrePdf = `RESULTADO_${data.codigo}_PSICOSENSOTECNICO.pdf`;
+
+  const rutClienteSecundario = data.rut_cs;
+  const rutClientePrincipal = data.rut_cp;
+  const conclusion_recomendaciones = data.conclusion_recomendacion;
+  const e_psicotecnicos = [
+    {
+      resultado: data.tiempo_reaccion,
+      promedio: data.promedio_tiempo_reaccion
+    },
+    {
+      resultado: data.coordinacion_bimanual,
+      promedio: data.promedio_coordinacion_bimanual
+    },
+    {
+      resultado: data.precision_coordinacion_visomotriz,
+      promedio: data.promedio_precision_coordinacion_vis
+    }
+  ];
+  const evaluaciones = [
+    {
+      resultado: data.examen_sensometrico,
+      obs: data.obs_examen_sensometrico
+    },
+    {
+      resultado: data.examen_psicotecnico,
+      obs: data.obs_examen_psicotecnico
+    },
+    {
+      resultado: data.evaluacion_somnolencia,
+      obs: data.obs_evaluacion_somnolencia
+    },
+    {
+      resultado: data.evaluacion_psicologica,
+      obs: data.obs_evaluacion_psicologica
+    },
+    {
+      resultado: data.test_velocidad_anticipacion,
+      obs: data.obs_test_velocidad_anticipacion
+    },
+    {
+      resultado: data.test_tolerancia_monotonia,
+      obs: data.obs_test_tolerancia_monotonia
+    },
+    {
+      resultado: data.test_reacciones_multiples,
+      obs: data.obs_test_reacciones_multiples
+    },
+    {
+      resultado: data.evaluacion_transito_nacional,
+      obs: data.obs_evaluacion_transito_nacional
+    }
+  ];
+  const e_sensometricos = [
+    {
+      resultado: data.monocular_derecha
+    },
+    {
+      resultado: data.monocular_izquierda
+    },
+    {
+      resultado: data.vision_binocular
+    },
+    {
+      resultado: data.perimetria
+    },
+    {
+      resultado: data.profundidad
+    },
+    {
+      resultado: data.discriminacion_colores
+    },
+    {
+      resultado: data.vision_nocturna
+    },
+    {
+      resultado: data.phoria_vertical
+    },
+    {
+      resultado: data.phoria_horizontal
+    },
+    {
+      resultado: data.recuperacion_encandilamiento
+    },
+    {
+      resultado: data.audiometria
+    }
+  ];
+
+  const test_espe_vel_anticipacion = {
+    active: data.is_anticipacion,
+    resultado: data.test_velocidad_anticipacion
+  };
+
+  const examen_somnolencia = {
+    active: data.is_somnolencia,
+    probabilidad: data.probabilidad_somnolencia,
+    punto: data.punto,
+    epworth: data.test_epworth
+  };
+
+  const test_psicologico = {
+    active: data.is_psicologico,
+    obs: data.observacion_psicologica
+  };
+
+  const test_espe_tol_monotonia = {
+    active: data.is_monotonia,
+    resultado: data.test_tolerancia_monotonia,
+    aciertos: data.test_aciertos_tolerancia,
+    obs: data.obs_test_tolerancia_monotonia
+  };
+
+  const test_espe_reac_multiples = {
+    active: data.is_reacciones_multiples,
+    resultado: data.test_reacciones_multiples
+  };
+
+  const test_conocimiento_ley_nacional = {
+    active: data.is_ley_transito,
+    resultado: data.test_estado_ley_transito,
+    obs: data.test_obs_ley_transito
+  }
+
+  let objFile = {};
+
+  try {
+
+    const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
+    const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
+
+    if (cp && cs) {
+      const informacionPersonal = {
+        empresa: cp.razon_social,
+        nombre: cs.razon_social,
+        rut: cs.rut,
+        fecha_nacimiento: cs.fecha_inic_nac,
+        cargo: cs.cargo,
+        licencia_acreditar: '',
+        ley: cs.ley_aplicable,
+        vencimiento_licencia: cs.fecha_venc_licencia,
+        observaciones_licencia: '',
+        fecha_examen: moment().format('DD-MM-YYYY'),
+        resultado: '',
+        restricciones: '',
+        vencimiento: ''
+      };
+
+      pdfPsicosensotecnico(informacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia,
+        test_psicologico, test_espe_tol_monotonia, test_espe_reac_multiples,
+        test_conocimiento_ley_nacional, nombrePdf);
+
+      objFile = {
+        name: nombrePdf,
+        size: 0,
+        path: "uploads/" + nombrePdf,
+        type: "application/pdf"
+      };
+
+      const result = await db.collection('evaluaciones').updateOne({ codigo: data.codigo }, {
+        $set: {
+          url_file_adjunto_EE: objFile
+        }
+      });
+
+      res.status(201).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
+    }
+    else {
+      res.status(400).json({ msg: 'Cliente secundario no encontrado' });
+    }
+
+  } catch (error) {
+
+    res.status(400).json({ msg: 'error al crear el pdf', error: error });
+
+  }
+});
+
+//GENERAR PDF DE AVERSION AL RIESGO
+router.post('/evaluacionaversion', async (req, res) => {
   const db = await connect();
 
   const data = req.body;
@@ -80,15 +263,16 @@ router.post('/evaluacionmanual', async (req, res) => {
         fecha_evaluacion: conclusionRiesgos === 1 || conclusionRiesgos === 2 ? moment().format('DD-MM-YYYY') : '',
       };
 
+      pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf);
 
-      switch (nombre_servicio) {
-        case 'Psicosensotecnico Riguroso':
+      // switch (nombre_servicio) {
+      //   case 'Psicosensotecnico Riguroso':
 
-          break;
-        case 'Aversión al Riesgo':
-          pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf);
-          break;
-      }
+      //     break;
+      //   case 'Aversión al Riesgo':
+      //     pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf);
+      //     break;
+      // }
 
       objFile = {
         name: nombrePdf,
@@ -103,14 +287,13 @@ router.post('/evaluacionmanual', async (req, res) => {
         }
       });
 
-      res.status(201).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
+      res.status(200).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
     }
     else {
       res.status(400).json({ msg: 'Cliente secundario no encontrado' });
     }
 
   } catch (error) {
-    console.log('error ', error);
     res.status(400).json({ msg: 'error al crear el pdf', error: error })
   }
 })

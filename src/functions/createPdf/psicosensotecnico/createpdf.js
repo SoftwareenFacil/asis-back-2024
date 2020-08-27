@@ -4,16 +4,19 @@ var path = require("path");
 
 import { generalInformation, resultadosEvaluaciones, piePageOne, examenesSensometricos, examenesPsicotecnicos, testEspeVelReaccion, examenSomnolencia, testPsicologico, testToleranciaMonotonia, testReacMultiples, testConoTransitoNacional } from "./constant";
 
-export default function createPdf() {
+export default function createPdf(InformacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia, test_psicologico,
+    test_espe_tol_monotonia, test_espe_reac_multiples, test_conocimiento_ley_nacional, nombrePdf) {
     const doc = new PDF();
     let generalSpace = 30;
     let horizontalSpace = 0;
     let moreSpace = 0;
 
+    const { empresa, nombre, rut, fecha_nacimiento, cargo, licencia_acreditar, ley, vencimiento_licencia, observaciones_licencia, fecha_examen, resultado, restricciones, vencimiento } = InformacionPersonal;
+
     //--------------------------------------------------PDF----------------------------------------
 
     //--Logo
-    doc.pipe(fs.createWriteStream(path.resolve("./") + "/uploads/example.pdf"));
+    doc.pipe(fs.createWriteStream(path.resolve("./") + "/uploads/" + nombrePdf));
     doc.image(path.resolve("./") + "/uploads/asis_logo.png", 225, generalSpace, {
         fit: [155, 155],
         align: "center",
@@ -47,7 +50,86 @@ export default function createPdf() {
         generalSpace += 15;
     });
 
-    generalSpace += 25;
+    generalSpace -= 190;
+
+    doc
+        .font("Helvetica")
+        .text(empresa, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(nombre, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(rut, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(fecha_nacimiento, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(cargo, 242, generalSpace - 1, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(licencia_acreditar, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(ley, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(vencimiento_licencia, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(observaciones_licencia, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(fecha_examen, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(resultado, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(restricciones, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(vencimiento, 242, generalSpace, { align: "left" });
+
+
+    generalSpace += 35;
 
     //-- Resumen evaluaciones
     doc.fontSize(10);
@@ -99,7 +181,22 @@ export default function createPdf() {
         generalSpace += 20;
     });
 
-    generalSpace += 20;
+    generalSpace -= 153;
+
+    //datos
+    evaluaciones.forEach(function (e) {
+        doc
+            .font("Helvetica")
+            .text(e.resultado, 278, generalSpace, { align: "left" });
+
+        doc
+            .font("Helvetica")
+            .text(e.obs, 370, generalSpace, { align: "left" });
+
+        generalSpace += 20
+    });
+
+    generalSpace += 15;
 
     doc.fontSize(10);
     doc
@@ -112,6 +209,10 @@ export default function createPdf() {
     generalSpace += 40;
 
     doc.lineJoin("miter").rect(30, generalSpace, 530, 55).stroke();
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica")
+        .text(conclusion_recomendaciones, 40, generalSpace + 5, { align: "left" });
 
     generalSpace += 63;
 
@@ -269,349 +370,78 @@ export default function createPdf() {
         .font("Helvetica-Bold")
         .text('', horizontalSpace - 6, generalSpace + 18, { align: "left", valign: 'end' });
 
+    //--datos
+    generalSpace -= 25;
+    horizontalSpace = 60;
+
+    doc.fontSize(9);
+    doc
+        .font("Helvetica")
+        .text(e_sensometricos[0].resultado, horizontalSpace, generalSpace, { align: "left" });
+
+    horizontalSpace += 100;
+
+    doc
+        .font("Helvetica")
+        .text(e_sensometricos[1].resultado, horizontalSpace, generalSpace, { align: "left", valign: 'end' });
+
+    horizontalSpace += 110;
+
+    doc
+        .font("Helvetica")
+        .text(e_sensometricos[2].resultado, horizontalSpace, generalSpace, { align: "left", valign: 'end' });
+
+    horizontalSpace += 110;
+
+    doc
+        .font("Helvetica")
+        .text(e_sensometricos[3].resultado, horizontalSpace, generalSpace - 10, { align: "left", valign: 'end' });
+
+    horizontalSpace += 105;
+
+    doc
+        .font("Helvetica")
+        .text(e_sensometricos[4].resultado, horizontalSpace, generalSpace - 10, { align: "left", valign: 'end' });
+
+    generalSpace += 53;
+    horizontalSpace = 58;
+
+    doc
+        .font("Helvetica")
+        .text(e_sensometricos[5].resultado, horizontalSpace, generalSpace, { align: "left", valign: 'end' });
+
+    horizontalSpace += 90;
+
+    doc
+        .font("Helvetica")
+        .text(e_sensometricos[6].resultado, horizontalSpace, generalSpace, { align: "left", valign: 'end' });
+
+    horizontalSpace += 85;
+
+    doc
+        .font("Helvetica")
+        .text(e_sensometricos[7].resultado, horizontalSpace, generalSpace, { align: "left", valign: 'end' });
+
+    horizontalSpace += 90;
+
+    doc
+        .font("Helvetica")
+        .text(e_sensometricos[8].resultado, horizontalSpace, generalSpace, { align: "left", valign: 'end' });
+
+    horizontalSpace += 83;
+
+    doc
+        .font("Helvetica")
+        .text(e_sensometricos[9].resultado, horizontalSpace, generalSpace, { align: "left", valign: 'end' });
+
+    horizontalSpace += 84;
+
+    doc
+        .font("Helvetica")
+        .text(e_sensometricos[9].resultado, horizontalSpace, generalSpace - 10, { align: "left", valign: 'end' });
+
     generalSpace += 56;
 
-    // doc.fontSize(8);
-    // doc.fillColor('#000', 1);
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text('Observaciones', 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-
-    //-- Agudeza visual monocular derecha
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.AgudezaVisualMonoDer[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 15;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.AgudezaVisualMonoDer[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.AgudezaVisualMonoDer[2], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 29;
-    // doc
-    //     .font("Helvetica")
-    //     .text('3.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.AgudezaVisualMonoDer[3], 60, generalSpace, { align: "left" });
-
-    // //-- Agudeza visual monocular izquierda
-    // generalSpace += 25;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.AgudezaVisualMonoIzq[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.AgudezaVisualMonoIzq[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.AgudezaVisualMonoIzq[2], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 30;
-    // doc
-    //     .font("Helvetica")
-    //     .text('3.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.AgudezaVisualMonoIzq[3], 60, generalSpace, { align: "left" });
-
-    // //-- Agudeza visual binocular
-    // generalSpace += 25;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.agudezaVisualBinocular[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.agudezaVisualBinocular[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.agudezaVisualBinocular[2], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 28;
-    // doc
-    //     .font("Helvetica")
-    //     .text('3.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.agudezaVisualBinocular[3], 60, generalSpace, { align: "left" });
-
-    // //-- Perimetria
-    // generalSpace += 25;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.perimetria[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.perimetria[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 15;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.perimetria[2], 60, generalSpace, { align: "left" });
-
-    // //-- Profundidad
-    // generalSpace += 15;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.profundidad[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.profundidad[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 15;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.profundidad[2], 60, generalSpace, { align: "left" });
-
-    // //-- Discriminacion de colores
-    // generalSpace += 15;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.discriminacionColores[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.discriminacionColores[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 15;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.discriminacionColores[2], 60, generalSpace, { align: "left" });
-
-    // //-- Vision nocturna
-    // generalSpace += 15;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.visionNocturna[0], 30, generalSpace, { align: "left" });
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.visionNocturna[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 14;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.visionNocturna[2], 60, generalSpace, { align: "left" });
-
-    //-----------------------------------------------------------------------Página 3
-    // doc.addPage();
-    //-----------Phoria vertical
-    // generalSpace = 15;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.phoriaVertical[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.phoriaVertical[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 14;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.phoriaVertical[2], 60, generalSpace, { align: "left" });
-
-    // //-----------Phoria horizontal
-    // generalSpace += 18;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.phoriaHorizontal[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.phoriaHorizontal[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 14;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.phoriaHorizontal[2], 60, generalSpace, { align: "left" });
-
-    // //-----------Recuperacion encandilamiento
-    // generalSpace += 18;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.recuperacionEncandilamiento[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.recuperacionEncandilamiento[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 14;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.recuperacionEncandilamiento[2], 60, generalSpace, { align: "left" });
-
-    // //-----------Audiometria oido derecho
-    // generalSpace += 18;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.audiometriaOidoDerecho[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.audiometriaOidoDerecho[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 14;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.audiometriaOidoDerecho[2], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 25;
-    // doc
-    //     .font("Helvetica")
-    //     .text('3.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.audiometriaOidoDerecho[3], 60, generalSpace, { align: "left" });
-
-    // //-----------Audiometria oido izquierdo
-    // generalSpace += 25;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.audiometriaOidoIzquierdo[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.audiometriaOidoIzquierdo[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 14;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.audiometriaOidoIzquierdo[2], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 25;
-    // doc
-    //     .font("Helvetica")
-    //     .text('3.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.audiometriaOidoIzquierdo[3], 60, generalSpace, { align: "left" });
-
-    // //-----------Audiometria ambos oidos
-    // generalSpace += 25;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesSensometricos.audiometriaAmbosOidos[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.audiometriaAmbosOidos[1], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 14;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.audiometriaAmbosOidos[2], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 25;
-    // doc
-    //     .font("Helvetica")
-    //     .text('3.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesSensometricos.audiometriaAmbosOidos[3], 60, generalSpace, { align: "left" });
 
     //---------------------- Examenes Psicotecnicos
     doc.fontSize(9);
@@ -632,9 +462,6 @@ export default function createPdf() {
         .text(examenesPsicotecnicos.descripcion, 60, generalSpace, { align: "left" });
 
     generalSpace += 30;
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text('Observaciones', 60, generalSpace, { align: "left" });
 
     generalSpace += 15;
     doc.lineJoin("miter").rect(60, generalSpace, 90, 52).stroke();
@@ -664,246 +491,259 @@ export default function createPdf() {
         .font("Helvetica-Bold")
         .text(examenesPsicotecnicos.presCoordVisomotriz[1], 420, generalSpace + 8, { align: "left" });
 
-    //-----------Test de reaccion
-    // generalSpace += 51;
-    // doc.fontSize(8);
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesPsicotecnicos.tiempoReaccion[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesPsicotecnicos.tiempoReaccion[2], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 14;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesPsicotecnicos.tiempoReaccion[3], 60, generalSpace, { align: "left" });
-
-    // //-----------Coordinacion bimanual
-    // generalSpace += 20;
-    // doc.fontSize(8);
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesPsicotecnicos.coordBimanual[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesPsicotecnicos.coordBimanual[2], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 14;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesPsicotecnicos.coordBimanual[3], 60, generalSpace, { align: "left" });
-
-    // //-----------Precision y coordinacion visomotriz
-    // generalSpace += 20;
-    // doc.fontSize(8);
-    // doc
-    //     .font("Helvetica-Bold")
-    //     .text(examenesPsicotecnicos.presCoordVisomotriz[0], 30, generalSpace, { align: "left" });
-
-    // generalSpace += 20;
-    // doc
-    //     .font("Helvetica")
-    //     .text('1.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesPsicotecnicos.presCoordVisomotriz[2], 60, generalSpace, { align: "left" });
-
-    // generalSpace += 14;
-    // doc
-    //     .font("Helvetica")
-    //     .text('2.- ', 45, generalSpace, { align: "left" });
-    // doc
-    //     .font("Helvetica")
-    //     .text(examenesPsicotecnicos.presCoordVisomotriz[3], 60, generalSpace, { align: "left" });
-
+    //--datos
     doc.fontSize(9);
-    generalSpace += 70;
-    doc.fillColor('#000', 1);
-    doc
-        .font("Helvetica-Bold")
-        .text(testEspeVelReaccion.titulo, 60, generalSpace + 8, { align: "center" })
-        .rect(30, generalSpace, 530, 50)
-        .fillColor('white', 0)
-        .fillAndStroke();
+    generalSpace += 18;
+    horizontalSpace = 0;
 
-    generalSpace += 25;
-    doc.fontSize(8);
-    doc.fillColor('#000', 1);
     doc
         .font("Helvetica")
-        .text(testEspeVelReaccion.descripcion, 60, generalSpace, { align: "left" });
-
-    generalSpace += 35;
-    doc.fillColor('#000', 1);
+        .text(e_psicotecnicos[0].resultado, horizontalSpace - 332, generalSpace, { align: "center" });
     doc
-        .font("Helvetica-Bold")
-        .text('', 60, generalSpace + 9, { align: "center" })
-        .rect(30, generalSpace, 530, 25)
-        .fillColor('white', 0)
-        .fillAndStroke();
+        .font("Helvetica")
+        .text(e_psicotecnicos[0].promedio, horizontalSpace - 332, generalSpace + 9, { align: "center" });
 
-    generalSpace += 28;
-    doc.lineJoin("miter").rect(30, generalSpace, 530, 0.5, { align: "center" }).stroke();
+    horizontalSpace += 160;
+    doc
+        .font("Helvetica")
+        .text(e_psicotecnicos[1].resultado, horizontalSpace - 170, generalSpace, { align: "center" });
+    doc
+        .font("Helvetica")
+        .text(e_psicotecnicos[1].promedio, horizontalSpace - 170, generalSpace + 9, { align: "center" });
 
+    horizontalSpace += 190;
+    doc
+        .font("Helvetica")
+        .text(e_psicotecnicos[2].resultado, horizontalSpace + 12, generalSpace, { align: "center" });
+    doc
+        .font("Helvetica")
+        .text(e_psicotecnicos[2].promedio, horizontalSpace + 12, generalSpace + 9, { align: "center" });
+
+    generalSpace += 52;
+
+    //-------------------------------------------------TEST ESPECIFICO VELOCIDAD DE ANTICIPACION
+    if (test_espe_vel_anticipacion.active) {
+        doc.fillColor('#000', 1);
+        doc
+            .font("Helvetica-Bold")
+            .text(testEspeVelReaccion.titulo, 60, generalSpace + 8, { align: "center" })
+            .rect(30, generalSpace, 530, 50)
+            .fillColor('white', 0)
+            .fillAndStroke();
+
+        generalSpace += 25;
+        doc.fontSize(8);
+        doc.fillColor('#000', 1);
+        doc
+            .font("Helvetica")
+            .text(testEspeVelReaccion.descripcion, 60, generalSpace, { align: "left" });
+
+        generalSpace += 35;
+        doc.fillColor('#000', 1);
+        doc
+            .font("Helvetica-Bold")
+            .text(test_espe_vel_anticipacion.resultado, 60, generalSpace + 9, { align: "center" })
+            .rect(30, generalSpace, 530, 25)
+            .fillColor('white', 0)
+            .fillAndStroke();
+
+        generalSpace += 28;
+        doc.lineJoin("miter").rect(30, generalSpace, 530, 0.5, { align: "center" }).stroke();
+    }
+
+    //-------------------------------------------------EXAMEN DE SOMNOLENCIA
     doc.fontSize(9);
     generalSpace += 30;
-    doc.fillColor('#000', 1);
-    doc
-        .font("Helvetica-Bold")
-        .text(examenSomnolencia.titulo, 60, generalSpace + 8, { align: "center" })
-        .rect(30, generalSpace, 530, 50)
-        .fillColor('white', 0)
-        .fillAndStroke();
 
-    generalSpace += 25;
-    doc.fontSize(8);
-    doc.fillColor('#000', 1);
-    doc
-        .font("Helvetica")
-        .text(examenSomnolencia.descripcion, 60, generalSpace, { align: "center" });
+    if (examen_somnolencia.active) {
+        doc.fillColor('#000', 1);
+        doc
+            .font("Helvetica-Bold")
+            .text(examenSomnolencia.titulo, 60, generalSpace + 8, { align: "center" })
+            .rect(30, generalSpace, 530, 50)
+            .fillColor('white', 0)
+            .fillAndStroke();
 
-    generalSpace += 27;
-    doc.lineJoin("miter").rect(30, generalSpace, 260, 23, { align: "center" }).stroke();
-    doc.lineJoin("miter").rect(290, generalSpace, 40, 23, { align: "center" }).stroke();
-    doc.lineJoin("miter").rect(330, generalSpace, 230, 23, { align: "center" }).stroke();
+        generalSpace += 25;
+        doc.fontSize(8);
+        doc.fillColor('#000', 1);
+        doc
+            .font("Helvetica")
+            .text(examenSomnolencia.descripcion, 60, generalSpace, { align: "center" });
 
-    doc.lineJoin("miter").rect(30, generalSpace + 23, 260, 23, { align: "center" }).stroke();
-    doc.lineJoin("miter").rect(290, generalSpace + 23, 40, 23, { align: "center" }).stroke();
-    doc.lineJoin("miter").rect(330, generalSpace + 23, 230, 23, { align: "center" }).stroke();
+        generalSpace += 27;
+        doc.lineJoin("miter").rect(30, generalSpace, 260, 23, { align: "center" }).stroke();
+        doc.lineJoin("miter").rect(290, generalSpace, 40, 23, { align: "center" }).stroke();
+        doc.lineJoin("miter").rect(330, generalSpace, 230, 23, { align: "center" }).stroke();
 
-    doc.fontSize(7);
-    doc
-        .font("Helvetica-Bold")
-        .text('PROBABILIDAD DE SOMNOLENCIA', 100, generalSpace + 8, { align: "left" });
+        doc.lineJoin("miter").rect(30, generalSpace + 23, 260, 23, { align: "center" }).stroke();
+        doc.lineJoin("miter").rect(290, generalSpace + 23, 40, 23, { align: "center" }).stroke();
+        doc.lineJoin("miter").rect(330, generalSpace + 23, 230, 23, { align: "center" }).stroke();
 
-    generalSpace += 23;
+        doc.fontSize(8);
+        doc
+            .font("Helvetica-Bold")
+            .text('PROBABILIDAD DE SOMNOLENCIA', 100, generalSpace + 8, { align: "left" });
 
-    doc
-        .font("Helvetica-Bold")
-        .text('TEST DE EPWORTH', 125, generalSpace + 8, { align: "left" });
+        doc
+            .font("Helvetica")
+            .text(examen_somnolencia.probabilidad, 320, generalSpace + 8, { align: "center" });
+
+        generalSpace += 23;
+
+        doc
+            .font("Helvetica-Bold")
+            .text('TEST DE EPWORTH', 125, generalSpace + 8, { align: "left" });
+
+        doc
+            .font("Helvetica-Bold")
+            .text(examen_somnolencia.punto, 76, generalSpace + 8, { align: "center" });
+
+        doc
+            .font("Helvetica")
+            .text(examen_somnolencia.epworth, 320, generalSpace + 8, { align: "center" });
+    }
 
     doc.addPage();
 
+    //------------------------------------------- TEST PSICOLOGICO
     generalSpace = 30;
     doc.fontSize(9);
+
+    if (test_psicologico.active) {
+        doc.fillColor('#000', 1);
+        doc
+            .font("Helvetica-Bold")
+            .text(testPsicologico.titulo, 60, generalSpace + 8, { align: "center" })
+            .rect(30, generalSpace, 530, 60)
+            .fillColor('white', 0)
+            .fillAndStroke();
+
+        generalSpace += 25;
+        doc.fontSize(8);
+        doc.fillColor('#000', 1);
+        doc
+            .font("Helvetica")
+            .text(testPsicologico.descripcion, 60, generalSpace, { align: "center" });
+
+        generalSpace += 37;
+        doc
+            .font("Helvetica-Bold")
+            .text('PERFIL PSICOLÓGICO', 42, generalSpace + 8, { align: "left" });
+
+        doc.fillColor('#000', 1);
+        doc
+            .font("Helvetica")
+            .text(test_psicologico.obs, 42, generalSpace + 22, { align: "left" })
+            .rect(30, generalSpace, 530, 120)
+            .fillColor('white', 0)
+            .fillAndStroke();
+    }
+
+    generalSpace += 145;
     doc.fillColor('#000', 1);
-    doc
-        .font("Helvetica-Bold")
-        .text(testPsicologico.titulo, 60, generalSpace + 8, { align: "center" })
-        .rect(30, generalSpace, 530, 60)
-        .fillColor('white', 0)
-        .fillAndStroke();
 
-    generalSpace += 25;
-    doc.fontSize(8);
-    doc.fillColor('#000', 1);
-    doc
-        .font("Helvetica")
-        .text(testPsicologico.descripcion, 60, generalSpace, { align: "center" });
+    //------------------------------------- TEST ESPECIFICO TOLERANCIA A LA MONOTIA
+    if (test_espe_tol_monotonia.active) {
+        doc.fontSize(9);
+        doc
+            .font("Helvetica-Bold")
+            .text(testToleranciaMonotonia.titulo, 60, generalSpace + 8, { align: "center" });
 
-    generalSpace += 37;
-    doc
-        .font("Helvetica-Bold")
-        .text('PERFIL PSICOLÓGICO', 42, generalSpace + 8, { align: "left" });
-    doc.lineJoin("miter").rect(30, generalSpace, 530, 115, { align: "center" }).stroke();
+        doc.lineJoin("miter").rect(30, generalSpace, 530, 60, { align: "center" }).stroke();
 
-    generalSpace += 140;
-    doc.fontSize(9);
-    doc
-        .font("Helvetica-Bold")
-        .text(testToleranciaMonotonia.titulo, 60, generalSpace + 8, { align: "center" });
+        doc
+            .font("Helvetica")
+            .text(test_espe_tol_monotonia.resultado, 60, generalSpace + 20, { align: "center" });
 
-    doc.lineJoin("miter").rect(30, generalSpace, 530, 60, { align: "center" }).stroke();
+        doc
+            .font("Helvetica-Bold")
+            .text(test_espe_tol_monotonia.aciertos, 60, generalSpace + 32, { align: "center" });
 
-    doc
-        .font("Helvetica")
-        .text('Aprobado', 60, generalSpace + 20, { align: "center" });
+        doc
+            .font("Helvetica-Bold")
+            .text(test_espe_tol_monotonia.obs, 60, generalSpace + 44, { align: "center" });
+    }
 
-    doc
-        .font("Helvetica-Bold")
-        .text('(60 aciertos/0 errores)', 60, generalSpace + 30, { align: "center" });
-
+    //------------------------------------ TEST ESPECIFICO REACCIONES MULTIPLES
     generalSpace += 80;
     doc.fontSize(9);
     doc.fillColor('#000', 1);
-    doc
-        .font("Helvetica-Bold")
-        .text(testReacMultiples.titulo, 60, generalSpace + 8, { align: "center" })
-        .rect(30, generalSpace, 530, 60)
-        .fillColor('white', 0)
-        .fillAndStroke();
 
-    doc.fontSize(8);
-    doc.fillColor('#000', 1);
-    doc
-        .font("Helvetica")
-        .text(testReacMultiples.descripcion, 60, generalSpace + 30, { align: "center" });
+    if (test_espe_reac_multiples.active) {
+        doc
+            .font("Helvetica-Bold")
+            .text(testReacMultiples.titulo, 60, generalSpace + 8, { align: "center" })
+            .rect(30, generalSpace, 530, 60)
+            .fillColor('white', 0)
+            .fillAndStroke();
 
-    generalSpace += 65;
-    doc.lineJoin("miter").rect(30, generalSpace, 530, 30, { align: "center" }).stroke();
+        doc.fontSize(9);
+        doc.fillColor('#000', 1);
+        doc
+            .font("Helvetica")
+            .text(testReacMultiples.descripcion, 60, generalSpace + 30, { align: "center" });
 
-    doc
-        .font("Helvetica-Bold")
-        .text('Resultado', 60, generalSpace + 5, { align: "center" });
-    doc
-        .font("Helvetica")
-        .text('Aprobado', 60, generalSpace + 15, { align: "center" });
+        generalSpace += 65;
+        doc.lineJoin("miter").rect(30, generalSpace, 530, 30, { align: "center" }).stroke();
+
+        doc
+            .font("Helvetica-Bold")
+            .text('Resultado', 60, generalSpace + 5, { align: "center" });
+        doc
+            .font("Helvetica")
+            .text(test_espe_reac_multiples.resultado, 60, generalSpace + 15, { align: "center" });
+    }
 
     generalSpace += 60;
     doc.fontSize(9);
     doc.fillColor('#000', 1);
-    doc
-        .font("Helvetica-Bold")
-        .text(testConoTransitoNacional.titulo, 60, generalSpace + 8, { align: "center" })
-        .rect(30, generalSpace, 530, 60)
-        .fillColor('white', 0)
-        .fillAndStroke();
 
-    doc.fontSize(8);
-    doc.fillColor('#000', 1);
-    doc
-        .font("Helvetica")
-        .text(testConoTransitoNacional.descripcion, 60, generalSpace + 30, { align: "center" });
+    //----------------------------------- TEST ESPECIFICO CONOCIMIENTO LEY DE TRANSITO
 
-    generalSpace += 65;
+    if (test_conocimiento_ley_nacional.active) {
+        doc
+            .font("Helvetica-Bold")
+            .text(testConoTransitoNacional.titulo, 60, generalSpace + 8, { align: "center" })
+            .rect(30, generalSpace, 530, 60)
+            .fillColor('white', 0)
+            .fillAndStroke();
 
-    doc.lineJoin("miter").rect(45, generalSpace, 87, 40, { align: "center" }).stroke();
-    doc.lineJoin("miter").rect(140, generalSpace, 280, 40, { align: "center" }).stroke();
-    doc.lineJoin("miter").rect(430, generalSpace, 30, 40, { align: "center" }).stroke();
-    doc.lineJoin("miter").rect(470, generalSpace, 70, 40, { align: "center" }).stroke();
+        doc.fontSize(8);
+        doc.fillColor('#000', 1);
+        doc
+            .font("Helvetica")
+            .text(testConoTransitoNacional.descripcion, 60, generalSpace + 30, { align: "center" });
 
-    generalSpace += 6;
+        generalSpace += 65;
 
-    doc.fontSize(7);
-    doc.fillColor('#000', 1);
-    doc
-        .font("Helvetica-Bold")
-        .text('EXAMENES TEÓRICOS', 52, generalSpace, { align: "left" });
+        doc.lineJoin("miter").rect(45, generalSpace, 87, 40, { align: "center" }).stroke();
+        doc.lineJoin("miter").rect(138, generalSpace, 30, 40, { align: "center" }).stroke();
+        doc.lineJoin("miter").rect(174, generalSpace, 70, 40, { align: "center" }).stroke();
+        doc.lineJoin("miter")
+            .text(test_conocimiento_ley_nacional.obs, 260, generalSpace+5, { align: "left" })
+            .rect(250, generalSpace, 300, 80, { align: "center" }).stroke();
 
-    doc
-        .font("Helvetica-Bold")
-        .text('DE TRÁNSITO', 66, generalSpace + 10, { align: "left" });
+        generalSpace += 6;
 
-    doc
-        .font("Helvetica-Bold")
-        .text('APROBADO', 484, generalSpace + 10, { align: "left" });
+        doc.fontSize(7);
+        doc.fillColor('#000', 1);
+        doc
+            .font("Helvetica-Bold")
+            .text('EXAMENES TEÓRICOS', 52, generalSpace, { align: "left" });
+
+        doc
+            .font("Helvetica-Bold")
+            .text('DE TRÁNSITO', 66, generalSpace + 10, { align: "left" });
+
+        // doc
+        //     .font("Helvetica")
+        //     .text(test_conocimiento_ley_nacional.obs, 146, generalSpace, { align: "left" });
+
+        doc
+            .font("Helvetica-Bold")
+            .text(test_conocimiento_ley_nacional.resultado, 193, generalSpace + 10, { align: "left" });
+    }
 
 
     doc.text(piePageOne[0], 200, doc.page.height - 40, {
