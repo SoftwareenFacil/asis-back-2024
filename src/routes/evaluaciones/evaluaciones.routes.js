@@ -59,6 +59,8 @@ router.post('/evaluacionmanual', async (req, res) => {
   const nombre_servicio = data.nombre_servicio;
   const nombrePdf = `RESULTADO_${data.codigo}_AVERSION_RIESGO.pdf`;
 
+  const objFile = {};
+
   try {
     // generateQR(`${path.resolve("./")}/uploads/qr_sdsdsd.png`, 'sdsdsd');
 
@@ -85,36 +87,23 @@ router.post('/evaluacionmanual', async (req, res) => {
           break;
         case 'Aversión al Riesgo':
           let doc = pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf);
-          // let archivo = fs.statSync(doc);
-          // console.log([archivo]);
-
           break;
       }
 
+      objFile = {
+        name: nombrePdf,
+        size: 0,
+        path: "uploads/" + nombrePdf,
+        type: "application/pdf"
+      }
 
-
-      // fs.readFile(path.resolve("./") + "/uploads/" + nombrePdf, 'utf-8', (err, data) => {
-      //   if(err) {
-      //     console.log('error: ', err);
-      //   } else {
-      //     console.log(data);
-      //   }
-      // });
-
-      // console.log(fs.readFile(path.resolve("./") + "/uploads/" + nombrePdf));
-
-      const result = await db.collection('evaluaciones').updateOne({codigo: data.codigo}, {
-        $set:{
-          url_file_adjunto_EE: {
-            name: nombrePdf,
-            size: 0,
-            path: "uploads/"+nombrePdf,
-            type: "application/pdf"
-          }
+      const result = await db.collection('evaluaciones').updateOne({ codigo: data.codigo }, {
+        $set: {
+          url_file_adjunto_EE: objFile
         }
       });
 
-      res.status(201).json({ msg: 'pdf creado', result });
+      res.status(201).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
     }
     else {
       res.status(400).json({ msg: 'Cliente secundario no encontrado' });
