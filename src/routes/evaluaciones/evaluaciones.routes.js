@@ -59,7 +59,7 @@ router.post('/evaluacionmanual', async (req, res) => {
   const nombre_servicio = data.nombre_servicio;
   const nombrePdf = `RESULTADO_${data.codigo}_AVERSION_RIESGO.pdf`;
 
-  const objFile = {};
+  let objFile = {};
 
   try {
     // generateQR(`${path.resolve("./")}/uploads/qr_sdsdsd.png`, 'sdsdsd');
@@ -86,7 +86,7 @@ router.post('/evaluacionmanual', async (req, res) => {
 
           break;
         case 'Aversión al Riesgo':
-          let doc = pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf);
+          pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf);
           break;
       }
 
@@ -110,8 +110,8 @@ router.post('/evaluacionmanual', async (req, res) => {
     }
 
   } catch (error) {
-    res.json({ msg: 'error al crear el pdf', error })
-    // console.log('error ', error);
+    console.log('error ', error);
+    res.status(400).json({ msg: 'error al crear el pdf', error: error })
   }
 })
 

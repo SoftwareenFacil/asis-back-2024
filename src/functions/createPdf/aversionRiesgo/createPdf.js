@@ -895,6 +895,4 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
   // });
 
   doc.end();
-
-  return doc;
 }
