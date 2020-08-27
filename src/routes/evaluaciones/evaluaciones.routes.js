@@ -110,8 +110,8 @@ router.post('/evaluacionmanual', async (req, res) => {
     }
 
   } catch (error) {
-    res.json({ msg: 'error al crear el pdf' })
-    console.log('error ', error);
+    res.json({ msg: 'error al crear el pdf', error })
+    // console.log('error ', error);
   }
 })
 
