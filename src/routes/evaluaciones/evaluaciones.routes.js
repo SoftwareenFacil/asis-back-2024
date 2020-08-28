@@ -248,33 +248,33 @@ router.post('/evaluacionaversion', async (req, res) => {
 
   let objFile = {};
 
-  generateQR(nombreQR, 'sdsdsds');
+  const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
+  const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
 
-  try {
+  let resultado = '';
+  if (conclusionRiesgos === 1) { resultado = 'Aprobado' } else if (conclusionRiesgos === 2) { resultado = 'Aprobado con obs' } else { resultado = 'No Aprobado' };
 
-    const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
-    const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
+  if (cp && cs) {
+    // generateQR(nombreQR, 'sdsdsds');
 
-    if (cp && cs) {
-      const informacionPersonal = {
-        empresa: cp.razon_social,
-        nombre: cs.razon_social,
-        edad: cs.edad_gi,
-        rut: cs.rut,
-        educacion: cs.nivel_educacional,
-        cargo: cs.cargo,
-        ciudad: cs.localidad,
-        maquinarias_conducir: maquinariasConducir,
-        fecha_evaluacion: conclusionRiesgos === 1 || conclusionRiesgos === 2 ? moment().format('DD-MM-YYYY') : '',
-      };
+    const informacionPersonal = {
+      empresa: cp.razon_social,
+      nombre: cs.razon_social,
+      edad: cs.edad_gi,
+      rut: cs.rut,
+      educacion: cs.nivel_educacional,
+      cargo: cs.cargo,
+      ciudad: cs.localidad,
+      maquinarias_conducir: maquinariasConducir,
+      fecha_evaluacion: conclusionRiesgos === 1 || conclusionRiesgos === 2 ? moment().format('DD-MM-YYYY') : '',
+    };
 
-      let resultado = '';
-      if(conclusionRiesgos === 1){resultado = 'Aprobado'}else if(conclusionRiesgos === 2){resultado = 'Aprobado con obs'}else{resultado = 'No Aprobado'};
+    generateQR(nombreQR,
+      `Cliente principal: ${cp.razon_social} - ${cp.rut} Cliente secundario: ${cs.razon_social} - ${cs.rut} Codigo evaluacion: ${data.codigo} Fecha evaluacion: ${informacionPersonal.fecha_evaluacion} 
+      Resultado: ${resultado}`
+    );
 
-      // generateQR(nombreQR,
-      //   `Cliente principal: ${cp.razon_social} - ${cp.rut} Cliente secundario: ${cs.razon_social} - ${cs.rut} Codigo evaluacion: ${data.codigo} Fecha evaluacion: ${informacionPersonal.fecha_evaluacion} 
-      //   Resultado: ${resultado}`
-      // );
+    try {
 
       objFile = {
         name: nombrePdf,
@@ -292,13 +292,12 @@ router.post('/evaluacionaversion', async (req, res) => {
       pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf, nombreQR, fecha_vigencia);
 
       res.status(200).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
+    } catch (error) {
+      res.json({ msg: 'error al crear el pdf', error: error })
     }
-    else {
-      res.json({ msg: 'Cliente secundario no encontrado' });
-    }
-
-  } catch (error) {
-    res.json({ msg: 'error al crear el pdf', error: error })
+  }
+  else {
+    res.json({ msg: 'Cliente secundario no encontrado' });
   }
 })
 
