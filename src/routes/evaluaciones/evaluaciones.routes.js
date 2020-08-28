@@ -248,7 +248,7 @@ router.post('/evaluacionaversion', async (req, res) => {
 
   let objFile = {};
 
-  // generateQR(nombreQR, 'sdsdsds');
+  generateQR(nombreQR, 'sdsdsds');
 
   try {
 
