@@ -269,10 +269,12 @@ router.post('/evaluacionaversion', async (req, res) => {
       fecha_evaluacion: conclusionRiesgos === 1 || conclusionRiesgos === 2 ? moment().format('DD-MM-YYYY') : '',
     };
 
-    generateQR(nombreQR,
-      `Cliente principal: ${cp.razon_social} - ${cp.rut} Cliente secundario: ${cs.razon_social} - ${cs.rut} Codigo evaluacion: ${data.codigo} Fecha evaluacion: ${informacionPersonal.fecha_evaluacion} 
-      Resultado: ${resultado}`
-    );
+    // generateQR(nombreQR,
+    //   `Cliente principal: ${cp.razon_social} - ${cp.rut} Cliente secundario: ${cs.razon_social} - ${cs.rut} Codigo evaluacion: ${data.codigo} Fecha evaluacion: ${informacionPersonal.fecha_evaluacion} 
+    //   Resultado: ${resultado}`
+    // );
+
+    generateQR(nombreQR, `codigo: ${data.codigo}`);
 
     try {
 
