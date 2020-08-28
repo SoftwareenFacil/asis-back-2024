@@ -1,6 +1,8 @@
 var PDF = require("pdfkit");
 var fs = require("fs");
 var path = require("path");
+var base64 = require('base64-stream');
+
 
 import {
   titles,
@@ -23,7 +25,7 @@ import {
 //APR - Actitud a la prevension de los riesgos
 //MC - Motivacion por el cargo
 
-export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf) {
+export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf, nombreQR, fecha_vigencia) {
   //Intelectual
   const { razonamiento_abstracto, percepcion_concentracion, comprension_instrucciones } = I;
   const { acato_autoridad, relacion_grupo_pares, comportamiento_social } = AN;
@@ -57,7 +59,7 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
   generalSpace += 25;
   doc
     .font("Helvetica-Bold")
-    .text("Este informe tiene vigencia hasta el 31-12-2021", 60, generalSpace, {
+    .text(`Este informe tiene vigencia hasta el ${fecha_vigencia}`, 60, generalSpace, {
       align: "right",
     })
     .rect(290, 140, 252, 20)
@@ -898,6 +900,7 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
 
   generalSpace += 63;
 
+  //--firma
   doc.image(path.resolve("./") + "/src/assets/img/firma_archivos_asis.png", 225, generalSpace, {
     fit: [130, 130],
     align: "center",
@@ -915,14 +918,14 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
     moreSpace += 13;
   });
 
-  // generateQR(`${path.resolve("./")}/uploads/qr_${codeEva}.png`, codeEva);
-
   generalSpace += moreSpace;
-  // doc.image(path.resolve("./") + "/uploads/sdsdsd.png", 225, generalSpace, {
-  //   fit: [90, 90],
-  //   align: "center",
-  //   valign: "center",
-  // });
+
+  //--QR code
+  doc.image(nombreQR, 410, generalSpace - 80, {
+    fit: [100, 100],
+    align: "right",
+    valign: "center",
+  });
 
   doc.end();
 }

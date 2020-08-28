@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+var path = require("path");
 
 export const titles = ['Definición de escala', 'Bajo', 'Promedio', 'Alto'];
 
@@ -143,10 +144,22 @@ export const nameFirma = [
     'ASIS CONSULTORES'
 ];
 
+// export const generateQR = async text => {
+//     QRCode.toDataURL(text)
+//         .then(url => {
+//             console.log(url);
+//             return url.data;
+//         })
+//         .catch(err => {
+//             console.error(err);
+//             return err;
+//         })
+// };
+
 export const generateQR = async (path, text) => {
 
     try {
-        await QRCode.toFile(path, text, {
+        await QRCode.toFile(path , String(text), {
             color: {
                 light: '#000',  // white dots
                 dark: '#0000' // transparent background

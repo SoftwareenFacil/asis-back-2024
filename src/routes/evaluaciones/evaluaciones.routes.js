@@ -6,7 +6,7 @@ var fs = require("fs");
 var path = require("path");
 import pdfAversionRiesgo from "../../functions/createPdf/aversionRiesgo/createPdf";
 import pdfPsicosensotecnico from "../../functions/createPdf/psicosensotecnico/createpdf";
-// import { generateQR } from "../../functions/createPdf/constant";
+import { generateQR } from "../../functions/createPdf/aversionRiesgo/constant";
 var path = require("path");
 // import { getYear } from "../../functions/getYearActual";
 // import { CalculateFechaVenc } from "../../functions/getFechaVenc";
@@ -41,6 +41,7 @@ router.post('/evaluacionpsico', async (req, res) => {
   const data = req.body;
 
   const nombrePdf = `RESULTADO_${data.codigo}_PSICOSENSOTECNICO.pdf`;
+  const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_psicosensotecnico.png`;
 
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
@@ -167,6 +168,7 @@ router.post('/evaluacionpsico', async (req, res) => {
   let objFile = {};
 
   try {
+    generateQR(nombreQR, `${data.codigo} - Psicosensotecnico`);
 
     const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
     const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
@@ -181,7 +183,7 @@ router.post('/evaluacionpsico', async (req, res) => {
         licencia_acreditar: '',
         ley: cs.ley_aplicable,
         vencimiento_licencia: cs.fecha_venc_licencia,
-        observaciones_licencia: '',
+        observaciones_licencia: cs.estado_licencia,
         fecha_examen: moment().format('DD-MM-YYYY'),
         resultado: '',
         restricciones: '',
@@ -190,7 +192,7 @@ router.post('/evaluacionpsico', async (req, res) => {
 
       pdfPsicosensotecnico(informacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia,
         test_psicologico, test_espe_tol_monotonia, test_espe_reac_multiples,
-        test_conocimiento_ley_nacional, nombrePdf);
+        test_conocimiento_ley_nacional, nombrePdf, nombreQR);
 
       objFile = {
         name: nombrePdf,
@@ -239,13 +241,14 @@ router.post('/evaluacionaversion', async (req, res) => {
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
   const maquinariasConducir = data.maquinarias_conducir;
-  const nombre_servicio = data.nombre_servicio;
+  // const nombre_servicio = data.nombre_servicio;
   const nombrePdf = `RESULTADO_${data.codigo}_AVERSION_RIESGO.pdf`;
+  const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_aversionriesgo.png`;
+  const fecha_vigencia = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
 
   let objFile = {};
 
   try {
-    // generateQR(`${path.resolve("./")}/uploads/qr_sdsdsd.png`, 'sdsdsd');
 
     const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
     const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
@@ -263,16 +266,13 @@ router.post('/evaluacionaversion', async (req, res) => {
         fecha_evaluacion: conclusionRiesgos === 1 || conclusionRiesgos === 2 ? moment().format('DD-MM-YYYY') : '',
       };
 
-      pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf);
+      let resultado = '';
+      if(conclusionRiesgos === 1){resultado = 'Aprobado'}else if(conclusionRiesgos === 2){resultado = 'Aprobado con obs'}else{resultado = 'No Aprobado'};
 
-      // switch (nombre_servicio) {
-      //   case 'Psicosensotecnico Riguroso':
-
-      //     break;
-      //   case 'Aversión al Riesgo':
-      //     pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf);
-      //     break;
-      // }
+      generateQR(nombreQR,
+        `Cliente principal: ${cp.razon_social} - ${cp.rut} Cliente secundario: ${cs.razon_social} - ${cs.rut} Codigo evaluacion: ${data.codigo} Fecha evaluacion: ${informacionPersonal.fecha_evaluacion} 
+        Resultado: ${resultado}`
+      );
 
       objFile = {
         name: nombrePdf,
@@ -286,6 +286,8 @@ router.post('/evaluacionaversion', async (req, res) => {
           url_file_adjunto_EE: objFile
         }
       });
+
+      pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf, nombreQR, fecha_vigencia);
 
       res.status(200).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
     }

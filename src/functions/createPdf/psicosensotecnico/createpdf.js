@@ -5,7 +5,7 @@ var path = require("path");
 import { generalInformation, resultadosEvaluaciones, piePageOne, examenesSensometricos, examenesPsicotecnicos, testEspeVelReaccion, examenSomnolencia, testPsicologico, testToleranciaMonotonia, testReacMultiples, testConoTransitoNacional } from "./constant";
 
 export default function createPdf(InformacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia, test_psicologico,
-    test_espe_tol_monotonia, test_espe_reac_multiples, test_conocimiento_ley_nacional, nombrePdf) {
+    test_espe_tol_monotonia, test_espe_reac_multiples, test_conocimiento_ley_nacional, nombrePdf, nombreQR) {
     const doc = new PDF();
     let generalSpace = 30;
     let horizontalSpace = 0;
@@ -721,7 +721,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         doc.lineJoin("miter").rect(138, generalSpace, 30, 40, { align: "center" }).stroke();
         doc.lineJoin("miter").rect(174, generalSpace, 70, 40, { align: "center" }).stroke();
         doc.lineJoin("miter")
-            .text(test_conocimiento_ley_nacional.obs, 260, generalSpace+5, { align: "left" })
+            .text(test_conocimiento_ley_nacional.obs, 260, generalSpace + 5, { align: "left" })
             .rect(250, generalSpace, 300, 80, { align: "center" }).stroke();
 
         generalSpace += 6;
@@ -744,6 +744,13 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
             .font("Helvetica-Bold")
             .text(test_conocimiento_ley_nacional.resultado, 193, generalSpace + 10, { align: "left" });
     }
+
+    //--QR code
+    doc.image(nombreQR, 410, generalSpace + 88, {
+        fit: [100, 100],
+        align: "right",
+        valign: "center",
+    });
 
 
     doc.text(piePageOne[0], 200, doc.page.height - 40, {
