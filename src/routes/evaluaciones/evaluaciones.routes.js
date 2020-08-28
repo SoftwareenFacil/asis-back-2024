@@ -253,6 +253,8 @@ router.post('/evaluacionaversion', async (req, res) => {
 
   let resultado = '';
   if (conclusionRiesgos === 1) { resultado = 'Aprobado' } else if (conclusionRiesgos === 2) { resultado = 'Aprobado con obs' } else { resultado = 'No Aprobado' };
+  
+  generateQR(nombreQR, `codigo: ${data.codigo}`);
 
   if (cp && cs) {
     // generateQR(nombreQR, 'sdsdsds');
@@ -274,7 +276,6 @@ router.post('/evaluacionaversion', async (req, res) => {
     //   Resultado: ${resultado}`
     // );
 
-    generateQR(nombreQR, `codigo: ${data.codigo}`);
 
     try {
 
