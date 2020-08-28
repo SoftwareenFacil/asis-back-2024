@@ -920,12 +920,12 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
 
   generalSpace += moreSpace;
 
-  //--QR code
-  doc.image(nombreQR, 410, generalSpace - 80, {
-    fit: [100, 100],
-    align: "right",
-    valign: "center",
-  });
+  // //--QR code
+  // doc.image(nombreQR, 410, generalSpace - 80, {
+  //   fit: [100, 100],
+  //   align: "right",
+  //   valign: "center",
+  // });
 
   doc.end();
 }

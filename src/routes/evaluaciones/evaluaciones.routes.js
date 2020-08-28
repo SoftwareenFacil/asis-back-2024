@@ -210,12 +210,12 @@ router.post('/evaluacionpsico', async (req, res) => {
       res.status(201).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
     }
     else {
-      res.status(400).json({ msg: 'Cliente secundario no encontrado' });
+      res.json({ msg: 'Cliente secundario no encontrado' });
     }
 
   } catch (error) {
 
-    res.status(400).json({ msg: 'error al crear el pdf', error: error });
+    res.json({ msg: 'error al crear el pdf', error: error });
 
   }
 });
@@ -271,10 +271,10 @@ router.post('/evaluacionaversion', async (req, res) => {
       let resultado = '';
       if(conclusionRiesgos === 1){resultado = 'Aprobado'}else if(conclusionRiesgos === 2){resultado = 'Aprobado con obs'}else{resultado = 'No Aprobado'};
 
-      generateQR(nombreQR,
-        `Cliente principal: ${cp.razon_social} - ${cp.rut} Cliente secundario: ${cs.razon_social} - ${cs.rut} Codigo evaluacion: ${data.codigo} Fecha evaluacion: ${informacionPersonal.fecha_evaluacion} 
-        Resultado: ${resultado}`
-      );
+      // generateQR(nombreQR,
+      //   `Cliente principal: ${cp.razon_social} - ${cp.rut} Cliente secundario: ${cs.razon_social} - ${cs.rut} Codigo evaluacion: ${data.codigo} Fecha evaluacion: ${informacionPersonal.fecha_evaluacion} 
+      //   Resultado: ${resultado}`
+      // );
 
       objFile = {
         name: nombrePdf,
@@ -294,7 +294,7 @@ router.post('/evaluacionaversion', async (req, res) => {
       res.status(200).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
     }
     else {
-      res.status(400).json({ msg: 'Cliente secundario no encontrado' });
+      res.json({ msg: 'Cliente secundario no encontrado' });
     }
 
   } catch (error) {
