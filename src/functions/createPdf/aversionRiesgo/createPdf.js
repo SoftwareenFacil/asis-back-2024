@@ -846,30 +846,60 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
   doc.lineJoin("miter").rect(223, generalSpace + 2, 165, 15).stroke();
   doc.lineJoin("miter").rect(395, generalSpace + 2, 165, 15).stroke();
 
-  doc.fontSize(11);
-
   switch (conclusionRiesgos) {
     case 1:
+      doc.fontSize(11);
       doc
         .font("Helvetica-Bold")
         .text('X', 130, generalSpace + 5, { align: "left" });
+      doc.fontSize(9);
+      doc.fillColor('grey')
+        .text('De los resultados se desprende que el ', 60, generalSpace + 25, {
+          align: 'left',
+          continued: true
+        }).fillColor('black')
+        .text('SR./SRA ACTUALMENTE NO PRESENTA CONDUCTAS DE RIESGO')
+        .fillColor('grey')
+        .text('desde el punto de vista psicológico');
       break;
 
     case 2:
+      doc.fontSize(11);
       doc
         .font("Helvetica-Bold")
         .text('X', 300, generalSpace + 5, { align: "left" });
+      doc.fontSize(9);
+      doc.fillColor('grey')
+        .text('De los resultados se desprende que el ', 60, generalSpace + 25, {
+          align: 'left',
+          continued: true
+        }).fillColor('black')
+        .text('SR./SRA ACTUALMENTE PRESENTA BAJAS CONDUCTAS DE RIESGO')
+        .fillColor('grey')
+        .text('desde el punto de vista psicológico');
       break;
 
     case 3:
+      doc.fontSize(11);
       doc
         .font("Helvetica-Bold")
         .text('X', 470, generalSpace + 5, { align: "left" });
+      doc.fontSize(9);
+      doc.fillColor('grey')
+        .text('De los resultados se desprende que el ', 60, generalSpace + 25, {
+          align: 'left',
+          continued: true
+        }).fillColor('black')
+        .text('SR./SRA ACTUALMENTE PRESENTA ALTAS CONDUCTAS DE RIESGO')
+        .fillColor('grey')
+        .text('desde el punto de vista psicológico');
       break;
   }
 
+  generalSpace += 63;
+
   doc.image(path.resolve("./") + "/src/assets/img/firma_archivos_asis.png", 225, generalSpace, {
-    fit: [155, 155],
+    fit: [130, 130],
     align: "center",
     valign: "center",
   });
