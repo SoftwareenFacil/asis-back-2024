@@ -248,6 +248,8 @@ router.post('/evaluacionaversion', async (req, res) => {
 
   let objFile = {};
 
+  // generateQR(nombreQR, 'sdsdsds');
+
   try {
 
     const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
@@ -296,7 +298,7 @@ router.post('/evaluacionaversion', async (req, res) => {
     }
 
   } catch (error) {
-    res.status(400).json({ msg: 'error al crear el pdf', error: error })
+    res.json({ msg: 'error al crear el pdf', error: error })
   }
 })
 
