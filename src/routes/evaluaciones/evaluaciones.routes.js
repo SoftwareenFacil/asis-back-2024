@@ -246,15 +246,17 @@ router.post('/evaluacionaversion', async (req, res) => {
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_aversionriesgo.png`;
   const fecha_vigencia = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
 
+  let resultado = '';
+  if (conclusionRiesgos === 1) { resultado = 'Aprobado' } else if (conclusionRiesgos === 2) { resultado = 'Aprobado con obs' } else { resultado = 'No Aprobado' };
+
+  generateQR(nombreQR,
+    `Cliente principal: ${rutClientePrincipal} Cliente secundario: ${rutClienteSecundario} Codigo evaluacion: ${data.codigo} Resultado: ${resultado}`
+  );
+
   let objFile = {};
 
   const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
   const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
-
-  let resultado = '';
-  if (conclusionRiesgos === 1) { resultado = 'Aprobado' } else if (conclusionRiesgos === 2) { resultado = 'Aprobado con obs' } else { resultado = 'No Aprobado' };
-  
-  generateQR(nombreQR, `codigo: ${data.codigo}`);
 
   if (cp && cs) {
     // generateQR(nombreQR, 'sdsdsds');
