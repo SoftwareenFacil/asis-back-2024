@@ -73,7 +73,7 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
     .text("I    Información Personal", 60, generalSpace, { align: "left" });
 
   //2 .- Creacion de tabla para informacion general
-  generalSpace += 30;
+  generalSpace += 15;
   generalInformation.forEach(function (e) {
     doc.lineJoin("miter").rect(50, generalSpace, 200, 15).stroke();
     doc.font("Helvetica-Bold").text(e, 60, generalSpace + 4, { align: "left" });
@@ -83,7 +83,8 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
   });
 
   generalSpace -= 135;
-  doc.font("Helvetica").text(informacionPersonal.empresa, 260, generalSpace + 4, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.empresa, 260, generalSpace - 10, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.evaluador, 260, generalSpace + 4, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.nombre, 260, generalSpace + 19, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.edad, 260, generalSpace + 35, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.rut, 260, generalSpace + 50, { align: "left" });

@@ -5,6 +5,7 @@ export const titles = ['Definición de escala', 'Bajo', 'Promedio', 'Alto'];
 
 export const generalInformation = [
     'Empresa',
+    'Evaluador',
     'Nombre',
     'Edad',
     'RUT',
@@ -143,18 +144,6 @@ export const nameFirma = [
     'Psicólogo',
     'ASIS CONSULTORES'
 ];
-
-// export const generateQR = async text => {
-//     QRCode.toDataURL(text)
-//         .then(url => {
-//             console.log(url);
-//             return url.data;
-//         })
-//         .catch(err => {
-//             console.error(err);
-//             return err;
-//         })
-// };
 
 export const generateQR = async (path, text) => {
 

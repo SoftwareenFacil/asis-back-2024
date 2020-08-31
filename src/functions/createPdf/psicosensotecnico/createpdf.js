@@ -717,14 +717,50 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
         generalSpace += 65;
 
+        //-- titulos examenes y cuadros
         doc.lineJoin("miter").rect(45, generalSpace, 87, 40, { align: "center" }).stroke();
-        doc.lineJoin("miter").rect(138, generalSpace, 30, 40, { align: "center" }).stroke();
-        doc.lineJoin("miter").rect(174, generalSpace, 70, 40, { align: "center" }).stroke();
         doc.lineJoin("miter")
-            .text(test_conocimiento_ley_nacional.obs, 260, generalSpace + 5, { align: "left" })
-            .rect(250, generalSpace, 300, 80, { align: "center" }).stroke();
+            .rect(140, generalSpace, 200, 80, { align: "center" }).stroke();
+        doc.lineJoin("miter").rect(420, generalSpace, 40, 80, { align: "center" }).stroke();
+        doc.lineJoin("miter").rect(480, generalSpace, 70, 80, { align: "center" }).stroke();
+
 
         generalSpace += 6;
+
+        //------------- conocimientos
+        doc
+            .font("Helvetica")
+            .text('Conocimientos legales', 150, generalSpace, { align: "left" });
+        doc
+            .font("Helvetica")
+            .text('Conocimientos reglamentarios', 150, generalSpace + 15, { align: "left" });
+        doc
+            .font("Helvetica")
+            .text('Conocimientos de mecánica', 150, generalSpace + 30, { align: "left" });
+        doc
+            .font("Helvetica")
+            .text('Conocimientos de señales viales', 150, generalSpace + 45, { align: "left" });
+        doc
+            .font("Helvetica")
+            .text('Conducta vial', 150, generalSpace + 60, { align: "left" });
+
+        //------------- porcentajes
+
+        doc
+            .font("Helvetica-Bold")
+            .text(`${test_conocimiento_ley_nacional.porce_conocimientos_legales}%`, 434, generalSpace, { align: "left" });
+        doc
+            .font("Helvetica-Bold")
+            .text(`${test_conocimiento_ley_nacional.porce_conocimientos_reglamentarios}%`, 434, generalSpace + 15, { align: "left" });
+        doc
+            .font("Helvetica-Bold")
+            .text(`${test_conocimiento_ley_nacional.porce_conocimientos_mecanica}%`, 434, generalSpace + 30, { align: "left" });
+        doc
+            .font("Helvetica-Bold")
+            .text(`${test_conocimiento_ley_nacional.porce_conocimientos_senales_viales}%`, 434, generalSpace + 45, { align: "left" });
+        doc
+            .font("Helvetica-Bold")
+            .text(`${test_conocimiento_ley_nacional.porce_conducta_vial}%`, 434, generalSpace + 60, { align: "left" });
 
         doc.fontSize(7);
         doc.fillColor('#000', 1);
@@ -736,17 +772,13 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
             .font("Helvetica-Bold")
             .text('DE TRÁNSITO', 66, generalSpace + 10, { align: "left" });
 
-        // doc
-        //     .font("Helvetica")
-        //     .text(test_conocimiento_ley_nacional.obs, 146, generalSpace, { align: "left" });
-
         doc
             .font("Helvetica-Bold")
-            .text(test_conocimiento_ley_nacional.resultado, 193, generalSpace + 10, { align: "left" });
+            .text(test_conocimiento_ley_nacional.resultado, 497, generalSpace + 30, { align: "left" });
     }
 
     //--QR code
-    doc.image(nombreQR, 410, generalSpace + 88, {
+    doc.image(nombreQR, 410, generalSpace + 98, {
         fit: [100, 100],
         align: "right",
         valign: "center",

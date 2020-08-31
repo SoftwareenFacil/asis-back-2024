@@ -15,7 +15,7 @@ const router = Router();
 
 //database connection
 import { connect } from "../../database";
-import { ObjectID } from "mongodb";
+import { ObjectID, ObjectId } from "mongodb";
 import { conclusion } from "../../functions/createPdf/aversionRiesgo/constant";
 
 //SELECT
@@ -162,7 +162,11 @@ router.post('/evaluacionpsico', async (req, res) => {
   const test_conocimiento_ley_nacional = {
     active: data.is_ley_transito,
     resultado: data.test_estado_ley_transito,
-    obs: data.test_obs_ley_transito
+    porce_conocimientos_legales: data.porcentaje_legales,
+    porce_conocimientos_reglamentarios: data.porcentaje_reglamentarios,
+    porce_conocimientos_mecanica: data.porcentaje_mecanica,
+    porce_conocimientos_senales_viales: data.porcentaje_señales_viales,
+    porce_conducta_vial: data.porcentaje_conducta_vial
   }
 
   let objFile = {};
@@ -257,13 +261,13 @@ router.post('/evaluacionaversion', async (req, res) => {
   
   const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
   const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
+  const pa = await db.collection('gi').findOne({ _id: ObjectId(data.id_profesional_asignado)});
   
 
-  if (cp && cs) {
-    // generateQR(nombreQR, 'sdsdsds');
-
+  if (cp && cs && pa) {
     const informacionPersonal = {
       empresa: cp.razon_social,
+      evaluador: pa.razon_social,
       nombre: cs.razon_social,
       edad: cs.edad_gi,
       rut: cs.rut,
@@ -273,6 +277,7 @@ router.post('/evaluacionaversion', async (req, res) => {
       maquinarias_conducir: maquinariasConducir,
       fecha_evaluacion: conclusionRiesgos === 1 || conclusionRiesgos === 2 ? moment().format('DD-MM-YYYY') : '',
     };
+    console.log('informacionPersonal', informacionPersonal)
 
     try {
 
