@@ -25,7 +25,7 @@ import {
 //APR - Actitud a la prevension de los riesgos
 //MC - Motivacion por el cargo
 
-export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf, nombreQR, fecha_vigencia) {
+export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informacionPersonal, nombrePdf, nombreQR, fecha_vigencia, observacionConclusion) {
   //Intelectual
   const { razonamiento_abstracto, percepcion_concentracion, comprension_instrucciones } = I;
   const { acato_autoridad, relacion_grupo_pares, comportamiento_social } = AN;
@@ -34,9 +34,60 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
   const { orientacion_tarea, energia_vital } = MC;
   let generalSpace = 0;
   let moreSpace = 5;
-  let codeEva = 'ASIS-EVA-2020-000012';
-  let strengths = 'Ea aliquip nostrud cillum adipisicing proident dolor id commodo anim velit in aliqua excepteur. Dolor labore non adipisicing velit incididunt commodo Lorem laboris in. Ex duis incididunt commodo id. Ex aute nostrud laborum dolor. Qui consequat amet nostrud cupidatat consectetur ut deserunt quis. Occaecat commodo nisi ipsum irure do dolore consectetur.';
-  let bettersAreas = 'Sunt aute est ex labore ad ex cupidatat culpa. Ullamco id aliqua amet deserunt ut ullamco Lorem elit duis. Minim quis quis magna ut duis consectetur deserunt consequat occaecat nisi. Aute non in dolor quis. Est dolore aliquip sunt excepteur labore fugiat proident. Adipisicing labore cillum nulla cupidatat minim tempor do veniam.';
+  let fortalezas = [
+    {
+      id: 1,
+      nombre: 'Intelectual',
+      items: []
+    },
+    {
+      id: 2,
+      nombre: 'Adecuación a las Normas',
+      items: []
+    },
+    {
+      id: 3,
+      nombre: 'Estabilidad emocional',
+      items: []
+    },
+    {
+      id: 4,
+      nombre: 'Actitud a la prevensión de los riesgos',
+      items: []
+    },
+    {
+      id: 5,
+      nombre: 'Motivación por el cargo',
+      items: []
+    }
+  ];
+  let areas_mejorar = [
+    {
+      id: 1,
+      nombre: 'Intelectual',
+      items: []
+    },
+    {
+      id: 2,
+      nombre: 'Adecuación a las Normas',
+      items: []
+    },
+    {
+      id: 3,
+      nombre: 'Estabilidad emocional',
+      items: []
+    },
+    {
+      id: 4,
+      nombre: 'Actitud a la prevensión de los riesgos',
+      items: []
+    },
+    {
+      id: 5,
+      nombre: 'Motivación por el cargo',
+      items: []
+    }
+  ];
   const doc = new PDF();
 
   //-----------------------------------------PDF------------------------------------------------
@@ -153,19 +204,6 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
     doc
       .font("Helvetica")
       .text(e.name, 210, generalSpace + 3, { align: "left" });
-
-    // if (e.bajo)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 393, generalSpace + 5, { align: "left" });
-    // if (e.promedio)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 462, generalSpace + 5, { align: "left" });
-    // if (e.alto)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 530, generalSpace + 5, { align: "left" });
   });
 
   generalSpace -= 30;
@@ -176,16 +214,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[0].items.push('Razonamiento abstracto');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[0].items.push('Razonamiento abstracto');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[0].items.push('Razonamiento abstracto');
       break;
   }
 
@@ -196,16 +237,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[0].items.push('Persepción y concentración');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[0].items.push('Persepción y concentración');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[0].items.push('Persepción y concentración');
       break;
   }
 
@@ -216,16 +260,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[0].items.push('Comprensión de instrucciones');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[0].items.push('Comprensión de instrucciones');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[0].items.push('Comprensión de instrucciones');
       break;
   }
 
@@ -278,19 +325,6 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       .font("Helvetica")
       .text(e.name, 210, generalSpace + 3, { align: "left" });
 
-    //----marcas de resultado
-    // if (e.bajo)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 393, generalSpace + 5, { align: "left" });
-    // if (e.promedio)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 462, generalSpace + 5, { align: "left" });
-    // if (e.alto)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 530, generalSpace + 5, { align: "left" });
   });
 
   generalSpace -= 30;
@@ -300,16 +334,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[1].items.push('Acato a la autoridad');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[1].items.push('Acato a la autoridad');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[1].items.push('Acato a la autoridad');
       break;
   }
 
@@ -320,16 +357,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[1].items.push('Relación con grupos de pares');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[1].items.push('Relación con grupos de pares');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[1].items.push('Relación con grupos de pares');
       break;
   }
 
@@ -340,16 +380,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[1].items.push('Comportamiento social');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[1].items.push('Comportamiento social');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[1].items.push('Comportamiento social');
       break;
   }
 
@@ -401,20 +444,6 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
     doc
       .font("Helvetica")
       .text(e.name, 210, generalSpace + 3, { align: "left" });
-
-    //----marcas de resultado
-    // if (e.bajo)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 393, generalSpace + 5, { align: "left" });
-    // if (e.promedio)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 462, generalSpace + 5, { align: "left" });
-    // if (e.alto)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 530, generalSpace + 5, { align: "left" });
   });
 
   generalSpace -= 45;
@@ -424,16 +453,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[2].items.push('Locus de control / impulsivilidad');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[2].items.push('Locus de control / impulsivilidad');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[2].items.push('Locus de control / impulsivilidad');
       break;
   }
 
@@ -444,16 +476,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[2].items.push('Manejo de la frustración');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[2].items.push('Manejo de la frustración');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[2].items.push('Manejo de la frustración');
       break;
   }
 
@@ -464,16 +499,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[2].items.push('Empatía');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[2].items.push('Empatía');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[2].items.push('Empatía');
       break;
   }
 
@@ -484,16 +522,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[2].items.push('Grado de ansiedad');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[2].items.push('Grado de ansiedad');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[2].items.push('Grado de ansiedad');
       break;
   }
 
@@ -552,20 +593,6 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       moreSpace += 9;
     });
 
-    //----marcas de resultado
-    // if (e.bajo)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 393, generalSpace + 14, { align: "left" });
-    // if (e.promedio)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 462, generalSpace + 14, { align: "left" });
-    // if (e.alto)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 530, generalSpace + 14, { align: "left" });
-
     generalSpace += 40;
   });
 
@@ -576,16 +603,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[3].items.push('Actitud general hacia la prevensión de accidentes de trabajo');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[3].items.push('Actitud general hacia la prevensión de accidentes de trabajo');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[3].items.push('Actitud general hacia la prevensión de accidentes de trabajo');
       break;
   }
 
@@ -596,16 +626,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[3].items.push('Confianza en acciones realizadas');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[3].items.push('Confianza en acciones realizadas');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[3].items.push('Confianza en acciones realizadas');
       break;
   }
 
@@ -633,20 +666,6 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       moreSpace += 10;
     });
 
-    //----marcas de resultado
-    // if (e.bajo)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 393, generalSpace + 14, { align: "left" });
-    // if (e.promedio)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 462, generalSpace + 14, { align: "left" });
-    // if (e.alto)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 530, generalSpace + 14, { align: "left" });
-
     generalSpace += 40;
   });
 
@@ -657,16 +676,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 12, { align: "left" });
+      areas_mejorar[3].items.push('Capacidad para modificar el ambiente a favor de la seguridad');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 12, { align: "left" });
+      fortalezas[3].items.push('Capacidad para modificar el ambiente a favor de la seguridad');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 12, { align: "left" });
+      fortalezas[3].items.push('Capacidad para modificar el ambiente a favor de la seguridad');
       break;
   }
 
@@ -720,20 +742,6 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
     doc
       .font("Helvetica")
       .text(e.name, 210, generalSpace + 3, { align: "left" });
-
-    //----marcas de resultado
-    // if (e.bajo)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 393, generalSpace + 5, { align: "left" });
-    // if (e.promedio)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 462, generalSpace + 5, { align: "left" });
-    // if (e.alto)
-    //   doc
-    //     .font("Helvetica-Bold")
-    //     .text("X", 530, generalSpace + 5, { align: "left" });
   });
 
   generalSpace -= 15;
@@ -743,16 +751,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[4].items.push('Orientación a la tarea');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[4].items.push('Orientación a la tarea');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[4].items.push('Orientación a la tarea');
       break;
   }
 
@@ -763,16 +774,19 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
+      areas_mejorar[4].items.push('Energia vital');
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
+      fortalezas[4].items.push('Energia vital');
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
+      fortalezas[4].items.push('Energia vital');
       break;
   }
 
@@ -792,37 +806,100 @@ export default function createPdf(I, AN, EE, APR, MC, fortalezas, areas_mejorar,
     .text('Fortalezas', 55, generalSpace + 4, { align: "left" });
 
   generalSpace += 16;
-  doc.lineJoin("miter").rect(50, generalSpace + 2, 510, 130).stroke();
+  doc.lineJoin("miter").rect(50, generalSpace + 2, 510, 230).stroke();
 
   generalSpace += 5;
   moreSpace = 5;
-
+  doc.fillColor('#000', 1);
+  doc.fontSize(8);
   doc
     .font("Helvetica")
-    .text(fortalezas, 60, generalSpace + 4, { align: "left" });
+    .text('El evaluado presenta las siguientes fortalezas :', 60, generalSpace + 4, { align: "left" });
 
-  generalSpace += 135;
+  generalSpace += 25;
+
+  //--array fortalezas
+  fortalezas.forEach(fortaleza => {
+    if (fortaleza.items.length > 0) {
+      doc
+        .font("Helvetica-Bold")
+        .text(fortaleza.nombre, 60, generalSpace + 4, { align: "left" });
+
+      fortaleza.items.forEach((item, index) => {
+        doc
+          .font("Helvetica")
+          .text(`${index + 1} .- ${item}`, 260, generalSpace + 4, { align: "left" });
+
+        generalSpace += 10;
+      });
+    }
+
+    generalSpace += 10;
+  });
+  //--
+  generalSpace += 20;
   doc.lineJoin("miter").rect(50, generalSpace + 2, 510, 15).stroke();
 
   doc
     .font("Helvetica-Bold")
     .text('Areas a mejorar', 55, generalSpace + 5, { align: "left" });
 
+
   generalSpace += 18;
-  doc.lineJoin("miter").rect(50, generalSpace + 2, 510, 60).stroke();
+  doc.lineJoin("miter").rect(50, generalSpace + 2, 510, 200).stroke();
+
+  generalSpace += 10;
 
   doc
     .font("Helvetica")
-    .text(areas_mejorar, 60, generalSpace + 8, { align: "left" });
+    .text('El evaluado presenta las siguientes areas a mejorar :', 60, generalSpace + 4, { align: "left" });
+
+  //--array areas a mejorar
+  areas_mejorar.forEach(area => {
+    if (area.items.length > 0) {
+      doc
+        .font("Helvetica-Bold")
+        .text(area.nombre, 60, generalSpace + 4, { align: "left" });
+
+      area.items.forEach((item, index) => {
+        doc
+          .font("Helvetica")
+          .text(`${index + 1} .- ${item}`, 260, generalSpace + 4, { align: "left" });
+
+        generalSpace += 10;
+      });
+    }
+
+    generalSpace += 10;
+  });
+
+
+
+
+
 
   //--------------------------------------------------------------------Conclusión
-  generalSpace += 75;
+  doc.addPage();
+  generalSpace = 20;
   doc
     .font("Helvetica-Bold")
     .text('IV    Conclusión', 60, generalSpace + 4, { align: "left" });
 
-  //----------------titulos
   generalSpace += 18;
+  doc.lineJoin("miter").rect(50, generalSpace + 2, 510, 15).stroke();
+
+  doc
+    .font("Helvetica-Bold")
+    .text('Observaciones', 55, generalSpace + 5, { align: "left" });
+
+  doc.lineJoin("miter").rect(50, generalSpace + 2, 510, 130).stroke();
+
+  doc
+    .font("Helvetica")
+    .text(observacionConclusion, 60, generalSpace + 23, { align: "left" });
+
+  //----------------titulos
+  generalSpace += 148;
   moreSpace = 5;
 
   doc.lineJoin("miter").rect(50, generalSpace + 2, 165, 50).stroke();

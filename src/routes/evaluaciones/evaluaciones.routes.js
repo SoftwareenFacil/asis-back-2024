@@ -245,6 +245,7 @@ router.post('/evaluacionaversion', async (req, res) => {
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
   const maquinariasConducir = data.maquinaria;
+  const observacionConclusion = data.observaciones_conclusion;
   // const nombre_servicio = data.nombre_servicio;
   const nombrePdf = `RESULTADO_${data.codigo}_AVERSION_RIESGO.pdf`;
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_aversionriesgo.png`;
@@ -277,7 +278,6 @@ router.post('/evaluacionaversion', async (req, res) => {
       maquinarias_conducir: maquinariasConducir,
       fecha_evaluacion: conclusionRiesgos === 1 || conclusionRiesgos === 2 ? moment().format('DD-MM-YYYY') : '',
     };
-    console.log('informacionPersonal', informacionPersonal)
 
     try {
 
@@ -294,7 +294,7 @@ router.post('/evaluacionaversion', async (req, res) => {
         }
       });
 
-      pdfAversionRiesgo(I, AN, EE, APR, MC, fortalezas, areas_mejorar, conclusionRiesgos, informacionPersonal, nombrePdf, nombreQR, fecha_vigencia);
+      pdfAversionRiesgo(I, AN, EE, APR, MC, conclusionRiesgos, informacionPersonal, nombrePdf, nombreQR, fecha_vigencia, observacionConclusion);
 
       res.status(200).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
     } catch (error) {
