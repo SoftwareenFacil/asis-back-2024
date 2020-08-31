@@ -240,7 +240,7 @@ router.post('/evaluacionaversion', async (req, res) => {
   const conclusionRiesgos = data.conclusion;
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
-  const maquinariasConducir = data.maquinarias_conducir;
+  const maquinariasConducir = data.maquinaria;
   // const nombre_servicio = data.nombre_servicio;
   const nombrePdf = `RESULTADO_${data.codigo}_AVERSION_RIESGO.pdf`;
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_aversionriesgo.png`;
@@ -249,14 +249,15 @@ router.post('/evaluacionaversion', async (req, res) => {
   let resultado = '';
   if (conclusionRiesgos === 1) { resultado = 'Aprobado' } else if (conclusionRiesgos === 2) { resultado = 'Aprobado con obs' } else { resultado = 'No Aprobado' };
 
+  
+  let objFile = {};
+  
+  const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
+  const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
+  
   generateQR(nombreQR,
     `Cliente principal: ${rutClientePrincipal} Cliente secundario: ${rutClienteSecundario} Codigo evaluacion: ${data.codigo} Resultado: ${resultado}`
   );
-
-  let objFile = {};
-
-  const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
-  const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
 
   if (cp && cs) {
     // generateQR(nombreQR, 'sdsdsds');
