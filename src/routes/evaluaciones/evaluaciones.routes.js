@@ -247,17 +247,17 @@ router.post('/evaluacionaversion', async (req, res) => {
   const fecha_vigencia = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
 
   let resultado = '';
-  if (conclusionRiesgos === 1) { resultado = 'Aprobado' } else if (conclusionRiesgos === 2) { resultado = 'Aprobado con obs' } else { resultado = 'No Aprobado' };
+  if (conclusionRiesgos === 1) { resultado = 'No representa conductas de riesgos' } else if (conclusionRiesgos === 2) { resultado = 'Presenta bajas conductas de riesgos' } else { resultado = 'Presenta altas conductas de riesgos' };
 
+  generateQR(nombreQR,
+    `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Fecha vigencia: ${fecha_vigencia} Resultado: ${resultado}`
+  );
   
   let objFile = {};
   
   const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
   const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
   
-  generateQR(nombreQR,
-    `Cliente principal: ${rutClientePrincipal} Cliente secundario: ${rutClienteSecundario} Codigo evaluacion: ${data.codigo} Resultado: ${resultado}`
-  );
 
   if (cp && cs) {
     // generateQR(nombreQR, 'sdsdsds');
@@ -273,12 +273,6 @@ router.post('/evaluacionaversion', async (req, res) => {
       maquinarias_conducir: maquinariasConducir,
       fecha_evaluacion: conclusionRiesgos === 1 || conclusionRiesgos === 2 ? moment().format('DD-MM-YYYY') : '',
     };
-
-    // generateQR(nombreQR,
-    //   `Cliente principal: ${cp.razon_social} - ${cp.rut} Cliente secundario: ${cs.razon_social} - ${cs.rut} Codigo evaluacion: ${data.codigo} Fecha evaluacion: ${informacionPersonal.fecha_evaluacion} 
-    //   Resultado: ${resultado}`
-    // );
-
 
     try {
 
