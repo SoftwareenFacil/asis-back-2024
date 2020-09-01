@@ -5,7 +5,6 @@ export const titles = ['Definición de escala', 'Bajo', 'Promedio', 'Alto'];
 
 export const generalInformation = [
     'Empresa',
-    'Evaluador',
     'Nombre',
     'Edad',
     'RUT',
@@ -13,6 +12,7 @@ export const generalInformation = [
     'Cargo',
     'Maquinarias a Conducir',
     'Ciudad de referencia',
+    'Evaluador',
     'Fecha de Evaluación'
 ];
 

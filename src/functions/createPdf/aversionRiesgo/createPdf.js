@@ -34,6 +34,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   const { orientacion_tarea, energia_vital } = MC;
   let generalSpace = 0;
   let moreSpace = 5;
+  let elecciones = ['Promedio/Alto: Frase Promedio/Alto', 'Bajo: Frase Bajo'];
   let fortalezas = [
     {
       id: 1,
@@ -135,14 +136,14 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
 
   generalSpace -= 135;
   doc.font("Helvetica").text(informacionPersonal.empresa, 260, generalSpace - 10, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.evaluador, 260, generalSpace + 4, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.nombre, 260, generalSpace + 19, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.edad, 260, generalSpace + 35, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.rut, 260, generalSpace + 50, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.educacion, 260, generalSpace + 65, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.cargo, 260, generalSpace + 80, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.maquinarias_conducir, 260, generalSpace + 95, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.ciudad, 260, generalSpace + 110, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.nombre, 260, generalSpace + 4, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.edad, 260, generalSpace + 19, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.rut, 260, generalSpace + 35, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.educacion, 260, generalSpace + 50, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.cargo, 260, generalSpace + 65, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.maquinarias_conducir, 260, generalSpace + 80, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.ciudad, 260, generalSpace + 95, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.evaluador, 260, generalSpace + 110, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.fecha_evaluacion, 260, generalSpace + 125, { align: "left" });
 
   generalSpace += 135
@@ -695,7 +696,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   generalSpace += 40;
 
   //--------------------------------------------------------------------Motivacion por el cargo
-  generalSpace += 15;
+  generalSpace += 8;
   doc.fontSize(10);
   doc
     .font("Helvetica-Bold")
@@ -791,13 +792,17 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   }
 
   //5 .- Analisis cualitativo
+  //----------------FORTALEZAS
+  let heightCuantitativo = 22;
+  let spaceCuantitativo = 160;
+
   doc.fontSize(9);
-  generalSpace += 40;
+  generalSpace += 30;
   doc
     .font("Helvetica-Bold")
     .text("III    Análisis cualitativo", 60, generalSpace, { align: "left" });
 
-  generalSpace += 30;
+  generalSpace += 20;
   //----cabecera
   doc.lineJoin("miter").rect(50, generalSpace, 510, 15).stroke();
   //titulo cabecera
@@ -805,10 +810,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .font("Helvetica-Bold")
     .text('Fortalezas', 55, generalSpace + 4, { align: "left" });
 
-  generalSpace += 16;
-  doc.lineJoin("miter").rect(50, generalSpace + 2, 510, 230).stroke();
-
-  generalSpace += 5;
+  generalSpace += 20;
   moreSpace = 5;
   doc.fillColor('#000', 1);
   doc.fontSize(8);
@@ -816,63 +818,76 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .font("Helvetica")
     .text('El evaluado presenta las siguientes fortalezas :', 60, generalSpace + 4, { align: "left" });
 
-  generalSpace += 25;
+  // generalSpace += 15;
 
   //--array fortalezas
   fortalezas.forEach(fortaleza => {
     if (fortaleza.items.length > 0) {
+      generalSpace += 18;
+      heightCuantitativo += 18;
       doc
         .font("Helvetica-Bold")
         .text(fortaleza.nombre, 60, generalSpace + 4, { align: "left" });
 
+
       fortaleza.items.forEach((item, index) => {
+        generalSpace += 10;
+        heightCuantitativo += 10;
         doc
           .font("Helvetica")
-          .text(`${index + 1} .- ${item}`, 260, generalSpace + 4, { align: "left" });
+          .text(`${index + 1} .- ${item}`, 60, generalSpace + 4, { align: "left" });
+        doc
+          .font("Helvetica")
+          .text(elecciones[0], 60, generalSpace + 4, { align: "right" });
 
-        generalSpace += 10;
       });
     }
-
-    generalSpace += 10;
   });
-  //--
-  generalSpace += 20;
-  doc.lineJoin("miter").rect(50, generalSpace + 2, 510, 15).stroke();
 
+  doc.lineJoin("miter").rect(50, spaceCuantitativo, 510, heightCuantitativo).stroke();
+
+
+  //--AREAS A MEJORAR
+  spaceCuantitativo += heightCuantitativo + 10;
+  heightCuantitativo = 22;
+  doc.lineJoin("miter").rect(50, spaceCuantitativo, 510, 15).stroke();
   doc
     .font("Helvetica-Bold")
-    .text('Areas a mejorar', 55, generalSpace + 5, { align: "left" });
+    .text('Areas a mejorar', 55, spaceCuantitativo + 5, { align: "left" });
 
-
-  generalSpace += 18;
-  doc.lineJoin("miter").rect(50, generalSpace + 2, 510, 200).stroke();
-
-  generalSpace += 10;
+  spaceCuantitativo += 24;
 
   doc
     .font("Helvetica")
-    .text('El evaluado presenta las siguientes areas a mejorar :', 60, generalSpace + 4, { align: "left" });
+    .text('El evaluado presenta las siguientes areas a mejorar :', 60, spaceCuantitativo, { align: "left" });
 
   //--array areas a mejorar
   areas_mejorar.forEach(area => {
     if (area.items.length > 0) {
+      heightCuantitativo += 18;
+      spaceCuantitativo += 18;
       doc
         .font("Helvetica-Bold")
-        .text(area.nombre, 60, generalSpace + 4, { align: "left" });
+        .text(area.nombre, 60, spaceCuantitativo + 4, { align: "left" });
+
 
       area.items.forEach((item, index) => {
+        spaceCuantitativo += 10;
+        heightCuantitativo += 10;
         doc
           .font("Helvetica")
-          .text(`${index + 1} .- ${item}`, 260, generalSpace + 4, { align: "left" });
-
-        generalSpace += 10;
+          .text(`${index + 1} .- ${item}`, 60, spaceCuantitativo + 4, { align: "left" });
+        doc
+          .font("Helvetica")
+          .text(elecciones[1], 60, spaceCuantitativo + 4, { align: "right" });
       });
     }
-
-    generalSpace += 10;
   });
 
+  generalSpace += 46;
+
+  // spaceCuantitativo += heightCuantitativo + 300;
+  doc.lineJoin("miter").rect(50, generalSpace, 510, heightCuantitativo).stroke();
 
 
 
