@@ -40,12 +40,17 @@ router.post('/evaluacionpsico', async (req, res) => {
   const db = await connect();
   const data = req.body;
 
+  const resultado = data.resultado;
+  const restricciones = data.restricciones;
+  const vencimiento = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
+
   const nombrePdf = `RESULTADO_${data.codigo}_PSICOSENSOTECNICO.pdf`;
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_psicosensotecnico.png`;
 
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
   const conclusion_recomendaciones = data.conclusion_recomendacion;
+  const idProfesionalAsignado = data.id_profesional_asignado;
   const e_psicotecnicos = [
     {
       resultado: data.tiempo_reaccion,
@@ -169,17 +174,20 @@ router.post('/evaluacionpsico', async (req, res) => {
     porce_conducta_vial: data.porcentaje_conducta_vial
   }
 
+  generateQR(nombreQR, `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Vencimiento: vencimiento aqui Resultado: resultado aqui`);
+
   let objFile = {};
 
   try {
-    generateQR(nombreQR, `${data.codigo} - Psicosensotecnico`);
 
     const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
     const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
+    const pa = await db.collection('gi').findOne({ _id: ObjectId(idProfesionalAsignado) });
 
     if (cp && cs) {
       const informacionPersonal = {
         empresa: cp.razon_social,
+        evaluador: pa.razon_social,
         nombre: cs.razon_social,
         rut: cs.rut,
         fecha_nacimiento: cs.fecha_inic_nac,
@@ -189,9 +197,9 @@ router.post('/evaluacionpsico', async (req, res) => {
         vencimiento_licencia: cs.fecha_venc_licencia,
         observaciones_licencia: cs.estado_licencia,
         fecha_examen: moment().format('DD-MM-YYYY'),
-        resultado: '',
-        restricciones: '',
-        vencimiento: ''
+        resultado: resultado,
+        restricciones: restricciones,
+        vencimiento: vencimiento
       };
 
       pdfPsicosensotecnico(informacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia,
@@ -257,13 +265,13 @@ router.post('/evaluacionaversion', async (req, res) => {
   generateQR(nombreQR,
     `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Fecha vigencia: ${fecha_vigencia} Resultado: ${resultado}`
   );
-  
+
   let objFile = {};
-  
+
   const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
   const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
-  const pa = await db.collection('gi').findOne({ _id: ObjectId(data.id_profesional_asignado)});
-  
+  const pa = await db.collection('gi').findOne({ _id: ObjectId(data.id_profesional_asignado) });
+
 
   if (cp && cs && pa) {
     const informacionPersonal = {

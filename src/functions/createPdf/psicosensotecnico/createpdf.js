@@ -2,7 +2,7 @@ var PDF = require("pdfkit");
 var fs = require("fs");
 var path = require("path");
 
-import { generalInformation, resultadosEvaluaciones, piePageOne, examenesSensometricos, examenesPsicotecnicos, testEspeVelReaccion, examenSomnolencia, testPsicologico, testToleranciaMonotonia, testReacMultiples, testConoTransitoNacional } from "./constant";
+import { generalInformation, resultadosEvaluaciones, piePageOne, examenesSensometricos, examenesPsicotecnicos, testEspeVelReaccion, examenSomnolencia, testPsicologico, testToleranciaMonotonia, testReacMultiples, testConoTransitoNacional, nameFirma } from "./constant";
 
 export default function createPdf(InformacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia, test_psicologico,
     test_espe_tol_monotonia, test_espe_reac_multiples, test_conocimiento_ley_nacional, nombrePdf, nombreQR) {
@@ -11,7 +11,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     let horizontalSpace = 0;
     let moreSpace = 0;
 
-    const { empresa, nombre, rut, fecha_nacimiento, cargo, licencia_acreditar, ley, vencimiento_licencia, observaciones_licencia, fecha_examen, resultado, restricciones, vencimiento } = InformacionPersonal;
+    const { empresa, nombre, rut, fecha_nacimiento, cargo, licencia_acreditar, ley, vencimiento_licencia, observaciones_licencia, fecha_examen, resultado, restricciones, vencimiento, evaluador } = InformacionPersonal;
 
     //--------------------------------------------------PDF----------------------------------------
 
@@ -50,11 +50,17 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         generalSpace += 15;
     });
 
-    generalSpace -= 190;
+    generalSpace -= 206;
 
     doc
         .font("Helvetica")
         .text(empresa, 242, generalSpace, { align: "left" });
+
+    generalSpace += 15;
+
+    doc
+        .font("Helvetica")
+        .text(evaluador, 242, generalSpace, { align: "left" });
 
     generalSpace += 15;
 
@@ -129,7 +135,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         .text(vencimiento, 242, generalSpace, { align: "left" });
 
 
-    generalSpace += 35;
+    generalSpace += 20;
 
     //-- Resumen evaluaciones
     doc.fontSize(10);
@@ -196,7 +202,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         generalSpace += 20
     });
 
-    generalSpace += 15;
+    generalSpace += 10;
 
     doc.fontSize(10);
     doc
@@ -782,6 +788,24 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         fit: [100, 100],
         align: "right",
         valign: "center",
+    });
+
+    //--firma
+    generalSpace += 65;
+    moreSpace = 5
+    doc.image(path.resolve("./") + "/src/assets/img/firma_archivos_asis.png", 220, generalSpace, {
+        fit: [130, 130],
+        align: "center",
+        valign: "center",
+    });
+
+    generalSpace += 110;
+    nameFirma.forEach(function (elemento) {
+        doc
+            .font("Helvetica-Bold")
+            .text(elemento, 45, generalSpace + moreSpace, { align: "center" });
+
+        moreSpace += 8;
     });
 
 

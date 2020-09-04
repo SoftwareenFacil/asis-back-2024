@@ -1,5 +1,6 @@
 export const generalInformation = [
     'EMPRESA',
+    'EVALUADOR',
     'NOMBRE TRABAJADOR',
     'RUT',
     'FECHA DE NACIMIENTO',
@@ -174,4 +175,10 @@ export const testReacMultiples = {
 export const testConoTransitoNacional = {
     titulo: 'TEST ESPECÍFICO CONOCIMIENTO LEY DE TRÁNSITO NACIONAL',
     descripcion: 'Evalúa las competencias y conocimientos legales, reglamentarios, señalética vial, mecánica básica y conducta vial, del evaluado.'
-}
+};
+
+export const nameFirma = [
+    'KARLA NUÑEZ COLLAO',
+    'Psicólogo',
+    'ASIS CONSULTORES'
+];
