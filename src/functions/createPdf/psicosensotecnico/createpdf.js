@@ -128,7 +128,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         .font("Helvetica")
         .text(restricciones, 242, generalSpace, { align: "left" });
 
-    generalSpace += 15;
+    generalSpace += 16;
 
     doc
         .font("Helvetica")
@@ -190,14 +190,37 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     generalSpace -= 153;
 
     //datos
-    evaluaciones.forEach(function (e) {
-        doc
-            .font("Helvetica")
-            .text(e.resultado, 278, generalSpace, { align: "left" });
+    evaluaciones.forEach(function (element, index) {
 
-        doc
-            .font("Helvetica")
-            .text(e.obs, 370, generalSpace, { align: "left" });
+        if(index < 4) {
+            doc
+                .font("Helvetica")
+                .text(element.resultado, 278, generalSpace, { align: "left" });
+
+            doc
+                .font("Helvetica")
+                .text(element.obs, 370, generalSpace, { align: "left" });
+        }
+
+        if(index >= 4){
+            if(element.active){
+                doc
+                    .font("Helvetica")
+                    .text(element.resultado, 278, generalSpace, { align: "left" });
+
+                doc
+                    .font("Helvetica")
+                    .text(element.obs, 370, generalSpace, { align: "left" });
+            }
+            else{
+                doc
+                    .font("Helvetica")
+                    .text('No Requerido', 278, generalSpace, { align: "left" });
+                doc
+                    .font("Helvetica")
+                    .text('', 370, generalSpace, { align: "left" });
+            }
+        }
 
         generalSpace += 20
     });
@@ -808,13 +831,13 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         moreSpace += 8;
     });
 
-
+    doc.fontSize(8);
     doc.text(piePageOne[0], 200, doc.page.height - 40, {
         lineBreak: false,
         align: 'center'
     });
 
-    doc.text(piePageOne[1], 60, doc.page.height - 30, {
+    doc.text(piePageOne[1], 40, doc.page.height - 30, {
         lineBreak: false,
         align: 'center'
     });

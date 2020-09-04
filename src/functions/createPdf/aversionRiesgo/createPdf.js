@@ -31,7 +31,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   const { locus_control_impulsividad, manejo_frustracion, empatia, grado_ansiedad } = EE;
   const { actitud_prevencion_accidentes, confianza_acciones_realizadas, capacidad_modificar_ambiente_seguridad } = APR;
   const { orientacion_tarea, energia_vital } = MC;
-  let generalSpace = 0;
+  let generalSpace = -15;
   let moreSpace = 5;
   let elecciones = ['Promedio/Alto: Frase Promedio/Alto', 'Bajo: Frase Bajo'];
   let fortalezas = [
@@ -113,7 +113,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .text(`Este informe tiene vigencia hasta el ${fecha_vigencia}`, 60, generalSpace, {
       align: "right",
     })
-    .rect(290, 140, 252, 20)
+    .rect(290, 125, 253, 20)
     .stroke();
 
   // 1.- Informacion personal
@@ -134,16 +134,17 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   });
 
   generalSpace -= 135;
-  doc.font("Helvetica").text(informacionPersonal.empresa, 260, generalSpace - 10, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.nombre, 260, generalSpace + 4, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.edad, 260, generalSpace + 19, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.rut, 260, generalSpace + 35, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.educacion, 260, generalSpace + 50, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.cargo, 260, generalSpace + 65, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.maquinarias_conducir, 260, generalSpace + 80, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.ciudad, 260, generalSpace + 95, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.evaluador, 260, generalSpace + 110, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.fecha_evaluacion, 260, generalSpace + 125, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.empresa, 260, generalSpace - 25, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.nombre, 260, generalSpace - 10, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.edad, 260, generalSpace + 5, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.rut, 260, generalSpace + 20, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.educacion, 260, generalSpace + 35, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.cargo, 260, generalSpace + 50, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.maquinarias_conducir, 260, generalSpace + 65, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.ciudad, 260, generalSpace + 80, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.evaluador, 260, generalSpace + 95, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.fecha_evaluacion, 260, generalSpace + 110, { align: "left" });
+  doc.font("Helvetica").text(fecha_vigencia, 260, generalSpace + 125, { align: "left" });
 
   generalSpace += 135
 

@@ -13,7 +13,8 @@ export const generalInformation = [
     'Maquinarias a Conducir',
     'Ciudad de referencia',
     'Evaluador',
-    'Fecha de Evaluación'
+    'Fecha de Evaluación',
+    'Fecha de Vencimiento'
 ];
 
 export const intelectual = [

@@ -43,6 +43,7 @@ router.post('/evaluacionpsico', async (req, res) => {
   const resultado = data.resultado;
   const restricciones = data.restricciones;
   const vencimiento = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
+  const licencia = data.licencia;
 
   const nombrePdf = `RESULTADO_${data.codigo}_PSICOSENSOTECNICO.pdf`;
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_psicosensotecnico.png`;
@@ -67,34 +68,42 @@ router.post('/evaluacionpsico', async (req, res) => {
   ];
   const evaluaciones = [
     {
+      active: true,
       resultado: data.examen_sensometrico,
       obs: data.obs_examen_sensometrico
     },
     {
+      active: true,
       resultado: data.examen_psicotecnico,
       obs: data.obs_examen_psicotecnico
     },
     {
+      active: true,
       resultado: data.evaluacion_somnolencia,
       obs: data.obs_evaluacion_somnolencia
     },
     {
+      active: true,
       resultado: data.evaluacion_psicologica,
       obs: data.obs_evaluacion_psicologica
     },
     {
+      active: data.is_anticipacion,
       resultado: data.test_velocidad_anticipacion,
       obs: data.obs_test_velocidad_anticipacion
     },
     {
+      active: data.is_monotonia,
       resultado: data.test_tolerancia_monotonia,
       obs: data.obs_test_tolerancia_monotonia
     },
     {
+      active: data.is_reacciones_multiples,
       resultado: data.test_reacciones_multiples,
       obs: data.obs_test_reacciones_multiples
     },
     {
+      active: data.is_ley_transito,
       resultado: data.evaluacion_transito_nacional,
       obs: data.obs_evaluacion_transito_nacional
     }
@@ -192,7 +201,7 @@ router.post('/evaluacionpsico', async (req, res) => {
         rut: cs.rut,
         fecha_nacimiento: cs.fecha_inic_nac,
         cargo: cs.cargo,
-        licencia_acreditar: '',
+        licencia_acreditar: licencia,
         ley: cs.ley_aplicable,
         vencimiento_licencia: cs.fecha_venc_licencia,
         observaciones_licencia: cs.estado_licencia,

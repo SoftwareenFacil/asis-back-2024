@@ -1,18 +1,18 @@
 export const generalInformation = [
-    'EMPRESA',
-    'EVALUADOR',
-    'NOMBRE TRABAJADOR',
-    'RUT',
-    'FECHA DE NACIMIENTO',
-    'CARGO',
-    'LICENCIA A ACREDITAR CLASE',
-    'LEY',
-    'VENCIMIENTO LICENCIA MUNICIPAL',
-    'OBSERVACIONES LICENCIA',
-    'FECHA EXAMEN PSICOSENSOTECNICO',
-    'RESULTADO',
-    'RESTRICCIONES',
-    'VENCIMIENTO'
+    'Empresa',
+    'Evaluador',
+    'Nombre',
+    'Rut',
+    'Fecha de Nacimiento',
+    'Cargo',
+    'Licencia a acreditar clase',
+    'Ley',
+    'Vencimiento licencia municipal',
+    'Observaciones licencia',
+    'Fecha Examen',
+    'Resultado',
+    'Restricciones',
+    'Fecha de Vencimiento'
 ];
 
 export const resultadosEvaluaciones = [
