@@ -48,7 +48,7 @@ router.post('/evaluacionpsico', async (req, res) => {
   const obs = {
     obs: data.conclusion_recomendacion,
     fecha: getDate(new Date()),
-    estado = "Cargado"
+    estado: "Cargado"
   };
   // obs.obs = datos.observaciones;
   // obs.fecha = getDate(new Date());
