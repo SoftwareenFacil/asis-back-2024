@@ -45,6 +45,15 @@ router.post('/evaluacionpsico', async (req, res) => {
   const vencimiento = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
   const licencia = data.licencia;
 
+  const obs = {
+    obs: data.conclusion_recomendacion,
+    fecha: getDate(new Date()),
+    estado = "Cargado"
+  };
+  // obs.obs = datos.observaciones;
+  // obs.fecha = getDate(new Date());
+  // obs.estado = "Cargado";
+
   const nombrePdf = `RESULTADO_${data.codigo}_PSICOSENSOTECNICO.pdf`;
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_psicosensotecnico.png`;
 
@@ -227,6 +236,23 @@ router.post('/evaluacionpsico', async (req, res) => {
           url_file_adjunto_EE: objFile
         }
       });
+
+      await db.collection("evaluaciones").updateOne(
+        { codigo: data.codigo },
+        {
+          $set: {
+            estado: "En Evaluacion",
+            estado_archivo: "Cargado",
+            archivo_examen: null,
+            fecha_carga_examen: moment().format('DD-MM-YYYY'),
+            hora_carga_examen: moment().format('HH:mm'),
+            url_file_adjunto_EE: objFile,
+          },
+          $push: {
+            observaciones: obs,
+          },
+        }
+      );
 
       res.status(201).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
     }
