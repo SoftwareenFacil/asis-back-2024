@@ -282,6 +282,12 @@ router.post('/evaluacionaversion', async (req, res) => {
 
   const MC = { orientacion_tarea: data.orientacion_tarea, energia_vital: data.energia_vital };
 
+  const obs = {
+    obs: data.observaciones_conclusion,
+    fecha: getDate(new Date()),
+    estado: "Cargado"
+  };
+
   const fortalezas = data.fortalezas;
   const areas_mejorar = data.area_mejora;
   const conclusionRiesgos = data.conclusion;
@@ -336,6 +342,23 @@ router.post('/evaluacionaversion', async (req, res) => {
           url_file_adjunto_EE: objFile
         }
       });
+
+      await db.collection("evaluaciones").updateOne(
+        { codigo: data.codigo },
+        {
+          $set: {
+            estado: "En Evaluacion",
+            estado_archivo: "Cargado",
+            archivo_examen: null,
+            fecha_carga_examen: moment().format('DD-MM-YYYY'),
+            hora_carga_examen: moment().format('HH:mm'),
+            url_file_adjunto_EE: objFile,
+          },
+          $push: {
+            observaciones: obs,
+          },
+        }
+      );
 
       pdfAversionRiesgo(I, AN, EE, APR, MC, conclusionRiesgos, informacionPersonal, nombrePdf, nombreQR, fecha_vigencia, observacionConclusion);
 
