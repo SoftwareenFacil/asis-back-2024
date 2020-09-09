@@ -19,6 +19,8 @@ import addCodeGI from "../../functions/insertManyGis/addCodeGI";
 
 import multer from "../../libs/multer";
 
+import { encrypPassword } from "../../libs/bcrypt";
+
 const router = Router();
 
 const YEAR = getYear();
@@ -166,6 +168,10 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     path: req.file.path,
   };
   try {
+
+    //agregar password encyptada
+    updatedGI.password = await encrypPassword(updatedGI.password);
+
     const result = await db
       .collection("gi")
       .replaceOne({ _id: ObjectID(id) }, updatedGI);
@@ -342,6 +348,10 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   } else {
     newGi.url_file_adjunto = {};
   }
+
+
+  //agregar password encyptada
+  newGi.password = await encrypPassword(newGi.password);
 
   const result = await db.collection("gi").insertOne(newGi);
 

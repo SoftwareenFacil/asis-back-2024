@@ -19,6 +19,7 @@ import ExistenciaRoute from "./routes/existencia/existencia.routes";
 import CatGeneralesRoute from "./routes/CategoriasGenerales/categoriasGenerales.routes";
 import EmpleadosRoute from "./routes/empleados/empleados.routes";
 import EmpleadosAusenciasRoute from "./routes/empleados_ausencias/empleados_ausencias.routes";
+import LoginRoute from "./routes/Login/login.routes";
 
 const app = express();
 
@@ -51,5 +52,6 @@ app.use('/existencia', ExistenciaRoute)
 app.use('/catgenerales', CatGeneralesRoute)
 app.use('/empleados', EmpleadosRoute);
 app.use('/ausencias', EmpleadosAusenciasRoute);
+app.use('/login', LoginRoute);
 
 export default app;
