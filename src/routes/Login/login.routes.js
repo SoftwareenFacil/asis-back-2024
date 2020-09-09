@@ -11,13 +11,13 @@ import { ObjectID } from "mongodb";
 
 //Login de usuario
 router.post('/', async (req, res) => {
-    const { rut, password, categoria } = req.body;
+    const { rut, password } = req.body;
     const db = await connect();
-    const gi = await db.collection('gi').findOne({ rut: rut, categoria: categoria });
+    const gi = await db.collection('gi').findOne({ rut: rut, categoria: "Empresa/Organizacion" });
 
     if (!gi) return res.json({ code: 'ASIS01', msg: 'Usuario no encontrado.' });
 
-    if (!gi.password) return res.json({ code: 'ASIS02', msg: 'Este usuario no contiene contraseña.' });
+    if (!gi.password) return res.json({ code: 'ASIS02', msg: 'Este usuario no contiene una contraseña creada.' });
 
     const passwordIsValid = await comparePassword(password, gi.password);
 
