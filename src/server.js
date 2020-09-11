@@ -20,6 +20,7 @@ import CatGeneralesRoute from "./routes/CategoriasGenerales/categoriasGenerales.
 import EmpleadosRoute from "./routes/empleados/empleados.routes";
 import EmpleadosAusenciasRoute from "./routes/empleados_ausencias/empleados_ausencias.routes";
 import LoginRoute from "./routes/Login/login.routes";
+import RolesRoute from "./routes/roles/roles.routes";
 
 const app = express();
 
@@ -53,5 +54,6 @@ app.use('/catgenerales', CatGeneralesRoute)
 app.use('/empleados', EmpleadosRoute);
 app.use('/ausencias', EmpleadosAusenciasRoute);
 app.use('/login', LoginRoute);
+app.use('/roles', RolesRoute);
 
 export default app;
