@@ -23,6 +23,8 @@ router.post('/', async (req, res) => {
 
     if (!passwordIsValid) return res.json({ code: 'ASIS03', msg: 'Password incorrecta' });
 
+    const rol = (gi.rol) || ''; 
+
     const token = createToken({
         id: gi._id,
         rut: gi.rut,
@@ -34,6 +36,7 @@ router.post('/', async (req, res) => {
             code: 'ASIS99', 
             msg: 'Usuario logeado correctamente',
             token,
+            rol,
             gi,
         }
     );
