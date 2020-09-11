@@ -171,6 +171,8 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 
     //agregar password encyptada
     updatedGI.password = await encrypPassword(updatedGI.password);
+    //agregar rol
+    updatedGI.rol = updatedGI.grupo_interes || 'Clientes';
 
     const result = await db
       .collection("gi")
@@ -352,6 +354,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
   //agregar password encyptada
   newGi.password = await encrypPassword(newGi.password);
+  //agregar rol
+  newGi.rol = newGi.grupo_interes || 'Clientes';
 
   const result = await db.collection("gi").insertOne(newGi);
 
