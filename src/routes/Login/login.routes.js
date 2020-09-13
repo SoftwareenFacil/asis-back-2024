@@ -36,12 +36,26 @@ router.post('/', async (req, res) => {
     });
 
     //le paso la data de los roles
-    const roles = await db.collection('roles').find().toArray();
+    try {
+        const result = await db.collection('roles').find().toArray();
+        let roles = (result, rol = '') => {
+            switch (rol) {
+                case 'Clientes':
+                    return result[0].clientes
+                case 'Empleados':
+                    return result[0].empleados
+                case 'Colaboradores':
+                    return result[0].colaboradores
+                default:
+                    return {}
+            }
+        }
 
-    if (roles) {
-        const acciones = roles[0].clientes.acciones;
-        delete roles[0].clientes.acciones || {};
-        const clienteRoles = { ...roles[0].clientes, ...acciones };
+        const objectRoles = roles(result, rol);
+        console.log('roles', objectRoles)
+        const acciones = objectRoles.acciones;
+        delete objectRoles.acciones || {};
+        const clienteRoles = { ...objectRoles, ...acciones };
 
         return res.status(200).json(
             {
@@ -50,21 +64,15 @@ router.post('/', async (req, res) => {
                 token,
                 rol,
                 gi,
-                clientes_permisos: Object.keys(clienteRoles).filter(el => clienteRoles[el] === 1) || []
+                permisos: Object.keys(clienteRoles).filter(el => clienteRoles[el] === 1) || []
             }
         );
-    };
-
-    return res.status(200).json(
-        {
-            code: 'ASIS99',
-            msg: 'Usuario logeado correctamente',
-            token,
-            rol,
-            gi,
-            clientes_permisos: []
-        }
-    );
+    } catch (error) {
+        return res.status(500).json({
+            msg: 'ha ocurrido un error inesperado',
+            error
+        })
+    }
 });
 
 
