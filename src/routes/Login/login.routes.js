@@ -35,7 +35,8 @@ router.post('/', async (req, res) => {
         razon_social: gi.razon_social,
     });
 
-    //le paso la data de los roles
+
+   //le paso la data de los roles
     try {
         const result = await db.collection('roles').find().toArray();
         let roles = (result, rol = '') => {
@@ -46,13 +47,14 @@ router.post('/', async (req, res) => {
                     return result[0].empleados
                 case 'Colaboradores':
                     return result[0].colaboradores
+                case 'admin':
+                    return result[0].admin
                 default:
                     return {}
             }
         }
 
         const objectRoles = roles(result, rol);
-        console.log('roles', objectRoles)
         const acciones = objectRoles.acciones;
         delete objectRoles.acciones || {};
         const clienteRoles = { ...objectRoles, ...acciones };
@@ -75,6 +77,19 @@ router.post('/', async (req, res) => {
     }
 });
 
+router.post('/crearrol/:id', async (req, res) => {
+    const { id } = req.params;
+    const db = await connect();
+    const roles = await db.collection('roles').find().toArray();
+
+    const result = await db.collection('roles').updateOne({_id: ObjectID(id)}, {
+        $set:{
+            admin: roles[0].colaboradores
+        }
+    });
+
+    res.json({msg: 'listo'});
+})
 
 
 
