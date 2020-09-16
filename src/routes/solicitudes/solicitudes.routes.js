@@ -8,7 +8,7 @@ const addDays = require("add-days");
 
 import { verifyToken } from "../../libs/jwt";
 
-import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR } from "../../constant/text_messages";
+import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR, SUCCESSFULL_INSERT, SUCCESSFULL_UPDATE } from "../../constant/text_messages";
 
 import multer from "../../libs/multer";
 
@@ -41,10 +41,10 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countSol = await db.collection("solicitudes").find({id_GI_Principal: dataToken.id}).count();
+    const countSol = await db.collection("solicitudes").find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id } : {}).count();
     const result = await db
       .collection("solicitudes")
-      .find({id_GI_Principal: dataToken.id})
+      .find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id } : {})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -57,15 +57,22 @@ router.post("/pagination", async (req, res) => {
       solicitudes: result,
     });
   } catch (error) {
-    return res.status(501).json({msg: ERROR, error});
+    return res.status(501).json({ msg: ERROR, error });
   }
 });
 
 //BUSCAR POR RUT O NOMBRE
 router.post("/buscar", async (req, res) => {
+  const db = await connect();
   const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   let rutFiltrado;
 
@@ -82,30 +89,59 @@ router.post("/buscar", async (req, res) => {
   let countSol;
 
   try {
-    if (identificador === 1) {
-      countSol = await db
-        .collection("solicitudes")
-        .find({ rut_CP: rexExpresionFiltro })
-        .count();
+    if (dataToken.rol !== 'Clientes') {
+      if (identificador === 1) {
+        countSol = await db
+          .collection("solicitudes")
+          .find({ rut_CP: rexExpresionFiltro })
+          .count();
 
-      result = await db
-        .collection("solicitudes")
-        .find({ rut_CP: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
+        result = await db
+          .collection("solicitudes")
+          .find({ rut_CP: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+      else {
+        countSol = await db
+          .collection("solicitudes")
+          .find({ razon_social_CP: rexExpresionFiltro })
+          .count();
+        result = await db
+          .collection("solicitudes")
+          .find({ razon_social_CP: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
     }
     else {
-      countSol = await db
-        .collection("solicitudes")
-        .find({ razon_social_CP: rexExpresionFiltro })
-        .count();
-      result = await db
-        .collection("solicitudes")
-        .find({ razon_social_CP: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
+      if (identificador === 1) {
+        countSol = await db
+          .collection("solicitudes")
+          .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .count();
+
+        result = await db
+          .collection("solicitudes")
+          .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+      else {
+        countSol = await db
+          .collection("solicitudes")
+          .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .count();
+        result = await db
+          .collection("solicitudes")
+          .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
     }
 
     res.json({
@@ -116,7 +152,7 @@ router.post("/buscar", async (req, res) => {
     });
 
   } catch (error) {
-    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    res.status(500).json({ mgs: ERROR, error });
   }
 });
 
@@ -124,14 +160,23 @@ router.post("/buscar", async (req, res) => {
 router.get("/mostrar/:id", async (req, res) => {
   const db = await connect();
   const { id } = req.params;
-  const resultFinal = {};
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   const resultSol = await db
     .collection("solicitudes")
     .findOne({ _id: ObjectID(id) });
   const resultGI = await db
     .collection("gi")
     .findOne({ _id: ObjectID(resultSol.id_GI_Principal) });
+
   resultSol.email_gi = resultGI.email_central;
+
   res.json(resultSol);
 });
 
@@ -140,61 +185,99 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   let newSolicitud = JSON.parse(req.body.data);
   const nuevaObs = newSolicitud.observacion_solicitud;
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   const items = await db.collection("solicitudes").find({}).toArray();
-  if (items.length > 0) {
-    newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(
-      items[items.length - 1]
-    )}`;
-  } else {
-    newSolicitud.codigo = `ASIS-SOL-${YEAR}-00001`;
-  }
-  newSolicitud.observacion_solicitud = [];
+
+  if (!items) return res.status(401).json({ msg: "No se ha podido encontrar la solicitud seleccionada" });
+
+  // if (items.length > 0) {
+  //   newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(
+  //     items[items.length - 1]
+  //   )}`;
+  // } else {
+  //   newSolicitud.codigo = `ASIS-SOL-${YEAR}-00001`;
+  // }
+
+  (items.length > 0)
+    ? newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(items[items.length - 1])}`
+    : newSolicitud.codigo = `ASIS-SOL-${YEAR}-00001`;
+
+  // newSolicitud.observacion_solicitud = [];
   newSolicitud.observacion_solicitud.push({
     obs: nuevaObs,
     fecha: getDate(new Date()),
   });
 
-  if (req.file) {
-    newSolicitud.url_file_adjunto = {
+  // if (req.file) {
+  //   newSolicitud.url_file_adjunto = {
+  //     name: req.file.originalname,
+  //     size: req.file.size,
+  //     path: req.file.path,
+  //     type: req.file.mimetype,
+  //   };
+  // } else {
+  //   newSolicitud.url_file_adjunto = {};
+  // }
+
+  (req.file)
+    ? newSolicitud.url_file_adjunto = {
       name: req.file.originalname,
       size: req.file.size,
       path: req.file.path,
       type: req.file.mimetype,
-    };
-  } else {
-    newSolicitud.url_file_adjunto = {};
-  }
+    }
+    : newSolicitud.url_file_adjunto = {};
 
-  const result = await db.collection("solicitudes").insertOne(newSolicitud);
-  //envio correo
-  if (result.result.ok === 1) {
-    const gi = await db
-      .collection("gi")
-      .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
+  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
-    const respMail = sendinblue(
-      {
-        RAZON_SOCIAL_CP: result.ops[0].razon_social_CP,
-        CODIGO_SOL: result.ops[0].codigo,
-        FECHA_SOL: result.ops[0].fecha_solicitud,
-        HORA_SOL: result.ops[0].hora_solicitud,
-        CATEGORIA_UNO_SOL: result.ops[0].categoria1,
-        NOMBRE_SERVICIO: result.ops[0].nombre_servicio,
-        NOMBRE_TIPO_SERVICIO: result.ops[0].tipo_servicio,
-        LUGAR_SERVICIO: result.ops[0].lugar_servicio,
-        SUCURSAL_SERVICIO: result.ops[0].sucursal,
-      },
-      [
+  try {
+    const result = await db.collection("solicitudes").insertOne(newSolicitud);
+
+    //envio correo
+    if (result.result.ok === 1) {
+      const gi = await db
+        .collection("gi")
+        .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
+
+      sendinblue(
         {
-          email: gi.email_central,
-          nombre: gi.razon_social,
+          RAZON_SOCIAL_CP: result.ops[0].razon_social_CP,
+          CODIGO_SOL: result.ops[0].codigo,
+          FECHA_SOL: result.ops[0].fecha_solicitud,
+          HORA_SOL: result.ops[0].hora_solicitud,
+          CATEGORIA_UNO_SOL: result.ops[0].categoria1,
+          NOMBRE_SERVICIO: result.ops[0].nombre_servicio,
+          NOMBRE_TIPO_SERVICIO: result.ops[0].tipo_servicio,
+          LUGAR_SERVICIO: result.ops[0].lugar_servicio,
+          SUCURSAL_SERVICIO: result.ops[0].sucursal,
         },
-      ],
-      4
-    );
+        [
+          {
+            email: gi.email_central,
+            nombre: gi.razon_social,
+          },
+        ],
+        4
+      );
+
+    };
+
+    return res.status(200).json({ msg: SUCCESSFULL_INSERT, result });
+
+  } catch (error) {
+
+    res.status(500).json({ msg: ERROR, error });
+
   }
 
-  res.json(result);
 });
 
 router.post("/test", async (req, res) => {
@@ -225,18 +308,36 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   const solicitud = JSON.parse(req.body.data);
   const { id } = req.params;
+  const token = req.headers['x-access-token'];
 
-  if (req.file) {
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+
+  // if (req.file) {
+  //   solicitud.url_file_adjunto = {
+  //     name: req.file.originalname,
+  //     size: req.file.size,
+  //     path: req.file.path,
+  //     type: req.file.mimetype,
+  //   };
+  // }
+
+  if (req.file)
     solicitud.url_file_adjunto = {
       name: req.file.originalname,
       size: req.file.size,
       path: req.file.path,
       type: req.file.mimetype,
     };
-  }
 
   try {
-    const result = await db.collection("solicitudes").updateOne(
+    await db.collection("solicitudes").updateOne(
       { _id: ObjectID(id) },
       {
         $set: {
@@ -286,9 +387,9 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
       }
     );
 
-    res.status(201).json({ message: "Solicitud modificada correctamente" });
+    res.status(200).json({ message: SUCCESSFULL_UPDATE });
   } catch (error) {
-    res.status(500).json({ message: "ha ocurrido un error", error });
+    res.status(500).json({ message: ERROR, error });
   }
 });
 
@@ -297,20 +398,35 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   const solicitud = JSON.parse(req.body.data);
   const { id } = req.params;
-  let obs = {};
-  let archivo = {};
-  obs.obs = solicitud.observacion_solicitud;
-  obs.fecha = getDate(new Date());
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+
+  // let obs = {};
+  // let archivo = {};
+  // obs.obs = solicitud.observacion_solicitud;
+  // obs.fecha = getDate(new Date());
+
+  const obs = {
+    obs: solicitud.observacion_solicitud,
+    fecha: getDate(new Date())
+  }
 
   //verificar si hay archivo o no
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
+  if (req.file) archivo = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path,
+    type: req.file.mimetype,
+  };
+
   //obtener mail del cliente principal
   const resultSol = await db.collection("solicitudes").updateOne(
     { _id: ObjectID(id) },
@@ -411,99 +527,114 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
 //CONFIRM MANY
 router.post("/many", multer.single("archivo"), async (req, res) => {
   const db = await connect();
-  let new_array = [];
-
-  console.log(JSON.parse(req.body.data));
   let dataJson = JSON.parse(req.body.data);
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+
+  let new_array = [];
   let archivo = {};
-  let obs = {};
-  obs.obs = dataJson[0].observacion_solicitud;
-  obs.fecha = getDate(new Date());
+  const obs = {
+    obs: ataJson[0].observacion_solicitud,
+    fecha: getDate(new Date())
+  }
+  // let obs = {};
+  // obs.obs = dataJson[0].observacion_solicitud;
+  // obs.fecha = getDate(new Date());
 
   dataJson[1].ids.forEach((element) => {
     new_array.push(ObjectID(element));
   });
 
   //verificar si hay archivo o no
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
+  if (req.file) archivo = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path,
+    type: req.file.mimetype,
+  };
 
-  const result = db.collection("solicitudes").updateMany(
-    { _id: { $in: new_array } },
-    {
-      $set: {
-        fecha_confirmacion: dataJson[0].fecha_solicitud,
-        hora_confirmacion: dataJson[0].hora_solicitud,
-        medio_confirmacion: dataJson[0].medio_confirmacion,
-        url_file_adjunto_confirm: archivo,
-        estado: "Confirmado",
-      },
-      $push: {
-        observacion_solicitud: obs,
-      },
-    }
-  );
+  try {
+    db.collection("solicitudes").updateMany(
+      { _id: { $in: new_array } },
+      {
+        $set: {
+          fecha_confirmacion: dataJson[0].fecha_solicitud,
+          hora_confirmacion: dataJson[0].hora_solicitud,
+          medio_confirmacion: dataJson[0].medio_confirmacion,
+          url_file_adjunto_confirm: archivo,
+          estado: "Confirmado",
+        },
+        $push: {
+          observacion_solicitud: obs,
+        },
+      }
+    );
 
-  // se crea el array de objetos para la insercion de reservas
-  let resp = "";
-  let codigoAsis = "";
-  let arrayReservas = [];
+    // se crea el array de objetos para la insercion de reservas
+    let resp = "";
+    let codigoAsis = "";
+    let arrayReservas = [];
 
-  resp = await db
-    .collection("solicitudes")
-    .find({ _id: { $in: new_array } })
-    .toArray();
+    resp = await db
+      .collection("solicitudes")
+      .find({ _id: { $in: new_array } })
+      .toArray();
 
-  resp.forEach((element) => {
-    codigoAsis = element.codigo;
-    codigoAsis = codigoAsis.replace("SOL", "AGE");
-    arrayReservas.push({
-      codigo: codigoAsis,
-      id_GI_Principal: element.id_GI_Principal,
-      id_GI_Secundario: element.id_GI_Secundario,
-      id_GI_personalAsignado: element.id_GI_PersonalAsignado,
-      faena_seleccionada_cp: element.faena_seleccionada_cp,
-      valor_servicio: element.precio,
-      rut_cp: element.rut_CP,
-      razon_social_cp: element.razon_social_CP,
-      rut_cs: element.rut_cs,
-      razon_social_cs: element.razon_social_cs,
-      fecha_reserva: element.fecha_servicio_solicitado,
-      hora_reserva: element.hora_servicio_solicitado,
-      fecha_reserva_fin: element.fecha_servicio_solicitado_termino,
-      hora_reserva_fin: element.hora_servicio_solicitado_termino,
-      jornada: element.jornada,
-      mes: element.mes_solicitud,
-      anio: element.anio_solicitud,
-      nombre_servicio: element.nombre_servicio,
-      lugar_servicio: element.lugar_servicio,
-      sucursal: element.sucursal,
-      observacion: [],
-      estado: "Ingresado",
+    resp.forEach((element) => {
+      codigoAsis = element.codigo;
+      codigoAsis = codigoAsis.replace("SOL", "AGE");
+      arrayReservas.push({
+        codigo: codigoAsis,
+        id_GI_Principal: element.id_GI_Principal,
+        id_GI_Secundario: element.id_GI_Secundario,
+        id_GI_personalAsignado: element.id_GI_PersonalAsignado,
+        faena_seleccionada_cp: element.faena_seleccionada_cp,
+        valor_servicio: element.precio,
+        rut_cp: element.rut_CP,
+        razon_social_cp: element.razon_social_CP,
+        rut_cs: element.rut_cs,
+        razon_social_cs: element.razon_social_cs,
+        fecha_reserva: element.fecha_servicio_solicitado,
+        hora_reserva: element.hora_servicio_solicitado,
+        fecha_reserva_fin: element.fecha_servicio_solicitado_termino,
+        hora_reserva_fin: element.hora_servicio_solicitado_termino,
+        jornada: element.jornada,
+        mes: element.mes_solicitud,
+        anio: element.anio_solicitud,
+        nombre_servicio: element.nombre_servicio,
+        lugar_servicio: element.lugar_servicio,
+        sucursal: element.sucursal,
+        observacion: [],
+        estado: "Ingresado",
+      });
     });
-  });
 
-  const resultReserva = await db
-    .collection("reservas")
-    .insertMany(arrayReservas);
+    const resultReserva = await db
+      .collection("reservas")
+      .insertMany(arrayReservas);
 
-  res.json(resultReserva);
+      res.status(200).json({msg: SUCCESSFULL_UPDATE, resultReserva});
+  } catch (error) {
+      res.status(500).json({msg: ERROR, error});
+  }
 });
 
-//DELETE
-router.delete("/:id", async (req, res) => {
-  const { id } = req.params;
-  const db = await connect();
-  const result = await db
-    .collection("solicitudes")
-    .deleteOne({ _id: ObjectID(id) });
-  res.json(result);
-});
+//ANULAR SOLICITUD
+// router.delete("/:id", async (req, res) => {
+//   const { id } = req.params;
+//   const db = await connect();
+//   const result = await db
+//     .collection("solicitudes")
+//     .deleteOne({ _id: ObjectID(id) });
+//   res.json(result);
+// });
 
 export default router;
