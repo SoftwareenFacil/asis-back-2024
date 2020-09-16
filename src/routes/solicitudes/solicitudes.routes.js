@@ -49,6 +49,8 @@ router.post("/pagination", async (req, res) => {
       .limit(nPerPage)
       .toArray();
 
+    console.log([countSol, dataToken])
+
     return res.json({
       auth: AUTHORIZED,
       total_items: countSol,
@@ -621,9 +623,9 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
       .collection("reservas")
       .insertMany(arrayReservas);
 
-      res.status(200).json({msg: SUCCESSFULL_UPDATE, resultReserva});
+    res.status(200).json({ msg: SUCCESSFULL_UPDATE, resultReserva });
   } catch (error) {
-      res.status(500).json({msg: ERROR, error});
+    res.status(500).json({ msg: ERROR, error });
   }
 });
 

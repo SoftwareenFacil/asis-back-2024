@@ -66,10 +66,10 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countRes = await db.collection("resultados").find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id } : {}).count();
+    const countRes = await db.collection("resultados").find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {}).count();
     const result = await db
       .collection("resultados")
-      .find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id } : {})
+      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
