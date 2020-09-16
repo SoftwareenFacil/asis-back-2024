@@ -44,7 +44,7 @@ router.post("/pagination", async (req, res) => {
     const countSol = await db.collection("solicitudes").find({id_GI_Principal: dataToken.id}).count();
     const result = await db
       .collection("solicitudes")
-      .find()
+      .find({id_GI_Principal: dataToken.id})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
