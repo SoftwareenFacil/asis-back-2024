@@ -6,10 +6,13 @@ import excelToJson from "../../functions/insertManyGis/excelToJson";
 import sendinblue from "../../libs/sendinblue/sendinblue";
 const addDays = require("add-days");
 
+import { verifyToken } from "../../libs/jwt";
+
+import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR } from "../../constant/text_messages";
+
 import multer from "../../libs/multer";
 
 const router = Router();
-
 const YEAR = getYear();
 
 //database connection
@@ -29,9 +32,16 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countSol = await db.collection("solicitudes").find().count();
+    const countSol = await db.collection("solicitudes").find({id_GI_Principal: dataToken.id}).count();
     const result = await db
       .collection("solicitudes")
       .find()
@@ -39,14 +49,15 @@ router.post("/pagination", async (req, res) => {
       .limit(nPerPage)
       .toArray();
 
-    res.json({
+    return res.json({
+      auth: AUTHORIZED,
       total_items: countSol,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countSol / nPerPage + 1),
       solicitudes: result,
     });
   } catch (error) {
-    res.status(501).json(error);
+    return res.status(501).json({msg: ERROR, error});
   }
 });
 
@@ -57,7 +68,7 @@ router.post("/buscar", async (req, res) => {
   const db = await connect();
 
   let rutFiltrado;
-  
+
   if (identificador === 1 && filtro.includes("k")) {
     rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");
@@ -76,7 +87,7 @@ router.post("/buscar", async (req, res) => {
         .collection("solicitudes")
         .find({ rut_CP: rexExpresionFiltro })
         .count();
-  
+
       result = await db
         .collection("solicitudes")
         .find({ rut_CP: rexExpresionFiltro })
@@ -84,7 +95,7 @@ router.post("/buscar", async (req, res) => {
         .limit(nPerPage)
         .toArray();
     }
-    else{
+    else {
       countSol = await db
         .collection("solicitudes")
         .find({ razon_social_CP: rexExpresionFiltro })
@@ -105,7 +116,7 @@ router.post("/buscar", async (req, res) => {
     });
 
   } catch (error) {
-    res.status(501).json({mgs: `ha ocurrido un error ${error}`});
+    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
   }
 });
 
@@ -206,7 +217,7 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
   try {
     if (data.length > 0) {
     }
-  } catch (error) {}
+  } catch (error) { }
 });
 
 //EDITAR SOLICITUD

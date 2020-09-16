@@ -78,6 +78,7 @@ router.post('/', async (req, res) => {
     }
 });
 
+//test
 router.post('/crearrol/:id', async (req, res) => {
     const { id } = req.params;
     const db = await connect();

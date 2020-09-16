@@ -17,9 +17,12 @@ import verificateOrdenCompra from "../../functions/insertManyGis/verificateOrden
 import createJsonGIs from "../../functions/insertManyGis/createJsonGiForInsert";
 import addCodeGI from "../../functions/insertManyGis/addCodeGI";
 
+import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED } from "../../constant/text_messages";
+
 import multer from "../../libs/multer";
 
 import { encrypPassword } from "../../libs/bcrypt";
+import { verifyToken } from "../../libs/jwt";
 
 const router = Router();
 
@@ -33,7 +36,21 @@ import verificateTipoCliente from "../../functions/insertManyGis/verificateTipoC
 // SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  let result = await db.collection("gi").find().toArray();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED, ERROR });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  try {
+    let result = await db.collection("gi").find({_id: ObjectID(data.id)}).toArray();
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({ msg: ERROR, error })
+  }
+
   res.json(result);
 });
 
@@ -41,10 +58,7 @@ router.get("/", async (req, res) => {
 router.post("/pagination", async (req, res) => {
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  // const headerToken = req.headers['x-access-token'];
   const db = await connect();
-
-  // if (!headerToken) return res.status(401).json({ msg: "No existe acceso a esa ruta para este usuario", auth: "unauthorized" })
 
   try {
     const countGIs = await db.collection("gi").find().count();

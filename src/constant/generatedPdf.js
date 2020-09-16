@@ -14,4 +14,4 @@ export const PromedioStringToNumber = (opcion) => {
             return 0
             break;
     }
-}
+};
