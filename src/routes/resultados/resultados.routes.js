@@ -144,12 +144,12 @@ router.post('/buscar', async (req, res) => {
       if (identificador === 1) {
         countSol = await db
           .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
           .count();
 
         result = await db
           .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -157,11 +157,11 @@ router.post('/buscar', async (req, res) => {
       else {
         countSol = await db
           .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
           .count();
         result = await db
           .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
