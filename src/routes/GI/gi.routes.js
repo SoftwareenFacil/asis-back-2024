@@ -41,7 +41,11 @@ router.get("/", async (req, res) => {
 router.post("/pagination", async (req, res) => {
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  // const headerToken = req.headers['x-access-token'];
   const db = await connect();
+
+  // if (!headerToken) return res.status(401).json({ msg: "No existe acceso a esa ruta para este usuario", auth: "unauthorized" })
+
   try {
     const countGIs = await db.collection("gi").find().count();
     const result = await db
@@ -170,9 +174,9 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   try {
 
     //agregar password encyptada
-    updatedGI.password = await encrypPassword(updatedGI.password);
+    // updatedGI.password = await encrypPassword(updatedGI.password);
     //agregar rol
-    updatedGI.rol = updatedGI.grupo_interes || 'Clientes';
+    updatedGI.rol = updatedGI.rol || 'Clientes';
 
     const result = await db
       .collection("gi")
@@ -246,6 +250,42 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "ha ocurrido un error", error });
     console.log(error);
+  }
+});
+
+//UPDATE PASSWORD
+router.put('/editpassword/:id', async (req, res) => {
+  const db = await connect();
+  const { id } = req.params;
+  const data = req.body;
+
+  try {
+
+    if (!data.new_password && !data.rol) return res.status(400).json({ msg: "no se ha enviado informacion para editar" });
+
+    if (data.isEditPassoword) {
+      await db.collection('gi').updateOne({ _id: ObjectID(id) }, {
+        $set: {
+          password: await encrypPassword(data.new_password),
+          rol: data.rol
+        }
+      });
+
+      return res.status(200).json({ msg: "password y rol modificados correctamente" });
+    }
+
+    await db.collection('gi').updateOne({ _id: ObjectID(id) }, {
+      $set: {
+        rol: data.rol
+      }
+    });
+
+    return res.status(200).json({ msg: "rol modificado correctamente" });
+
+  } catch (error) {
+
+    return res.status(201).json({ msg: "ha ocurrido un error", error });
+
   }
 });
 
@@ -353,9 +393,9 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
 
   //agregar password encyptada
-  newGi.password = await encrypPassword(newGi.password);
+  // newGi.password = await encrypPassword(newGi.password);
   //agregar rol
-  newGi.rol = newGi.grupo_interes || 'Clientes';
+  newGi.rol = newGi.rol || 'Clientes';
 
   const result = await db.collection("gi").insertOne(newGi);
 

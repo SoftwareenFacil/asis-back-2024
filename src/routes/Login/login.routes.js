@@ -33,6 +33,7 @@ router.post('/', async (req, res) => {
         id: gi._id,
         rut: gi.rut,
         razon_social: gi.razon_social,
+        rol: gi.rol || '',
     });
 
 
