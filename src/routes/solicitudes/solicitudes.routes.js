@@ -4,7 +4,7 @@ import { getYear } from "../../functions/getYearActual";
 import { getDate } from "../../functions/getDateNow";
 import excelToJson from "../../functions/insertManyGis/excelToJson";
 import sendinblue from "../../libs/sendinblue/sendinblue";
-const addDays = require("add-days");
+// const addDays = require("add-days");
 
 import { verifyToken } from "../../libs/jwt";
 
@@ -49,8 +49,6 @@ router.post("/pagination", async (req, res) => {
       .limit(nPerPage)
       .toArray();
 
-    console.log([countSol, dataToken])
-
     return res.json({
       auth: AUTHORIZED,
       total_items: countSol,
@@ -59,7 +57,7 @@ router.post("/pagination", async (req, res) => {
       solicitudes: result,
     });
   } catch (error) {
-    return res.status(501).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -237,7 +235,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     }
     : newSolicitud.url_file_adjunto = {};
 
-  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
     return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   try {
@@ -318,7 +316,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
     return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   // if (req.file) {
@@ -389,9 +387,9 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
       }
     );
 
-    res.status(200).json({ message: SUCCESSFULL_UPDATE });
+    res.status(200).json({ msg: SUCCESSFULL_UPDATE });
   } catch (error) {
-    res.status(500).json({ message: ERROR, error });
+    res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -408,7 +406,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
 
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
     return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   // let obs = {};
@@ -538,7 +536,7 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
     return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   let new_array = [];

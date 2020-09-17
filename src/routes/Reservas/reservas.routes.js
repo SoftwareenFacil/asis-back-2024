@@ -6,6 +6,11 @@ import { getDate } from "../../functions/getDateNow";
 import multer from "../../libs/multer";
 import sendinblue from "../../libs/sendinblue/sendinblue";
 
+import { verifyToken } from "../../libs/jwt";
+
+import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR, SUCCESSFULL_UPDATE, CONFIRM_SUCCESSFULL } from "../../constant/text_messages";
+
+
 const router = Router();
 
 const YEAR = getYear();
@@ -15,11 +20,23 @@ import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 
 //SELECT
-router.get('/', async (req, res) =>{
+router.get('/', async (req, res) => {
   const db = await connect();
-  const result = await db.collection("reservas").find().toArray();
+  const token = req.headers['x-access-token'];
 
-  res.json(result);
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED, ERROR });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  try {
+    const result = await db.collection("reservas").find().toArray();
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ msg: ERROR, error });
+  }
+
 })
 
 //SELECT WITH PAGINATION
@@ -27,24 +44,32 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED, ERROR });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countRes = await db.collection("reservas").find().count();
+    const countRes = await db.collection("reservas").find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id } : {}).count();
     const result = await db
       .collection("reservas")
-      .find()
+      .find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id } : {})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
 
     res.json({
+      auth: AUTHORIZED,
       total_items: countRes,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countRes / nPerPage + 1),
       reservas: result,
     });
   } catch (error) {
-    res.status(501).json(error);
+    res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -52,16 +77,37 @@ router.post("/pagination", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const result = await db.collection("reservas").findOne({ _id: ObjectID(id) });
-  res.json(result);
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  try {
+    const result = await db.collection("reservas").findOne({ _id: ObjectID(id) });
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ msg: ERROR, error });
+  }
 });
 
 //BUSCAR POR RUT O NOMBRE
-router.post('/buscar', async (req, res) =>{
+router.post('/buscar', async (req, res) => {
   const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
   let rutFiltrado;
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+
   if (identificador === 1 && filtro.includes("k")) {
     rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");
@@ -75,30 +121,58 @@ router.post('/buscar', async (req, res) =>{
   let countRes;
 
   try {
-    if (identificador === 1) {
-      countRes = await db
-        .collection("reservas")
-        .find({ rut_cp: rexExpresionFiltro })
-        .count();
-  
-      result = await db
-        .collection("reservas")
-        .find({ rut_cp: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
-    else{
-      countRes = await db
-        .collection("reservas")
-        .find({ razon_social_cp: rexExpresionFiltro })
-        .count();
-      result = await db
-        .collection("reservas")
-        .find({ razon_social_cp: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
+    if (dataToken.rol !== 'Clientes') {
+      if (identificador === 1) {
+        countRes = await db
+          .collection("reservas")
+          .find({ rut_cp: rexExpresionFiltro })
+          .count();
+
+        result = await db
+          .collection("reservas")
+          .find({ rut_cp: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+      else {
+        countRes = await db
+          .collection("reservas")
+          .find({ razon_social_cp: rexExpresionFiltro })
+          .count();
+        result = await db
+          .collection("reservas")
+          .find({ razon_social_cp: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+    } else {
+      if (identificador === 1) {
+        countRes = await db
+          .collection("reservas")
+          .find({ rut_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .count();
+
+        result = await db
+          .collection("reservas")
+          .find({ rut_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+      else {
+        countRes = await db
+          .collection("reservas")
+          .find({ razon_social_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .count();
+        result = await db
+          .collection("reservas")
+          .find({ razon_social_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
     }
 
     res.json({
@@ -108,63 +182,97 @@ router.post('/buscar', async (req, res) =>{
       reservas: result,
     });
   } catch (error) {
-    res.status(501).json({mgs: `ha ocurrido un error ${error}`});
+    res.status(500).json({ mgs: ERROR, error });
   }
 })
 
 //EDITAR RESERVA
 router.put("/:id", multer.single("archivo"), async (req, res) => {
-  const { id } = req.params;
-  const datos = JSON.parse(req.body.data);
   const db = await connect();
-  let archivo = {};
-  let obs = {};
-  obs.obs = datos.observacion;
-  obs.fecha = getDate(new Date());
+  const datos = JSON.parse(req.body.data);
+  const { id } = req.params;
+  const token = req.headers['x-access-token'];
 
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+
+  let archivo = {};
+  // let obs = {};
+  // obs.obs = datos.observacion;
+  // obs.fecha = getDate(new Date());
+  const obs = {
+    obs: datos.observacion,
+    fecha: datos.getDate(new Date())
   }
 
-  const result = await db.collection("reservas").updateOne(
-    { _id: ObjectID(id) },
-    {
-      $set: {
-        fecha_reserva: datos.fecha_reserva,
-        hora_reserva: datos.hora_reserva,
-        fecha_reserva_fin: datos.fecha_reserva_fin,
-        hora_reserva_fin: datos.hora_reserva_fin,
-        jornada: datos.jornada,
-        mes: datos.mes,
-        anio: datos.anio,
-        id_GI_personalAsignado: datos.id_GI_profesional_asignado,
-        sucursal: datos.sucursal,
-        url_file_adjunto: archivo,
-      },
-      $push: {
-        observacion: obs,
-      },
-    }
-  );
+  if (req.file) archivo = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path,
+    type: req.file.mimetype,
+  };
 
-  res.json(result);
+  try {
+    await db.collection("reservas").updateOne(
+      { _id: ObjectID(id) },
+      {
+        $set: {
+          fecha_reserva: datos.fecha_reserva,
+          hora_reserva: datos.hora_reserva,
+          fecha_reserva_fin: datos.fecha_reserva_fin,
+          hora_reserva_fin: datos.hora_reserva_fin,
+          jornada: datos.jornada,
+          mes: datos.mes,
+          anio: datos.anio,
+          id_GI_personalAsignado: datos.id_GI_profesional_asignado,
+          sucursal: datos.sucursal,
+          url_file_adjunto: archivo,
+        },
+        $push: {
+          observacion: obs,
+        },
+      }
+    );
+    res.status(200).json({ msg: SUCCESSFULL_UPDATE });
+  } catch (error) {
+    res.status(500).json({ msg: ERROR, error });
+  }
+
 });
 
 //CONFIRMAR RESERVA
 router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const datos = JSON.parse(req.body.data);
-  let archivo = {};
   const db = await connect();
-  let obs = {};
-  obs.obs = datos.observacion;
-  obs.fecha = getDate(new Date());
-  let result = null;
+  const token = req.headers['x-access-token'];
+
+  let archivo = {};
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+
+  // let obs = {};
+  // obs.obs = datos.observacion;
+  // obs.fecha = getDate(new Date());
+  const obs = {
+    obs: datos.observacion,
+    fecha: getDate(new Date())
+  }
+
+  let result = [];
   let codAsis = "";
 
   if (req.file) {
@@ -333,15 +441,13 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       6
     );
 
-    res.json({
-      status: 200,
-      message: "Reserva Confirmada",
+    res.status(200).json({
+      msg: CONFIRM_SUCCESSFULL,
     });
-  } catch (err) {
-    res.json({
-      status: 500,
-      message: "No se pudo concretar la confirmacion de la reserva",
-      error: err,
+  } catch (error) {
+    res.status(500).json({
+      msg: ERROR,
+      error
     });
   }
 });
@@ -350,21 +456,36 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
 router.post("/confirmar", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   let datosJson = JSON.parse(req.body.data);
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores' || dataToken.rol === 'Emppleados')
+    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+
   let new_array = [];
   let archivo = {};
-  let obs = {};
-  obs.obs = datosJson[0].observacion;
-  obs.fecha = getDate(new Date());
+
+  const obs = {
+    obs: datosJson[0].observacion,
+    fecha: getDate(new Date())
+  }
+
+  // let obs = {};
+  // obs.obs = datosJson[0].observacion;
+  // obs.fecha = getDate(new Date());
 
   //verificar si hay archivo o no
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
+  if (req.file) archivo = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path,
+    type: req.file.mimetype,
+  };
 
   datosJson[1].ids.forEach((element) => {
     new_array.push(ObjectID(element));

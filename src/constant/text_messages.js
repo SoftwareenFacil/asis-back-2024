@@ -11,3 +11,5 @@ export const ERROR = "ha ocurrido un error";
 export const SUCCESSFULL_INSERT = "La insercion ha sido exitosa";
 
 export const SUCCESSFULL_UPDATE = "La modificación ha sido existosa";
+
+export const CONFIRM_SUCCESSFULL = "Se ha confirmado exitosamente";

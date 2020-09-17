@@ -4,6 +4,10 @@ import { v4 } from "uuid";
 
 const router = Router();
 
+import { verifyToken } from "../../libs/jwt";
+
+import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR, SUCCESSFULL_INSERT, SUCCESSFULL_UPDATE } from "../../constant/text_messages";
+
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
@@ -31,24 +35,32 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countPagos = await db.collection("pagos").find().count();
+    const countPagos = await db.collection("pagos").find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {}).count();
     const result = await db
       .collection("pagos")
-      .find()
+      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
 
     res.json({
+      auth: AUTHORIZED,
       total_items: countPagos,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countPagos / nPerPage + 1),
       pagos: result,
     });
   } catch (error) {
-    res.status(501).json(error);
+    res.status(500).json(error);
   }
 });
 
@@ -57,6 +69,13 @@ router.post("/buscar", async (req, res) => {
   const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   let rutFiltrado;
 
@@ -73,29 +92,56 @@ router.post("/buscar", async (req, res) => {
   let countPagos;
 
   try {
-    if (identificador === 1) {
-      countPagos = await db
-        .collection("pagos")
-        .find({ rut_cp: rexExpresionFiltro })
-        .count();
-
-      result = await db
-        .collection("pagos")
-        .find({ rut_cp: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    } else {
-      countPagos = await db
-        .collection("pagos")
-        .find({ razon_social_cp: rexExpresionFiltro })
-        .count();
-      result = await db
-        .collection("pagos")
-        .find({ razon_social_cp: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
+    if(dataToken.rol !== 'Clientes'){
+      if (identificador === 1) {
+        countPagos = await db
+          .collection("pagos")
+          .find({ rut_cp: rexExpresionFiltro })
+          .count();
+  
+        result = await db
+          .collection("pagos")
+          .find({ rut_cp: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      } else {
+        countPagos = await db
+          .collection("pagos")
+          .find({ razon_social_cp: rexExpresionFiltro })
+          .count();
+        result = await db
+          .collection("pagos")
+          .find({ razon_social_cp: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+    }else{
+      if (identificador === 1) {
+        countPagos = await db
+          .collection("pagos")
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .count();
+  
+        result = await db
+          .collection("pagos")
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      } else {
+        countPagos = await db
+          .collection("pagos")
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .count();
+        result = await db
+          .collection("pagos")
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
     }
 
     res.json({
@@ -105,7 +151,7 @@ router.post("/buscar", async (req, res) => {
       pagos: result,
     });
   } catch (error) {
-    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    res.status(500).json({ mgs: ERROR, error  });
   }
 });
 
@@ -114,16 +160,22 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   const { id } = req.params;
   let datos = JSON.parse(req.body.data);
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   let archivo = {};
 
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
+  if (req.file) archivo = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path,
+    type: req.file.mimetype,
+  };
 
   let obj = {};
   obj.id = v4();
@@ -210,6 +262,14 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
 router.post("/many", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   let datos = JSON.parse(req.body.data);
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   let archivo = {};
   let new_array = [];
 
@@ -295,16 +355,22 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   let datos = JSON.parse(req.body.data);
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   let archivo = {};
 
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
+  if (req.file) archivo = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path,
+    type: req.file.mimetype,
+  };
 
   let obj = {};
   obj.id = datos.id;
@@ -421,6 +487,13 @@ router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   const pago = JSON.parse(req.query.data);
   const db = await connect();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   //1.- traigo la coleccion
   const coleccionPago = await db

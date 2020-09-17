@@ -2,21 +2,21 @@ import { Router } from "express";
 import { getDate } from "../../functions/getDateNow";
 import multer from "../../libs/multer";
 import moment from "moment";
-var fs = require("fs");
 var path = require("path");
 import pdfAversionRiesgo from "../../functions/createPdf/aversionRiesgo/createPdf";
 import pdfPsicosensotecnico from "../../functions/createPdf/psicosensotecnico/createpdf";
 import { generateQR } from "../../functions/createPdf/aversionRiesgo/constant";
-var path = require("path");
-// import { getYear } from "../../functions/getYearActual";
-// import { CalculateFechaVenc } from "../../functions/getFechaVenc";
+
+import { verifyToken } from "../../libs/jwt";
+
+import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR, SUCCESSFULL_INSERT, SUCCESSFULL_UPDATE } from "../../constant/text_messages";
+
 
 const router = Router();
 
 //database connection
 import { connect } from "../../database";
 import { ObjectID, ObjectId } from "mongodb";
-import { conclusion } from "../../functions/createPdf/aversionRiesgo/constant";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -29,16 +29,34 @@ router.get("/", async (req, res) => {
 router.post('/selectone/:id', async (req, res) => {
   const { id } = req.params;
   const db = await connect();
+  const token = req.headers['x-access-token'];
 
-  const result = await db.collection("evaluaciones").findOne({ _id: ObjectID(id) });
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  res.json(result);
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  try {
+    const result = await db.collection("evaluaciones").findOne({ _id: ObjectID(id) });
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ msg: ERROR, error });
+  }
+
 });
 
 //GENERAR PDF DE PSICOSENSOTECNICO
 router.post('/evaluacionpsico', async (req, res) => {
   const db = await connect();
   const data = req.body;
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   const resultado = data.resultado;
   const restricciones = data.restricciones;
@@ -270,8 +288,15 @@ router.post('/evaluacionpsico', async (req, res) => {
 //GENERAR PDF DE AVERSION AL RIESGO
 router.post('/evaluacionaversion', async (req, res) => {
   const db = await connect();
-
   const data = req.body;
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   const I = { razonamiento_abstracto: data.razonamiento_abstracto, percepcion_concentracion: data.percepcion_concentracion, comprension_instrucciones: data.comprension_instrucciones };
 
   const AN = { acato_autoridad: data.acato_autoridad, relacion_grupo_pares: data.relacion_grupo_pares, comportamiento_social: data.comportamiento_social };
@@ -377,24 +402,33 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
 
   try {
-    const countEva = await db.collection("evaluaciones").find().count();
+    const countEva = await db.collection("evaluaciones").find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {}).count();
     const result = await db
       .collection("evaluaciones")
-      .find()
+      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
 
-    res.json({
+    return res.json({
+      auth: AUTHORIZED,
       total_items: countEva,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countEva / nPerPage + 1),
       evaluaciones: result,
     });
   } catch (error) {
-    res.status(501).json(error);
+    return res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -403,7 +437,16 @@ router.post("/buscar", async (req, res) => {
   const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   let rutFiltrado;
+
   if (identificador === 1 && filtro.includes("k")) {
     rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");
@@ -417,29 +460,57 @@ router.post("/buscar", async (req, res) => {
   let countEva;
 
   try {
-    if (identificador === 1) {
-      countEva = await db
-        .collection("evaluaciones")
-        .find({ rut_cp: rexExpresionFiltro })
-        .count();
+    if (dataToken.rol !== 'Clientes') {
+      if (identificador === 1) {
+        countEva = await db
+          .collection("evaluaciones")
+          .find({ rut_cp: rexExpresionFiltro })
+          .count();
 
-      result = await db
-        .collection("evaluaciones")
-        .find({ rut_cp: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    } else {
-      countEva = await db
-        .collection("evaluaciones")
-        .find({ razon_social_cp: rexExpresionFiltro })
-        .count();
-      result = await db
-        .collection("evaluaciones")
-        .find({ razon_social_cp: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
+        result = await db
+          .collection("evaluaciones")
+          .find({ rut_cp: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      } else {
+        countEva = await db
+          .collection("evaluaciones")
+          .find({ razon_social_cp: rexExpresionFiltro })
+          .count();
+        result = await db
+          .collection("evaluaciones")
+          .find({ razon_social_cp: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+    }
+    else {
+      if (identificador === 1) {
+        countEva = await db
+          .collection("evaluaciones")
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .count();
+
+        result = await db
+          .collection("evaluaciones")
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      } else {
+        countEva = await db
+          .collection("evaluaciones")
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .count();
+        result = await db
+          .collection("evaluaciones")
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
     }
 
     res.json({
@@ -449,15 +520,25 @@ router.post("/buscar", async (req, res) => {
       evaluaciones: result,
     });
   } catch (error) {
-    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    res.status(500).json({ mgs: ERROR, error });
   }
 });
 
-//EDIT
+//EDITAR EVALUACION -----------> PENDIENTE
 router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const evaluacion = JSON.parse(req.body.data);
   const db = await connect();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
+    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   if (req.file) {
     evaluacion.url_file_adjunto = {
@@ -469,7 +550,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   }
 
   try {
-    const result = await db.collection("evaluaciones").updateOne(
+    await db.collection("evaluaciones").updateOne(
       { _id: ObjectID(id) },
       {
         $set: {},
@@ -486,39 +567,53 @@ router.post("/evaluar/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const datos = JSON.parse(req.body.data);
-  let obs = {};
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   let archivo = {};
-  obs.obs = datos.observaciones;
-  obs.fecha = getDate(new Date());
-  obs.estado = "Cargado";
+  let obs = {
+    obs: datos.observaciones,
+    fecha: getDate(new Date()),
+    estado: "Cargado"
+  };
+  // obs.obs = datos.observaciones;
+  // obs.fecha = getDate(new Date());
+  // obs.estado = "Cargado";
 
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
+  if (req.file) archivo = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path,
+    type: req.file.mimetype,
+  };
+
+  try {
+    const result = await db.collection("evaluaciones").updateOne(
+      { _id: ObjectID(id) },
+      {
+        $set: {
+          estado: "En Evaluacion",
+          estado_archivo: "Cargado",
+          archivo_examen: datos.archivo_examen,
+          fecha_carga_examen: datos.fecha_carga_examen,
+          hora_carga_examen: datos.hora_carga_examen,
+          url_file_adjunto_EE: archivo,
+        },
+        $push: {
+          observaciones: obs,
+        },
+      }
+    );
+
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ msg: ERROR, error })
   }
-
-  const result = await db.collection("evaluaciones").updateOne(
-    { _id: ObjectID(id) },
-    {
-      $set: {
-        estado: "En Evaluacion",
-        estado_archivo: "Cargado",
-        archivo_examen: datos.archivo_examen,
-        fecha_carga_examen: datos.fecha_carga_examen,
-        hora_carga_examen: datos.hora_carga_examen,
-        url_file_adjunto_EE: archivo,
-      },
-      $push: {
-        observaciones: obs,
-      },
-    }
-  );
-
-  res.json(result);
 });
 
 //PASAR A EVALUADO
@@ -526,69 +621,88 @@ router.post("/evaluado/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const datos = req.body;
-  let estadoEvaluacion = "";
-  let obs = {};
-  obs.obs = datos.observaciones;
-  obs.fecha = getDate(new Date());
-  obs.estado = datos.estado_archivo;
+  const token = req.headers['x-access-token'];
 
-  if (
-    datos.estado_archivo == "Aprobado" ||
-    datos.estado_archivo == "Aprobado con Obs"
-  ) {
-    estadoEvaluacion = "Evaluado";
-  } else {
-    estadoEvaluacion = "Ingresado";
-  }
-  let result = await db.collection("evaluaciones").findOneAndUpdate(
-    { _id: ObjectID(id) },
-    {
-      $set: {
-        estado: estadoEvaluacion,
-        estado_archivo: datos.estado_archivo,
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  let estadoEvaluacion = "";
+  let obs = {
+    obs: datos.observaciones,
+    fecha: getDate(new Date()),
+    estado: datos.estado_archivo
+  };
+  // obs.obs = datos.observaciones;
+  // obs.fecha = getDate(new Date());
+  // obs.estado = datos.estado_archivo;
+
+  try {
+
+    if (
+      datos.estado_archivo == "Aprobado" ||
+      datos.estado_archivo == "Aprobado con Obs"
+    ) {
+      estadoEvaluacion = "Evaluado";
+    } else {
+      estadoEvaluacion = "Ingresado";
+    }
+    let result = await db.collection("evaluaciones").findOneAndUpdate(
+      { _id: ObjectID(id) },
+      {
+        $set: {
+          estado: estadoEvaluacion,
+          estado_archivo: datos.estado_archivo,
+          fecha_confirmacion_examen: datos.fecha_confirmacion_examen,
+          hora_confirmacion_examen: datos.hora_confirmacion_examen,
+        },
+        $push: {
+          observaciones: obs,
+        },
+      },
+      { sort: { codigo: 1 }, returnNewDocument: true }
+    );
+
+    if (
+      result.ok == 1 &&
+      (datos.estado_archivo == "Aprobado" ||
+        datos.estado_archivo == "Aprobado con Obs")
+    ) {
+      let codAsis = result.value.codigo;
+      codAsis = codAsis.replace("EVA", "RES");
+      const resultinsert = await db.collection("resultados").insertOne({
+        codigo: codAsis,
+        nombre_servicio: result.value.nombre_servicio,
+        id_GI_personalAsignado: result.value.id_GI_personalAsignado,
+        faena_seleccionada_cp: result.value.faena_seleccionada_cp,
+        valor_servicio: result.value.valor_servicio,
+        rut_cp: result.value.rut_cp,
+        razon_social_cp: result.value.razon_social_cp,
+        rut_cs: result.value.rut_cs,
+        razon_social_cs: result.value.razon_social_cs,
+        lugar_servicio: result.value.lugar_servicio,
+        sucursal: result.value.sucursal,
+        condicionantes: [],
+        vigencia_examen: "",
+        observaciones: [],
         fecha_confirmacion_examen: datos.fecha_confirmacion_examen,
         hora_confirmacion_examen: datos.hora_confirmacion_examen,
-      },
-      $push: {
-        observaciones: obs,
-      },
-    },
-    { sort: { codigo: 1 }, returnNewDocument: true }
-  );
+        estado: "En Revisión",
+        estado_archivo: "Sin Documento",
+        estado_resultado: "",
+      });
 
-  if (
-    result.ok == 1 &&
-    (datos.estado_archivo == "Aprobado" ||
-      datos.estado_archivo == "Aprobado con Obs")
-  ) {
-    let codAsis = result.value.codigo;
-    codAsis = codAsis.replace("EVA", "RES");
-    const resultinsert = await db.collection("resultados").insertOne({
-      codigo: codAsis,
-      nombre_servicio: result.value.nombre_servicio,
-      id_GI_personalAsignado: result.value.id_GI_personalAsignado,
-      faena_seleccionada_cp: result.value.faena_seleccionada_cp,
-      valor_servicio: result.value.valor_servicio,
-      rut_cp: result.value.rut_cp,
-      razon_social_cp: result.value.razon_social_cp,
-      rut_cs: result.value.rut_cs,
-      razon_social_cs: result.value.razon_social_cs,
-      lugar_servicio: result.value.lugar_servicio,
-      sucursal: result.value.sucursal,
-      condicionantes: [],
-      vigencia_examen: "",
-      observaciones: [],
-      fecha_confirmacion_examen: datos.fecha_confirmacion_examen,
-      hora_confirmacion_examen: datos.hora_confirmacion_examen,
-      estado: "En Revisión",
-      estado_archivo: "Sin Documento",
-      estado_resultado: "",
-    });
+      result = resultinsert;
+    }
 
-    result = resultinsert;
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(500).json({ msg: ERROR, error });
   }
 
-  res.json(result);
+  
 });
 
 export default router;

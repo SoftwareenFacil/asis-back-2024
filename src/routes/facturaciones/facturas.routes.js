@@ -1,10 +1,12 @@
-import { Router, json } from "express";
-import { calculate } from "../../functions/NewCode";
-import { getYear } from "../../functions/getYearActual";
+import { Router } from "express";
 import { getMinusculas } from "../../functions/changeToMiniscula";
 import { getDate } from "../../functions/getDateNow";
 import { getFechaPago } from "../../functions/calculateFechaPago";
 import multer from "../../libs/multer";
+
+import { verifyToken } from "../../libs/jwt";
+
+import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR, SUCCESSFULL_INSERT, SUCCESSFULL_UPDATE } from "../../constant/text_messages";
 
 const router = Router();
 
@@ -27,13 +29,26 @@ router.get("/", async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const result = await db.collection('facturaciones').findOne({_id: ObjectID(id)});
-  const empresa = await db.collection('empresa').findOne();
 
-  res.json({
-    facturaciones: result,
-    empresa: empresa
-  });
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  try {
+    const result = await db.collection('facturaciones').findOne({ _id: ObjectID(id) });
+    const empresa = await db.collection('empresa').findOne();
+
+    res.status(200).json({
+      facturaciones: result,
+      empresa: empresa
+    });
+  } catch (error) {
+    res.status(500).json({ msg: ERROR, error });
+  }
 })
 
 //SELECT WITH PAGINATION
@@ -41,17 +56,25 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countFac = await db.collection("facturaciones").find().count();
+    const countFac = await db.collection("facturaciones").find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {}).count();
     const empresa = await db.collection("empresa").findOne({});
     const result = await db
       .collection("facturaciones")
-      .find()
+      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
     res.json({
+      auth: AUTHORIZED,
       total_items: countFac,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countFac / nPerPage + 1),
@@ -59,7 +82,7 @@ router.post("/pagination", async (req, res) => {
       facturaciones: result,
     });
   } catch (error) {
-    res.status(501).json(error);
+    res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -68,6 +91,13 @@ router.post("/buscar", async (req, res) => {
   const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   let rutFiltrado;
 
@@ -84,29 +114,57 @@ router.post("/buscar", async (req, res) => {
   let countFac;
 
   try {
-    if (identificador === 1) {
-      countFac = await db
-        .collection("facturaciones")
-        .find({ rut_cp: rexExpresionFiltro })
-        .count();
+    if (dataToken.rol !== 'Clientes') {
+      if (identificador === 1) {
+        countFac = await db
+          .collection("facturaciones")
+          .find({ rut_cp: rexExpresionFiltro })
+          .count();
 
-      result = await db
-        .collection("facturaciones")
-        .find({ rut_cp: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    } else {
-      countFac = await db
-        .collection("facturaciones")
-        .find({ razon_social_cp: rexExpresionFiltro })
-        .count();
-      result = await db
-        .collection("facturaciones")
-        .find({ razon_social_cp: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
+        result = await db
+          .collection("facturaciones")
+          .find({ rut_cp: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      } else {
+        countFac = await db
+          .collection("facturaciones")
+          .find({ razon_social_cp: rexExpresionFiltro })
+          .count();
+        result = await db
+          .collection("facturaciones")
+          .find({ razon_social_cp: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+    }
+    else {
+      if (identificador === 1) {
+        countFac = await db
+          .collection("facturaciones")
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .count();
+
+        result = await db
+          .collection("facturaciones")
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      } else {
+        countFac = await db
+          .collection("facturaciones")
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .count();
+        result = await db
+          .collection("facturaciones")
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
     }
 
     res.json({
@@ -116,7 +174,7 @@ router.post("/buscar", async (req, res) => {
       facturaciones: result,
     });
   } catch (error) {
-    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    res.status(500).json({ mgs: ERROR, error });
   }
 });
 
@@ -125,15 +183,23 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const factura = JSON.parse(req.body.data);
+  const token = req.headers['x-access-token'];
 
-  if (req.file) {
-    factura.url_file_adjunto = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
+    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+
+  if (req.file) factura.url_file_adjunto = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path,
+    type: req.file.mimetype,
+  };
 
   try {
     const result = await db.collection("facturaciones").updateOne(
@@ -153,12 +219,12 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
       }
     );
 
-    res.status(201).json({
-      message: "Factura modificada correctamente",
+    res.status(200).json({
+      message: SUCCESSFULL_UPDATE,
       result,
     });
   } catch (error) {
-    res.status(500).json({ message: "ha ocurrido un error", error });
+    res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -167,6 +233,14 @@ router.post("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   let datos = JSON.parse(req.body.data);
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   let archivo = {};
   let obs = {};
   obs.obs = datos.observacion_factura;
@@ -211,8 +285,16 @@ router.post("/:id", multer.single("archivo"), async (req, res) => {
 //INSERTAR FACTURA MASIVO
 router.post("/", multer.single("archivo"), async (req, res) => {
   const db = await connect();
-  let new_array = [];
   let datos = JSON.parse(req.body.data);
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  let new_array = [];
   let archivo = {};
   let obs = {};
 
@@ -264,6 +346,15 @@ router.post("/subiroc/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   let datos = JSON.parse(req.body.data);
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+
   let archivo = {};
   let obs = {};
   obs.obs = datos.observacion_oc;
@@ -304,6 +395,14 @@ router.post("/oc/subiroc/many", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   let new_array = [];
   let datos = JSON.parse(req.body.data);
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   let archivo = {};
   let obs = {};
   obs.obs = datos[0].observacion_oc;
@@ -347,6 +446,14 @@ router.post("/oc/subiroc/many", multer.single("archivo"), async (req, res) => {
 router.post("/confirmaroc/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   let obs = {};
   obs.obs = req.body.observaciones;
   obs.fecha = getDate(new Date());
@@ -375,6 +482,14 @@ router.post("/confirmaroc/:id", async (req, res) => {
 //CONFIRMAR OC MASIVO
 router.post("/oc/confirmaroc/many", async (req, res) => {
   const db = await connect();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
 
   let new_array = [];
 
@@ -420,6 +535,14 @@ router.post("/validar/:id", async (req, res) => {
     factura_anular,
   } = req.body;
   const db = await connect();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   let obs = {};
   obs.obs = observaciones;
   obs.fecha = getDate(new Date());
@@ -514,10 +637,17 @@ router.post("/validar/:id", async (req, res) => {
 //VALIDAR FACTURA MASIVO
 router.post("/validar/factura/asis/many", async (req, res) => {
   const db = await connect();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
   let obs = {};
   let estado = "";
   let estadoArchivo = "";
-  let result = "";
   let new_array = [];
 
   obs.obs = req.body[0].observaciones;
