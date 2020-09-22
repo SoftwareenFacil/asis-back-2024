@@ -5,6 +5,7 @@ import { getMinusculas } from "../../functions/changeToMiniscula";
 import { getDate } from "../../functions/getDateNow";
 import multer from "../../libs/multer";
 import sendinblue from "../../libs/sendinblue/sendinblue";
+import { isRolReservas } from "../../functions/isRol";
 
 import { verifyToken } from "../../libs/jwt";
 
@@ -53,10 +54,10 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countRes = await db.collection("reservas").find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id } : {}).count();
+    const countRes = await db.collection("reservas").find(isRolReservas(dataToken.rol, dataToken.id)).count();
     const result = await db
       .collection("reservas")
-      .find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id } : {})
+      .find(isRolReservas(dataToken.rol, dataToken.id))
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -121,33 +122,7 @@ router.post('/buscar', async (req, res) => {
   let countRes;
 
   try {
-    if (dataToken.rol !== 'Clientes') {
-      if (identificador === 1) {
-        countRes = await db
-          .collection("reservas")
-          .find({ rut_cp: rexExpresionFiltro })
-          .count();
-
-        result = await db
-          .collection("reservas")
-          .find({ rut_cp: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else {
-        countRes = await db
-          .collection("reservas")
-          .find({ razon_social_cp: rexExpresionFiltro })
-          .count();
-        result = await db
-          .collection("reservas")
-          .find({ razon_social_cp: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-    } else {
+    if (dataToken.rol === 'Clientes') {
       if (identificador === 1) {
         countRes = await db
           .collection("reservas")
@@ -169,6 +144,60 @@ router.post('/buscar', async (req, res) => {
         result = await db
           .collection("reservas")
           .find({ razon_social_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+    }
+    else if(dataToken.rol === 'Colaboradores'){
+      if (identificador === 1) {
+        countRes = await db
+          .collection("reservas")
+          .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+          .count();
+
+        result = await db
+          .collection("reservas")
+          .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+      else {
+        countRes = await db
+          .collection("reservas")
+          .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+          .count();
+        result = await db
+          .collection("reservas")
+          .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+    }
+    else {
+      if (identificador === 1) {
+        countRes = await db
+          .collection("reservas")
+          .find({ rut_cp: rexExpresionFiltro })
+          .count();
+
+        result = await db
+          .collection("reservas")
+          .find({ rut_cp: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+      else {
+        countRes = await db
+          .collection("reservas")
+          .find({ razon_social_cp: rexExpresionFiltro })
+          .count();
+        result = await db
+          .collection("reservas")
+          .find({ razon_social_cp: rexExpresionFiltro })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();

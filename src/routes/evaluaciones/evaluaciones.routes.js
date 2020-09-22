@@ -6,6 +6,7 @@ var path = require("path");
 import pdfAversionRiesgo from "../../functions/createPdf/aversionRiesgo/createPdf";
 import pdfPsicosensotecnico from "../../functions/createPdf/psicosensotecnico/createpdf";
 import { generateQR } from "../../functions/createPdf/aversionRiesgo/constant";
+import { isRolEvaluaciones } from "../../functions/isRol";
 
 import { verifyToken } from "../../libs/jwt";
 
@@ -50,13 +51,13 @@ router.post('/selectone/:id', async (req, res) => {
 router.post('/evaluacionpsico', async (req, res) => {
   const db = await connect();
   const data = req.body;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   const resultado = data.resultado;
   const restricciones = data.restricciones;
@@ -412,10 +413,10 @@ router.post("/pagination", async (req, res) => {
 
 
   try {
-    const countEva = await db.collection("evaluaciones").find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {}).count();
+    const countEva = await db.collection("evaluaciones").find(isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id)).count();
     const result = await db
       .collection("evaluaciones")
-      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {})
+      .find(isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id))
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -460,27 +461,53 @@ router.post("/buscar", async (req, res) => {
   let countEva;
 
   try {
-    if (dataToken.rol !== 'Clientes') {
+    if (dataToken.rol === 'Clientes') {
       if (identificador === 1) {
         countEva = await db
           .collection("evaluaciones")
-          .find({ rut_cp: rexExpresionFiltro })
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
           .count();
 
         result = await db
           .collection("evaluaciones")
-          .find({ rut_cp: rexExpresionFiltro })
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
       } else {
         countEva = await db
           .collection("evaluaciones")
-          .find({ razon_social_cp: rexExpresionFiltro })
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
           .count();
         result = await db
           .collection("evaluaciones")
-          .find({ razon_social_cp: rexExpresionFiltro })
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+    }
+    else if(dataToken.rol === 'Colaboradores'){
+      if (identificador === 1) {
+        countEva = await db
+          .collection("evaluaciones")
+          .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+          .count();
+
+        result = await db
+          .collection("evaluaciones")
+          .find({ id_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      } else {
+        countEva = await db
+          .collection("evaluaciones")
+          .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+          .count();
+        result = await db
+          .collection("evaluaciones")
+          .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -490,23 +517,23 @@ router.post("/buscar", async (req, res) => {
       if (identificador === 1) {
         countEva = await db
           .collection("evaluaciones")
-          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ rut_cp: rexExpresionFiltro })
           .count();
 
         result = await db
           .collection("evaluaciones")
-          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ rut_cp: rexExpresionFiltro })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
       } else {
         countEva = await db
           .collection("evaluaciones")
-          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ razon_social_cp: rexExpresionFiltro })
           .count();
         result = await db
           .collection("evaluaciones")
-          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ razon_social_cp: rexExpresionFiltro })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();

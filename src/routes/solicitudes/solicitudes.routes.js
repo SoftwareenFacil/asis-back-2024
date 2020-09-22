@@ -4,6 +4,7 @@ import { getYear } from "../../functions/getYearActual";
 import { getDate } from "../../functions/getDateNow";
 import excelToJson from "../../functions/insertManyGis/excelToJson";
 import sendinblue from "../../libs/sendinblue/sendinblue";
+import { isRolSolicitudes } from "../../functions/isRol";
 // const addDays = require("add-days");
 
 import { verifyToken } from "../../libs/jwt";
@@ -41,10 +42,10 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countSol = await db.collection("solicitudes").find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id } : {}).count();
+    const countSol = await db.collection("solicitudes").find(isRolSolicitudes(dataToken.rol, dataToken.id)).count();
     const result = await db
       .collection("solicitudes")
-      .find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id } : {})
+      .find(isRolSolicitudes(dataToken.rol, dataToken.id))
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -89,16 +90,16 @@ router.post("/buscar", async (req, res) => {
   let countSol;
 
   try {
-    if (dataToken.rol !== 'Clientes') {
+    if (dataToken.rol === 'Clientes') {
       if (identificador === 1) {
         countSol = await db
           .collection("solicitudes")
-          .find({ rut_CP: rexExpresionFiltro })
+          .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
           .count();
 
         result = await db
           .collection("solicitudes")
-          .find({ rut_CP: rexExpresionFiltro })
+          .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -106,11 +107,38 @@ router.post("/buscar", async (req, res) => {
       else {
         countSol = await db
           .collection("solicitudes")
-          .find({ razon_social_CP: rexExpresionFiltro })
+          .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
           .count();
         result = await db
           .collection("solicitudes")
-          .find({ razon_social_CP: rexExpresionFiltro })
+          .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+    }
+    else if (dataToken.rol === 'Colaboradores'){
+      if (identificador === 1) {
+        countSol = await db
+          .collection("solicitudes")
+          .find({ rut_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+          .count();
+
+        result = await db
+          .collection("solicitudes")
+          .find({ rut_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+      else {
+        countSol = await db
+          .collection("solicitudes")
+          .find({ razon_social_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+          .count();
+        result = await db
+          .collection("solicitudes")
+          .find({ razon_social_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -120,12 +148,12 @@ router.post("/buscar", async (req, res) => {
       if (identificador === 1) {
         countSol = await db
           .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .find({ rut_CP: rexExpresionFiltro })
           .count();
 
         result = await db
           .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .find({ rut_CP: rexExpresionFiltro })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -133,11 +161,11 @@ router.post("/buscar", async (req, res) => {
       else {
         countSol = await db
           .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .find({ razon_social_CP: rexExpresionFiltro })
           .count();
         result = await db
           .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .find({ razon_social_CP: rexExpresionFiltro })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();

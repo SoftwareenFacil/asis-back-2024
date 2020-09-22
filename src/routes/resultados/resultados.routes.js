@@ -5,6 +5,7 @@ import { getFechaVencExam } from "../../functions/fechaVencExamen";
 import { getDate } from "../../functions/getDateNow";
 import { getDateEspecific } from "../../functions/getEspecificDate";
 import multer from "../../libs/multer";
+import { isRolResultados } from "../../functions/isRol";
 
 import { verifyToken } from "../../libs/jwt";
 
@@ -66,10 +67,10 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countRes = await db.collection("resultados").find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {}).count();
+    const countRes = await db.collection("resultados").find(isRolResultados(dataToken.rol, dataToken.rut, dataToken.id)).count();
     const result = await db
       .collection("resultados")
-      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {})
+      .find(isRolResultados(dataToken.rol, dataToken.rut, dataToken.id))
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -113,28 +114,55 @@ router.post('/buscar', async (req, res) => {
   let countRes;
 
   try {
-    if (dataToken.rol !== 'Clientes') {
+    if (dataToken.rol === 'Clientes') {
       if (identificador === 1) {
-        countRes = await db
-          .collection("resultados")
-          .find({ rut_cp: rexExpresionFiltro })
+        countSol = await db
+          .collection("solicitudes")
+          .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
           .count();
 
         result = await db
-          .collection("resultados")
-          .find({ rut_cp: rexExpresionFiltro })
+          .collection("solicitudes")
+          .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
       }
       else {
-        countRes = await db
-          .collection("resultados")
-          .find({ razon_social_cp: rexExpresionFiltro })
+        countSol = await db
+          .collection("solicitudes")
+          .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
           .count();
         result = await db
-          .collection("resultados")
-          .find({ razon_social_cp: rexExpresionFiltro })
+          .collection("solicitudes")
+          .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+    }
+    else if(dataToken.rol === 'Colaboradores'){
+      if (identificador === 1) {
+        countSol = await db
+          .collection("solicitudes")
+          .find({ rut_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+          .count();
+
+        result = await db
+          .collection("solicitudes")
+          .find({ id_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+      else {
+        countSol = await db
+          .collection("solicitudes")
+          .find({ razon_social_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+          .count();
+        result = await db
+          .collection("solicitudes")
+          .find({ razon_social_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -142,26 +170,26 @@ router.post('/buscar', async (req, res) => {
     }
     else {
       if (identificador === 1) {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
+        countRes = await db
+          .collection("resultados")
+          .find({ rut_cp: rexExpresionFiltro })
           .count();
 
         result = await db
-          .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .collection("resultados")
+          .find({ rut_cp: rexExpresionFiltro })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
       }
       else {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
+        countRes = await db
+          .collection("resultados")
+          .find({ razon_social_cp: rexExpresionFiltro })
           .count();
         result = await db
-          .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .collection("resultados")
+          .find({ razon_social_cp: rexExpresionFiltro })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();

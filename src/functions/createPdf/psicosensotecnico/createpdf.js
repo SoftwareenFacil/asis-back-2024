@@ -192,7 +192,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     //datos
     evaluaciones.forEach(function (element, index) {
 
-        if(index < 4) {
+        if (index < 4) {
             doc
                 .font("Helvetica")
                 .text(element.resultado, 278, generalSpace, { align: "left" });
@@ -202,8 +202,8 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
                 .text(element.obs, 370, generalSpace, { align: "left" });
         }
 
-        if(index >= 4){
-            if(element.active){
+        if (index >= 4) {
+            if (element.active) {
                 doc
                     .font("Helvetica")
                     .text(element.resultado, 278, generalSpace, { align: "left" });
@@ -212,7 +212,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
                     .font("Helvetica")
                     .text(element.obs, 370, generalSpace, { align: "left" });
             }
-            else{
+            else {
                 doc
                     .font("Helvetica")
                     .text('No Requerido', 278, generalSpace, { align: "left" });
@@ -551,87 +551,90 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     generalSpace += 52;
 
     //-------------------------------------------------TEST ESPECIFICO VELOCIDAD DE ANTICIPACION
-    if (test_espe_vel_anticipacion.active) {
-        doc.fillColor('#000', 1);
-        doc
-            .font("Helvetica-Bold")
-            .text(testEspeVelReaccion.titulo, 60, generalSpace + 8, { align: "center" })
-            .rect(30, generalSpace, 530, 50)
-            .fillColor('white', 0)
-            .fillAndStroke();
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica-Bold")
+        .text(testEspeVelReaccion.titulo, 60, generalSpace + 8, { align: "center" })
+        .rect(30, generalSpace, 530, 50)
+        .fillColor('white', 0)
+        .fillAndStroke();
+    
+    // test_espe_vel_anticipacion.active && 
+    doc.fillColor('red', 1);
+    doc
+        .font("Helvetica-Bold")
+        .fontSize(8)
+        .text("(No Requerido)", 80, generalSpace + 8, { align: "right" });
 
-        generalSpace += 25;
-        doc.fontSize(8);
-        doc.fillColor('#000', 1);
-        doc
-            .font("Helvetica")
-            .text(testEspeVelReaccion.descripcion, 60, generalSpace, { align: "left" });
+    generalSpace += 25;
+    doc.fontSize(8);
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica")
+        .text(testEspeVelReaccion.descripcion, 60, generalSpace, { align: "left" });
 
-        generalSpace += 35;
-        doc.fillColor('#000', 1);
-        doc
-            .font("Helvetica-Bold")
-            .text(test_espe_vel_anticipacion.resultado, 60, generalSpace + 9, { align: "center" })
-            .rect(30, generalSpace, 530, 25)
-            .fillColor('white', 0)
-            .fillAndStroke();
+    generalSpace += 35;
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica-Bold")
+        .text(test_espe_vel_anticipacion.resultado, 60, generalSpace + 9, { align: "center" })
+        .rect(30, generalSpace, 530, 25)
+        .fillColor('white', 0)
+        .fillAndStroke();
 
-        generalSpace += 28;
-        doc.lineJoin("miter").rect(30, generalSpace, 530, 0.5, { align: "center" }).stroke();
-    }
+    generalSpace += 28;
+    doc.lineJoin("miter").rect(30, generalSpace, 530, 0.5, { align: "center" }).stroke();
 
     //-------------------------------------------------EXAMEN DE SOMNOLENCIA
     doc.fontSize(9);
     generalSpace += 30;
 
-    if (examen_somnolencia.active) {
-        doc.fillColor('#000', 1);
-        doc
-            .font("Helvetica-Bold")
-            .text(examenSomnolencia.titulo, 60, generalSpace + 8, { align: "center" })
-            .rect(30, generalSpace, 530, 50)
-            .fillColor('white', 0)
-            .fillAndStroke();
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica-Bold")
+        .text(examenSomnolencia.titulo, 60, generalSpace + 8, { align: "center" })
+        .rect(30, generalSpace, 530, 50)
+        .fillColor('white', 0)
+        .fillAndStroke();
 
-        generalSpace += 25;
-        doc.fontSize(8);
-        doc.fillColor('#000', 1);
-        doc
-            .font("Helvetica")
-            .text(examenSomnolencia.descripcion, 60, generalSpace, { align: "center" });
+    generalSpace += 25;
+    doc.fontSize(8);
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica")
+        .text(examenSomnolencia.descripcion, 60, generalSpace, { align: "center" });
 
-        generalSpace += 27;
-        doc.lineJoin("miter").rect(30, generalSpace, 260, 23, { align: "center" }).stroke();
-        doc.lineJoin("miter").rect(290, generalSpace, 40, 23, { align: "center" }).stroke();
-        doc.lineJoin("miter").rect(330, generalSpace, 230, 23, { align: "center" }).stroke();
+    generalSpace += 27;
+    doc.lineJoin("miter").rect(30, generalSpace, 260, 23, { align: "center" }).stroke();
+    doc.lineJoin("miter").rect(290, generalSpace, 40, 23, { align: "center" }).stroke();
+    doc.lineJoin("miter").rect(330, generalSpace, 230, 23, { align: "center" }).stroke();
 
-        doc.lineJoin("miter").rect(30, generalSpace + 23, 260, 23, { align: "center" }).stroke();
-        doc.lineJoin("miter").rect(290, generalSpace + 23, 40, 23, { align: "center" }).stroke();
-        doc.lineJoin("miter").rect(330, generalSpace + 23, 230, 23, { align: "center" }).stroke();
+    doc.lineJoin("miter").rect(30, generalSpace + 23, 260, 23, { align: "center" }).stroke();
+    doc.lineJoin("miter").rect(290, generalSpace + 23, 40, 23, { align: "center" }).stroke();
+    doc.lineJoin("miter").rect(330, generalSpace + 23, 230, 23, { align: "center" }).stroke();
 
-        doc.fontSize(8);
-        doc
-            .font("Helvetica-Bold")
-            .text('PROBABILIDAD DE SOMNOLENCIA', 100, generalSpace + 8, { align: "left" });
+    doc.fontSize(8);
+    doc
+        .font("Helvetica-Bold")
+        .text('PROBABILIDAD DE SOMNOLENCIA', 100, generalSpace + 8, { align: "left" });
 
-        doc
-            .font("Helvetica")
-            .text(examen_somnolencia.probabilidad, 320, generalSpace + 8, { align: "center" });
+    doc
+        .font("Helvetica")
+        .text(examen_somnolencia.probabilidad, 320, generalSpace + 8, { align: "center" });
 
-        generalSpace += 23;
+    generalSpace += 23;
 
-        doc
-            .font("Helvetica-Bold")
-            .text('TEST DE EPWORTH', 125, generalSpace + 8, { align: "left" });
+    doc
+        .font("Helvetica-Bold")
+        .text('TEST DE EPWORTH', 125, generalSpace + 8, { align: "left" });
 
-        doc
-            .font("Helvetica-Bold")
-            .text(examen_somnolencia.punto, 76, generalSpace + 8, { align: "center" });
+    doc
+        .font("Helvetica-Bold")
+        .text(examen_somnolencia.punto, 76, generalSpace + 8, { align: "center" });
 
-        doc
-            .font("Helvetica")
-            .text(examen_somnolencia.epworth, 320, generalSpace + 8, { align: "center" });
-    }
+    doc
+        .font("Helvetica")
+        .text(examen_somnolencia.epworth, 320, generalSpace + 8, { align: "center" });
 
     doc.addPage();
 
@@ -639,90 +642,84 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     generalSpace = 30;
     doc.fontSize(9);
 
-    if (test_psicologico.active) {
-        doc.fillColor('#000', 1);
-        doc
-            .font("Helvetica-Bold")
-            .text(testPsicologico.titulo, 60, generalSpace + 8, { align: "center" })
-            .rect(30, generalSpace, 530, 60)
-            .fillColor('white', 0)
-            .fillAndStroke();
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica-Bold")
+        .text(testPsicologico.titulo, 60, generalSpace + 8, { align: "center" })
+        .rect(30, generalSpace, 530, 60)
+        .fillColor('white', 0)
+        .fillAndStroke();
 
-        generalSpace += 25;
-        doc.fontSize(8);
-        doc.fillColor('#000', 1);
-        doc
-            .font("Helvetica")
-            .text(testPsicologico.descripcion, 60, generalSpace, { align: "center" });
+    generalSpace += 25;
+    doc.fontSize(8);
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica")
+        .text(testPsicologico.descripcion, 60, generalSpace, { align: "center" });
 
-        generalSpace += 37;
-        doc
-            .font("Helvetica-Bold")
-            .text('PERFIL PSICOLÓGICO', 42, generalSpace + 8, { align: "left" });
+    generalSpace += 37;
+    doc
+        .font("Helvetica-Bold")
+        .text('PERFIL PSICOLÓGICO', 42, generalSpace + 8, { align: "left" });
 
-        doc.fillColor('#000', 1);
-        doc
-            .font("Helvetica")
-            .text(test_psicologico.obs, 42, generalSpace + 22, { align: "left" })
-            .rect(30, generalSpace, 530, 120)
-            .fillColor('white', 0)
-            .fillAndStroke();
-    }
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica")
+        .text(test_psicologico.obs, 42, generalSpace + 22, { align: "left" })
+        .rect(30, generalSpace, 530, 120)
+        .fillColor('white', 0)
+        .fillAndStroke();
 
     generalSpace += 145;
     doc.fillColor('#000', 1);
 
     //------------------------------------- TEST ESPECIFICO TOLERANCIA A LA MONOTIA
-    if (test_espe_tol_monotonia.active) {
-        doc.fontSize(9);
-        doc
-            .font("Helvetica-Bold")
-            .text(testToleranciaMonotonia.titulo, 60, generalSpace + 8, { align: "center" });
+    doc.fontSize(9);
+    doc
+        .font("Helvetica-Bold")
+        .text(testToleranciaMonotonia.titulo, 60, generalSpace + 8, { align: "center" });
 
-        doc.lineJoin("miter").rect(30, generalSpace, 530, 60, { align: "center" }).stroke();
+    doc.lineJoin("miter").rect(30, generalSpace, 530, 60, { align: "center" }).stroke();
 
-        doc
-            .font("Helvetica")
-            .text(test_espe_tol_monotonia.resultado, 60, generalSpace + 20, { align: "center" });
+    doc
+        .font("Helvetica")
+        .text(test_espe_tol_monotonia.resultado, 60, generalSpace + 20, { align: "center" });
 
-        doc
-            .font("Helvetica-Bold")
-            .text(test_espe_tol_monotonia.aciertos, 60, generalSpace + 32, { align: "center" });
+    doc
+        .font("Helvetica-Bold")
+        .text(test_espe_tol_monotonia.aciertos, 60, generalSpace + 32, { align: "center" });
 
-        doc
-            .font("Helvetica-Bold")
-            .text(test_espe_tol_monotonia.obs, 60, generalSpace + 44, { align: "center" });
-    }
+    doc
+        .font("Helvetica-Bold")
+        .text(test_espe_tol_monotonia.obs, 60, generalSpace + 44, { align: "center" });
 
     //------------------------------------ TEST ESPECIFICO REACCIONES MULTIPLES
     generalSpace += 80;
     doc.fontSize(9);
     doc.fillColor('#000', 1);
 
-    if (test_espe_reac_multiples.active) {
-        doc
-            .font("Helvetica-Bold")
-            .text(testReacMultiples.titulo, 60, generalSpace + 8, { align: "center" })
-            .rect(30, generalSpace, 530, 60)
-            .fillColor('white', 0)
-            .fillAndStroke();
+    doc
+        .font("Helvetica-Bold")
+        .text(testReacMultiples.titulo, 60, generalSpace + 8, { align: "center" })
+        .rect(30, generalSpace, 530, 60)
+        .fillColor('white', 0)
+        .fillAndStroke();
 
-        doc.fontSize(9);
-        doc.fillColor('#000', 1);
-        doc
-            .font("Helvetica")
-            .text(testReacMultiples.descripcion, 60, generalSpace + 30, { align: "center" });
+    doc.fontSize(9);
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica")
+        .text(testReacMultiples.descripcion, 60, generalSpace + 30, { align: "center" });
 
-        generalSpace += 65;
-        doc.lineJoin("miter").rect(30, generalSpace, 530, 30, { align: "center" }).stroke();
+    generalSpace += 65;
+    doc.lineJoin("miter").rect(30, generalSpace, 530, 30, { align: "center" }).stroke();
 
-        doc
-            .font("Helvetica-Bold")
-            .text('Resultado', 60, generalSpace + 5, { align: "center" });
-        doc
-            .font("Helvetica")
-            .text(test_espe_reac_multiples.resultado, 60, generalSpace + 15, { align: "center" });
-    }
+    doc
+        .font("Helvetica-Bold")
+        .text('Resultado', 60, generalSpace + 5, { align: "center" });
+    doc
+        .font("Helvetica")
+        .text(test_espe_reac_multiples.resultado, 60, generalSpace + 15, { align: "center" });
 
     generalSpace += 60;
     doc.fontSize(9);
@@ -730,81 +727,80 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     //----------------------------------- TEST ESPECIFICO CONOCIMIENTO LEY DE TRANSITO
 
-    if (test_conocimiento_ley_nacional.active) {
-        doc
-            .font("Helvetica-Bold")
-            .text(testConoTransitoNacional.titulo, 60, generalSpace + 8, { align: "center" })
-            .rect(30, generalSpace, 530, 60)
-            .fillColor('white', 0)
-            .fillAndStroke();
+    doc
+        .font("Helvetica-Bold")
+        .text(testConoTransitoNacional.titulo, 60, generalSpace + 8, { align: "center" })
+        .rect(30, generalSpace, 530, 60)
+        .fillColor('white', 0)
+        .fillAndStroke();
 
-        doc.fontSize(8);
-        doc.fillColor('#000', 1);
-        doc
-            .font("Helvetica")
-            .text(testConoTransitoNacional.descripcion, 60, generalSpace + 30, { align: "center" });
+    doc.fontSize(8);
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica")
+        .text(testConoTransitoNacional.descripcion, 60, generalSpace + 30, { align: "center" });
 
-        generalSpace += 65;
+    generalSpace += 65;
 
-        //-- titulos examenes y cuadros
-        doc.lineJoin("miter").rect(45, generalSpace, 87, 40, { align: "center" }).stroke();
-        doc.lineJoin("miter")
-            .rect(140, generalSpace, 200, 80, { align: "center" }).stroke();
-        doc.lineJoin("miter").rect(420, generalSpace, 40, 80, { align: "center" }).stroke();
-        doc.lineJoin("miter").rect(480, generalSpace, 70, 80, { align: "center" }).stroke();
+    //-- titulos examenes y cuadros
+    doc.lineJoin("miter").rect(45, generalSpace, 87, 40, { align: "center" }).stroke();
+    doc.lineJoin("miter")
+        .rect(140, generalSpace, 200, 80, { align: "center" }).stroke();
+    doc.lineJoin("miter").rect(420, generalSpace, 40, 80, { align: "center" }).stroke();
+    doc.lineJoin("miter").rect(480, generalSpace, 70, 80, { align: "center" }).stroke();
 
 
-        generalSpace += 6;
+    generalSpace += 6;
 
-        //------------- conocimientos
-        doc
-            .font("Helvetica")
-            .text('Conocimientos legales', 150, generalSpace, { align: "left" });
-        doc
-            .font("Helvetica")
-            .text('Conocimientos reglamentarios', 150, generalSpace + 15, { align: "left" });
-        doc
-            .font("Helvetica")
-            .text('Conocimientos de mecánica', 150, generalSpace + 30, { align: "left" });
-        doc
-            .font("Helvetica")
-            .text('Conocimientos de señales viales', 150, generalSpace + 45, { align: "left" });
-        doc
-            .font("Helvetica")
-            .text('Conducta vial', 150, generalSpace + 60, { align: "left" });
+    //------------- conocimientos
+    doc
+        .font("Helvetica")
+        .text('Conocimientos legales', 150, generalSpace, { align: "left" });
+    doc
+        .font("Helvetica")
+        .text('Conocimientos reglamentarios', 150, generalSpace + 15, { align: "left" });
+    doc
+        .font("Helvetica")
+        .text('Conocimientos de mecánica', 150, generalSpace + 30, { align: "left" });
+    doc
+        .font("Helvetica")
+        .text('Conocimientos de señales viales', 150, generalSpace + 45, { align: "left" });
+    doc
+        .font("Helvetica")
+        .text('Conducta vial', 150, generalSpace + 60, { align: "left" });
 
-        //------------- porcentajes
+    //------------- porcentajes
 
-        doc
-            .font("Helvetica-Bold")
-            .text(`${test_conocimiento_ley_nacional.porce_conocimientos_legales}%`, 434, generalSpace, { align: "left" });
-        doc
-            .font("Helvetica-Bold")
-            .text(`${test_conocimiento_ley_nacional.porce_conocimientos_reglamentarios}%`, 434, generalSpace + 15, { align: "left" });
-        doc
-            .font("Helvetica-Bold")
-            .text(`${test_conocimiento_ley_nacional.porce_conocimientos_mecanica}%`, 434, generalSpace + 30, { align: "left" });
-        doc
-            .font("Helvetica-Bold")
-            .text(`${test_conocimiento_ley_nacional.porce_conocimientos_senales_viales}%`, 434, generalSpace + 45, { align: "left" });
-        doc
-            .font("Helvetica-Bold")
-            .text(`${test_conocimiento_ley_nacional.porce_conducta_vial}%`, 434, generalSpace + 60, { align: "left" });
+    doc
+        .font("Helvetica-Bold")
+        .text(`${test_conocimiento_ley_nacional.porce_conocimientos_legales}%`, 434, generalSpace, { align: "left" });
+    doc
+        .font("Helvetica-Bold")
+        .text(`${test_conocimiento_ley_nacional.porce_conocimientos_reglamentarios}%`, 434, generalSpace + 15, { align: "left" });
+    doc
+        .font("Helvetica-Bold")
+        .text(`${test_conocimiento_ley_nacional.porce_conocimientos_mecanica}%`, 434, generalSpace + 30, { align: "left" });
+    doc
+        .font("Helvetica-Bold")
+        .text(`${test_conocimiento_ley_nacional.porce_conocimientos_senales_viales}%`, 434, generalSpace + 45, { align: "left" });
+    doc
+        .font("Helvetica-Bold")
+        .text(`${test_conocimiento_ley_nacional.porce_conducta_vial}%`, 434, generalSpace + 60, { align: "left" });
 
-        doc.fontSize(7);
-        doc.fillColor('#000', 1);
-        doc
-            .font("Helvetica-Bold")
-            .text('EXAMENES TEÓRICOS', 52, generalSpace, { align: "left" });
+    doc.fontSize(7);
+    doc.fillColor('#000', 1);
+    doc
+        .font("Helvetica-Bold")
+        .text('EXAMENES TEÓRICOS', 52, generalSpace, { align: "left" });
 
-        doc
-            .font("Helvetica-Bold")
-            .text('DE TRÁNSITO', 66, generalSpace + 10, { align: "left" });
+    doc
+        .font("Helvetica-Bold")
+        .text('DE TRÁNSITO', 66, generalSpace + 10, { align: "left" });
 
-        doc
-            .font("Helvetica-Bold")
-            .text(test_conocimiento_ley_nacional.resultado, 497, generalSpace + 30, { align: "left" });
-    }
+    doc
+        .font("Helvetica-Bold")
+        .text(test_conocimiento_ley_nacional.resultado, 497, generalSpace + 30, { align: "left" });
+
 
     //--QR code
     doc.image(nombreQR, 410, generalSpace + 98, {
