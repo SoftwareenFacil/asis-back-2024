@@ -676,6 +676,7 @@ router.post("/evaluado/:id", async (req, res) => {
     } else {
       estadoEvaluacion = "Ingresado";
     }
+
     let result = await db.collection("evaluaciones").findOneAndUpdate(
       { _id: ObjectID(id) },
       {
@@ -717,6 +718,7 @@ router.post("/evaluado/:id", async (req, res) => {
         fecha_confirmacion_examen: datos.fecha_confirmacion_examen,
         hora_confirmacion_examen: datos.hora_confirmacion_examen,
         estado: "En Revisión",
+        url_file_adjunto_res: result.url_file_adjunto_EE,
         estado_archivo: "Sin Documento",
         estado_resultado: "",
       });

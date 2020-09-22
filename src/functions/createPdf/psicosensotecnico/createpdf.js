@@ -549,6 +549,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         .text(e_psicotecnicos[2].promedio, horizontalSpace + 12, generalSpace + 9, { align: "center" });
 
     generalSpace += 52;
+    const isRequired = (permision) => permision ? true : false;
 
     //-------------------------------------------------TEST ESPECIFICO VELOCIDAD DE ANTICIPACION
     doc.fillColor('#000', 1);
@@ -558,13 +559,6 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         .rect(30, generalSpace, 530, 50)
         .fillColor('white', 0)
         .fillAndStroke();
-    
-    // test_espe_vel_anticipacion.active && 
-    doc.fillColor('red', 1);
-    doc
-        .font("Helvetica-Bold")
-        .fontSize(8)
-        .text("(No Requerido)", 80, generalSpace + 8, { align: "right" });
 
     generalSpace += 25;
     doc.fontSize(8);
@@ -577,7 +571,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     doc.fillColor('#000', 1);
     doc
         .font("Helvetica-Bold")
-        .text(test_espe_vel_anticipacion.resultado, 60, generalSpace + 9, { align: "center" })
+        .text(isRequired(test_espe_vel_anticipacion.active) ? test_espe_vel_anticipacion.resultado : 'No Requerido', 60, generalSpace + 9, { align: "center" })
         .rect(30, generalSpace, 530, 25)
         .fillColor('white', 0)
         .fillAndStroke();
@@ -620,7 +614,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     doc
         .font("Helvetica")
-        .text(examen_somnolencia.probabilidad, 320, generalSpace + 8, { align: "center" });
+        .text(isRequired(examen_somnolencia.active) ? examen_somnolencia.probabilidad : 'No Requerido', 320, generalSpace + 8, { align: "center" });
 
     generalSpace += 23;
 
@@ -630,11 +624,11 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     doc
         .font("Helvetica-Bold")
-        .text(examen_somnolencia.punto, 76, generalSpace + 8, { align: "center" });
+        .text(isRequired(examen_somnolencia.active) ? examen_somnolencia.punto : '0', 76, generalSpace + 8, { align: "center" });
 
     doc
         .font("Helvetica")
-        .text(examen_somnolencia.epworth, 320, generalSpace + 8, { align: "center" });
+        .text(isRequired(examen_somnolencia.active) ? examen_somnolencia.epworth : 'No Requerido', 320, generalSpace + 8, { align: "center" });
 
     doc.addPage();
 
@@ -665,7 +659,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     doc.fillColor('#000', 1);
     doc
         .font("Helvetica")
-        .text(test_psicologico.obs, 42, generalSpace + 22, { align: "left" })
+        .text(isRequired(test_psicologico.active) ? test_psicologico.obs : 'No Requerido', 42, generalSpace + 22, { align: "left" })
         .rect(30, generalSpace, 530, 120)
         .fillColor('white', 0)
         .fillAndStroke();
@@ -683,15 +677,15 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     doc
         .font("Helvetica")
-        .text(test_espe_tol_monotonia.resultado, 60, generalSpace + 20, { align: "center" });
+        .text(isRequired(test_espe_tol_monotonia.active) ? test_espe_tol_monotonia.resultado : 'No Requerido', 60, generalSpace + 20, { align: "center" });
 
     doc
         .font("Helvetica-Bold")
-        .text(test_espe_tol_monotonia.aciertos, 60, generalSpace + 32, { align: "center" });
+        .text(isRequired(test_espe_tol_monotonia.active) ? test_espe_tol_monotonia.aciertos : '', 60, generalSpace + 32, { align: "center" });
 
     doc
         .font("Helvetica-Bold")
-        .text(test_espe_tol_monotonia.obs, 60, generalSpace + 44, { align: "center" });
+        .text(isRequired(test_espe_tol_monotonia.active) ? test_espe_tol_monotonia.obs : '', 60, generalSpace + 44, { align: "center" });
 
     //------------------------------------ TEST ESPECIFICO REACCIONES MULTIPLES
     generalSpace += 80;
@@ -719,7 +713,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         .text('Resultado', 60, generalSpace + 5, { align: "center" });
     doc
         .font("Helvetica")
-        .text(test_espe_reac_multiples.resultado, 60, generalSpace + 15, { align: "center" });
+        .text(isRequired(test_espe_reac_multiples.active) ? test_espe_reac_multiples.resultado : 'No Requerido', 60, generalSpace + 15, { align: "center" });
 
     generalSpace += 60;
     doc.fontSize(9);
@@ -773,19 +767,19 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     doc
         .font("Helvetica-Bold")
-        .text(`${test_conocimiento_ley_nacional.porce_conocimientos_legales}%`, 434, generalSpace, { align: "left" });
+        .text(isRequired(test_conocimiento_ley_nacional.active) ? `${test_conocimiento_ley_nacional.porce_conocimientos_legales}%` : '0%', 434, generalSpace, { align: "left" });
     doc
         .font("Helvetica-Bold")
-        .text(`${test_conocimiento_ley_nacional.porce_conocimientos_reglamentarios}%`, 434, generalSpace + 15, { align: "left" });
+        .text(isRequired(test_conocimiento_ley_nacional.active) ? `${test_conocimiento_ley_nacional.porce_conocimientos_reglamentarios}%` : '0%', 434, generalSpace + 15, { align: "left" });
     doc
         .font("Helvetica-Bold")
-        .text(`${test_conocimiento_ley_nacional.porce_conocimientos_mecanica}%`, 434, generalSpace + 30, { align: "left" });
+        .text(isRequired(test_conocimiento_ley_nacional.active) ? `${test_conocimiento_ley_nacional.porce_conocimientos_mecanica}%` : '0%', 434, generalSpace + 30, { align: "left" });
     doc
         .font("Helvetica-Bold")
-        .text(`${test_conocimiento_ley_nacional.porce_conocimientos_senales_viales}%`, 434, generalSpace + 45, { align: "left" });
+        .text(isRequired(test_conocimiento_ley_nacional.active) ? `${test_conocimiento_ley_nacional.porce_conocimientos_senales_viales}%` : '0%', 434, generalSpace + 45, { align: "left" });
     doc
         .font("Helvetica-Bold")
-        .text(`${test_conocimiento_ley_nacional.porce_conducta_vial}%`, 434, generalSpace + 60, { align: "left" });
+        .text(isRequired(test_conocimiento_ley_nacional.active) ? `${test_conocimiento_ley_nacional.porce_conducta_vial}%` : '0%', 434, generalSpace + 60, { align: "left" });
 
     doc.fontSize(7);
     doc.fillColor('#000', 1);
@@ -799,7 +793,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     doc
         .font("Helvetica-Bold")
-        .text(test_conocimiento_ley_nacional.resultado, 497, generalSpace + 30, { align: "left" });
+        .text(isRequired(test_conocimiento_ley_nacional.active) ? test_conocimiento_ley_nacional.resultado : 'No Requerido', 497, generalSpace + 30, { align: "left" });
 
 
     //--QR code
