@@ -51,13 +51,13 @@ router.post('/selectone/:id', async (req, res) => {
 router.post('/evaluacionpsico', async (req, res) => {
   const db = await connect();
   const data = req.body;
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
-  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
-  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   const resultado = data.resultado;
   const restricciones = data.restricciones;
