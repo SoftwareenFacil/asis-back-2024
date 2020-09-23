@@ -272,12 +272,15 @@ router.put('/editpassword/:id', async (req, res) => {
   const db = await connect();
   const { id } = req.params;
   const data = req.body;
+  
+  console.log('id', id)
+  console.log('data', data);
 
   try {
 
     if (!data.new_password && !data.rol) return res.status(400).json({ msg: "no se ha enviado informacion para editar" });
 
-    if (data.isEditPassoword) {
+    if (data.isEditPassword) {
       await db.collection('gi').updateOne({ _id: ObjectID(id) }, {
         $set: {
           password: await encrypPassword(data.new_password),
@@ -298,7 +301,7 @@ router.put('/editpassword/:id', async (req, res) => {
 
   } catch (error) {
 
-    return res.status(201).json({ msg: "ha ocurrido un error", error });
+    return res.status(500).json({ msg: "ha ocurrido un error", error });
 
   }
 });
