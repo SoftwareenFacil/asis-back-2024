@@ -49,3 +49,16 @@ export const isRolResultados = (rol, tokenRut, idToken) => {
             return {}
     }
 };
+
+export const isRolEmpleados = (rol, tokenRut, idToken) => {
+    switch (rol) {
+        case 'Clientes':
+            return {}
+        case 'Colaboradores':
+            return {}
+        case 'Empleados':
+            return {rut: tokenRut}
+        default:
+            return {}
+    }
+};

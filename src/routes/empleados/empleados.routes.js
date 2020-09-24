@@ -1,8 +1,12 @@
 import e, { Router } from "express";
 import calculateVacationByDay from "../../functions/calculateDaysVacation";
 import calculateDesgloseEmpleados from "../../functions/calculateDesgloseEmpleados";
+import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR, SUCCESSFULL_INSERT, SUCCESSFULL_UPDATE } from "../../constant/text_messages";
+import { isRolEmpleados } from "../../functions/isRol";
 
 import multer from "../../libs/multer";
+
+import { verifyToken } from "../../libs/jwt";
 
 const router = Router();
 
@@ -25,32 +29,48 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countEmpleados = await db.collection("empleados").find().count();
+    const countEmpleados = await db.collection("empleados").find(isRolEmpleados(dataToken.rol, dataToken.rut, "")).count();
     const result = await db
       .collection("empleados")
-      .find()
+      .find(isRolEmpleados(dataToken.rol, dataToken.rut, ""))
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
 
     res.json({
+      auth: AUTHORIZED,
       total_items: countEmpleados,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countEmpleados / nPerPage + 1),
       empleados: result,
     });
   } catch (error) {
-    res.status(501).json(error);
+    console.log(error)
+    return res.status(500).json({ msg: ERROR, error });
   }
 });
 
 //BUSCAR POR NOMBRE O RUT
 router.post("/buscar", async (req, res) => {
+  const db = await connect();
   const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const token = req.headers['x-access-token'];
+
+  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  const dataToken = await verifyToken(token);
+
+  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   let rutFiltrado;
 
@@ -67,29 +87,57 @@ router.post("/buscar", async (req, res) => {
   let countEmpleados;
 
   try {
-    if (identificador === 1) {
-      countEmpleados = await db
-        .collection("empleados")
-        .find({ rut: rexExpresionFiltro })
-        .count();
-
-      result = await db
-        .collection("empleados")
-        .find({ rut: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    } else {
-      countEmpleados = await db
-        .collection("empleados")
-        .find({ nombre: rexExpresionFiltro })
-        .count();
-      result = await db
-        .collection("empleados")
-        .find({ nombre: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
+    if(dataToken.rol === 'Empleados'){
+      if (identificador === 1) {
+        countEmpleados = await db
+          .collection("empleados")
+          .find({ rut: rexExpresionFiltro, rut: dataToken.rut })
+          .count();
+  
+        result = await db
+          .collection("empleados")
+          .find({ rut: rexExpresionFiltro, rut: dataToken.rut })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      } else {
+        countEmpleados = await db
+          .collection("empleados")
+          .find({ nombre: rexExpresionFiltro, rut: dataToken.rut })
+          .count();
+        result = await db
+          .collection("empleados")
+          .find({ nombre: rexExpresionFiltro, rut: dataToken.rut })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+    }
+    else{
+      if (identificador === 1) {
+        countEmpleados = await db
+          .collection("empleados")
+          .find({ rut: rexExpresionFiltro })
+          .count();
+  
+        result = await db
+          .collection("empleados")
+          .find({ rut: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      } else {
+        countEmpleados = await db
+          .collection("empleados")
+          .find({ nombre: rexExpresionFiltro })
+          .count();
+        result = await db
+          .collection("empleados")
+          .find({ nombre: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
     }
 
     res.json({
@@ -99,7 +147,7 @@ router.post("/buscar", async (req, res) => {
       empleados: result,
     });
   } catch (error) {
-    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    res.status(500).json({ mgs: ERROR, error });
   }
 });
 
