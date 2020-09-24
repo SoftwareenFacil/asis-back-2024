@@ -720,7 +720,7 @@ router.post("/evaluado/:id", async (req, res) => {
         hora_confirmacion_examen: datos.hora_confirmacion_examen,
         estado: "En Revisión",
         url_file_adjunto_res: result.value.url_file_adjunto_EE,
-        estado_archivo: "Sin Documento",
+        estado_archivo: isOnline ? "" : "Cargado",
         estado_resultado: "",
       });
 
