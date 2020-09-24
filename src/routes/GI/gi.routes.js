@@ -17,7 +17,7 @@ import verificateOrdenCompra from "../../functions/insertManyGis/verificateOrden
 import createJsonGIs from "../../functions/insertManyGis/createJsonGiForInsert";
 import addCodeGI from "../../functions/insertManyGis/addCodeGI";
 
-import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED } from "../../constant/text_messages";
+import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR } from "../../constant/text_messages";
 
 import multer from "../../libs/multer";
 
