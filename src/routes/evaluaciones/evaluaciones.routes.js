@@ -247,7 +247,8 @@ router.post('/evaluacionpsico', async (req, res) => {
         name: nombrePdf,
         size: 0,
         path: "uploads/" + nombrePdf,
-        type: "application/pdf"
+        type: "application/pdf",
+        option: "online"
       };
 
       const result = await db.collection('evaluaciones').updateOne({ codigo: data.codigo }, {
@@ -360,7 +361,8 @@ router.post('/evaluacionaversion', async (req, res) => {
         name: nombrePdf,
         size: 0,
         path: "uploads/" + nombrePdf,
-        type: "application/pdf"
+        type: "application/pdf",
+        option: "online"
       }
 
       const result = await db.collection('evaluaciones').updateOne({ codigo: data.codigo }, {
@@ -617,6 +619,7 @@ router.post("/evaluar/:id", multer.single("archivo"), async (req, res) => {
     size: req.file.size,
     path: req.file.path,
     type: req.file.mimetype,
+    option: "file"
   };
 
   try {
@@ -662,9 +665,6 @@ router.post("/evaluado/:id", async (req, res) => {
     fecha: getDate(new Date()),
     estado: datos.estado_archivo
   };
-  // obs.obs = datos.observaciones;
-  // obs.fecha = getDate(new Date());
-  // obs.estado = datos.estado_archivo;
 
   try {
 
@@ -698,7 +698,8 @@ router.post("/evaluado/:id", async (req, res) => {
       (datos.estado_archivo == "Aprobado" ||
         datos.estado_archivo == "Aprobado con Obs")
     ) {
-      let codAsis = result.value.codigo;
+      const isOnline = result.value.url_file_adjunto_EE.option = "online" ? true : false;
+      const codAsis = result.value.codigo;
       codAsis = codAsis.replace("EVA", "RES");
       const resultinsert = await db.collection("resultados").insertOne({
         codigo: codAsis,

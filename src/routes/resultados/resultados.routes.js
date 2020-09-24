@@ -233,7 +233,7 @@ router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
 
   const obs = {
     obs: datos.observaciones,
-    fecha: datos.getDate(new Date()),
+    fecha: getDate(new Date()),
     estado: "Cargado"
   }
 
