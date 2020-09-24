@@ -213,9 +213,9 @@ router.post('/evaluacionpsico', async (req, res) => {
 
   generateQR(nombreQR, `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Vencimiento: vencimiento aqui Resultado: resultado aqui`);
 
-  let objFile = {};
-
+  
   try {
+    let objFile = {};
 
     const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
     const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
@@ -251,13 +251,13 @@ router.post('/evaluacionpsico', async (req, res) => {
         option: "online"
       };
 
-      const result = await db.collection('evaluaciones').updateOne({ codigo: data.codigo }, {
-        $set: {
-          url_file_adjunto_EE: objFile
-        }
-      });
+      // await db.collection('evaluaciones').updateOne({ codigo: data.codigo }, {
+      //   $set: {
+      //     url_file_adjunto_EE: objFile
+      //   }
+      // });
 
-      await db.collection("evaluaciones").updateOne(
+      const result = await db.collection("evaluaciones").updateOne(
         { codigo: data.codigo },
         {
           $set: {
@@ -699,7 +699,7 @@ router.post("/evaluado/:id", async (req, res) => {
         datos.estado_archivo == "Aprobado con Obs")
     ) {
       const isOnline = result.value.url_file_adjunto_EE.option = "online" ? true : false;
-      const codAsis = result.value.codigo;
+      let codAsis = result.value.codigo;
       codAsis = codAsis.replace("EVA", "RES");
       const resultinsert = await db.collection("resultados").insertOne({
         codigo: codAsis,
@@ -720,7 +720,7 @@ router.post("/evaluado/:id", async (req, res) => {
         hora_confirmacion_examen: datos.hora_confirmacion_examen,
         estado: "En Revisión",
         url_file_adjunto_res: result.value.url_file_adjunto_EE,
-        estado_archivo: isOnline ? "" : "Cargado",
+        estado_archivo: isOnline ? "Cargado" : "Sin Documento",
         estado_resultado: "",
       });
 

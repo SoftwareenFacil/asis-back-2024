@@ -426,6 +426,9 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   const solicitud = JSON.parse(req.body.data);
   const { id } = req.params;
+
+  let archivo = {};
+  
   const token = req.headers['x-access-token'];
 
   if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
