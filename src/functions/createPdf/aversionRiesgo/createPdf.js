@@ -3,15 +3,14 @@ var fs = require("fs");
 var path = require("path");
 var base64 = require('base64-stream');
 
-
+import { calculateIndicators, getResultsTest, getResultTest, finalResponseTest, testResult, paraPhrases, paraPhrasesTitles, getAverage, getAverageNumbers, footer, getFormatBar } from "../../../functions/createPdf/aversionRiesgo/calculateResults";
 import {
   titles,
   generalInformation,
   intelectual,
   adecuacionNormas,
   estabilidadEmocional,
-  actPrevencionRiesgosOne,
-  actPrevencionRiesgosTwo,
+  actPrevencionRiesgos,
   motivacionCargo,
   conclusion,
   nameFirma,
@@ -33,7 +32,12 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   const { orientacion_tarea, energia_vital } = MC;
   let generalSpace = -15;
   let moreSpace = 5;
-  let elecciones = ['Promedio/Alto: Frase Promedio/Alto', 'Bajo: Frase Bajo'];
+  let finalResults = [];
+  let name = "";
+  let weight = 1;
+  let cantItems = 0;
+  let results = [];
+  let elecciones = ['Bajo', 'Promedio', 'Alto'];
   let fortalezas = [
     {
       id: 1,
@@ -88,6 +92,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       items: []
     }
   ];
+
   const doc = new PDF();
 
   //-----------------------------------------PDF------------------------------------------------
@@ -146,18 +151,206 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   doc.font("Helvetica").text(informacionPersonal.fecha_evaluacion, 260, generalSpace + 110, { align: "left" });
   doc.font("Helvetica").text(fecha_vigencia, 260, generalSpace + 125, { align: "left" });
 
-  generalSpace += 135
+  //-----------------------------------------------------GRAFICO DE RESULTADOS
+  generalSpace += 145;
+  let verticalSpace = 0;
+  doc
+    .font("Helvetica-Bold")
+    .text("II    Gráfico", 60, generalSpace + 6, { align: "left" });
+  doc.lineJoin("miter").rect(50, generalSpace, 510, 165).stroke();
 
-  //3 .- Analisis de indicadores
+  //------Ejes
+  doc
+    .lineJoin('miter')
+    .rect(verticalSpace + 110, generalSpace + 20, 0.5, 120)
+    .fill('#000')//y
+  doc
+    .lineJoin('miter')
+    .rect(verticalSpace + 110, generalSpace + 140, 290, 0.5)
+    .fill('#000')//x
+
+  doc.fontSize(7)
+
+  //------Eje Y
+  //------Bajo
+  doc
+    .lineJoin('miter')
+    .rect(verticalSpace + 105, generalSpace + 110, 10, 1)
+    .fill('#000')
+  doc
+    .font("Helvetica-Bold")
+    .text("Bajo", verticalSpace + 80, generalSpace + 108, { align: "left" })
+
+  //------Promedio
+  doc
+    .lineJoin('miter')
+    .rect(verticalSpace + 105, generalSpace + 70, 10, 1)
+    .fill('#000')
+  doc
+    .font("Helvetica-Bold")
+    .text("Promedio", verticalSpace + 65, generalSpace + 68, { align: "left" })
+
+  //------Alto
+  doc
+    .lineJoin('miter')
+    .rect(verticalSpace + 105, generalSpace + 30, 10, 1)
+    .fill('#000')
+  doc
+    .font("Helvetica-Bold")
+    .text("Alto", verticalSpace + 80, generalSpace + 28, { align: "left" })
+
+
+  //------Resultados en barras
+  let chartResults = getFormatBar(getResultTest(getAverage(Object.values(I))));
+
+  doc
+    .rect(verticalSpace + chartResults.vertical, generalSpace + chartResults.space, 20, chartResults.height)
+  doc.fill(chartResults.color);
+  doc.fill('#000')
+  doc
+  .font("Helvetica")
+  .text("Intelectual", 123, generalSpace + 145, { align: "left" })
+
+  verticalSpace += 60
+  chartResults = getFormatBar(getResultTest(getAverage(Object.values(AN))));
+  doc
+    .rect(verticalSpace + chartResults.vertical, generalSpace + chartResults.space, 20, chartResults.height)
+  doc.fill(chartResults.color);
+  doc.fill('#000')
+  doc
+  .font("Helvetica")
+  .text("Adecuación", 180, generalSpace + 145, { align: "left" })
+  doc
+  .text("a las normas", 178, generalSpace + 152, { align: "left" })
+
+  verticalSpace += 60
+  chartResults = getFormatBar(getResultTest(getAverage(Object.values(EE))));
+  doc
+    .rect(verticalSpace + chartResults.vertical, generalSpace + chartResults.space, 20, chartResults.height)
+  doc.fill(chartResults.color);
+  doc.fill('#000')
+  doc
+  .font("Helvetica")
+  .text("Estabilidad", 240, generalSpace + 145, { align: "left" })
+  doc
+  .text("emocional", 242, generalSpace + 152, { align: "left" })
+
+  verticalSpace += 60
+  chartResults = getFormatBar(getResultTest(getAverage(Object.values(APR))));
+  doc
+    .rect(verticalSpace + chartResults.vertical, generalSpace + chartResults.space, 20, chartResults.height)
+  doc.fill(chartResults.color);
+  doc.fontSize(6)
+  doc.fill('#000')
+  doc
+  .font("Helvetica")
+  .text("Actitud a la", 307, generalSpace + 145, { align: "left" })
+  doc
+  .text("prevensión de los riesgos", 288, generalSpace + 152, { align: "left" })
+  doc.fontSize(7)
+
+  verticalSpace += 60
+  chartResults = getFormatBar(getResultTest(getAverage(Object.values(MC))));
+  doc
+    .rect(verticalSpace + chartResults.vertical, generalSpace + chartResults.space, 20, chartResults.height)
+  doc.fill(chartResults.color);
+  doc.fill('#000')
+  doc
+  .font("Helvetica")
+  .text("Motivación", 363, generalSpace + 145, { align: "left" })
+  doc
+  .text("por el cargo", 361, generalSpace + 152, { align: "left" })
+
+
+  //-----------------------------------------------------CUADRO RESUMEN
+  doc.fill('black')
+  generalSpace += 170;
+  doc
+    .font("Helvetica-Bold")
+    .text("III    Cuadro resumen", 60, generalSpace + 6, { align: "left" });
+
+  //----pintar cada cuadro del resumen 
+  doc.lineJoin("miter").rect(50, generalSpace, 510, 20).stroke();
+
+  doc.lineJoin("miter").rect(50, generalSpace + 20, 135, 35).stroke();
+  doc.lineJoin("miter").rect(185, generalSpace + 20, 375, 35).stroke();
+  doc.lineJoin("miter").rect(50, generalSpace + 55, 135, 36).stroke();
+  doc.lineJoin("miter").rect(185, generalSpace + 55, 375, 36).stroke();
+  doc.lineJoin("miter").rect(50, generalSpace + 91, 135, 36).stroke();
+  doc.lineJoin("miter").rect(185, generalSpace + 91, 375, 36).stroke();
+  doc.lineJoin("miter").rect(50, generalSpace + 127, 135, 45).stroke();
+  doc.lineJoin("miter").rect(185, generalSpace + 127, 375, 45).stroke();
+  doc.lineJoin("miter").rect(50, generalSpace + 172, 135, 40).stroke();
+  doc.lineJoin("miter").rect(185, generalSpace + 172, 375, 40).stroke();
+
+  generalSpace += 7;
+
+  //.-------intelectual
+  doc.fontSize(8);
+  doc
+    .font("Helvetica-Bold")
+    .text("Intelectual ", 85, generalSpace + 28, { align: "left" });
+  doc
+    .font("Helvetica")
+    .text(`${getResultTest(getAverage(Object.values(I)))} - ${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
+
+  generalSpace += 40;
+  //.-------adecuacion a las normas
+  doc
+    .font("Helvetica-Bold")
+    .text("Adecuacion a las normas ", 63, generalSpace + 25, { align: "left" });
+  doc
+    .font("Helvetica")
+    .text(`${getResultTest(getAverage(Object.values(AN)))} - ${paraPhrasesTitles(1, getAverageNumbers(getResultTest(getAverage(Object.values(AN)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
+
+  generalSpace += 30;
+  //.-------estabilidad emocional
+  doc
+    .font("Helvetica-Bold")
+    .text("Estabilidad Emocional ", 65, generalSpace + 30, { align: "left" });
+  doc
+    .font("Helvetica")
+    .text(`${getResultTest(getAverage(Object.values(EE)))} - ${paraPhrasesTitles(2, getAverageNumbers(getResultTest(getAverage(Object.values(EE)))))}`, 200, generalSpace + 23, { align: "left", width: 360 });
+
+  generalSpace += 30;
+  //.-------Actitud a la Prevensión de los Riesgos
+  doc
+    .font("Helvetica-Bold")
+    .text("Actitud a la Prevensión ", 65, generalSpace + 30, { align: "left" });
+  doc
+    .font("Helvetica-Bold")
+    .text("de los Riesgos ", 65, generalSpace + 40, { align: "left" });
+  doc
+    .font("Helvetica")
+    .text(`${getResultTest(getAverage(Object.values(APR)))} - ${paraPhrasesTitles(3, getAverageNumbers(getResultTest(getAverage(Object.values(APR)))))}`, 200, generalSpace + 30, { align: "left", width: 360 });
+
+  generalSpace += 52;
+  //.-------Motivación por el cargo
+  doc
+    .font("Helvetica-Bold")
+    .text("Motivación por el cargo ", 65, generalSpace + 20, { align: "left" });
+  doc
+    .font("Helvetica")
+    .text(`${getResultTest(getAverage(Object.values(MC)))} - ${paraPhrasesTitles(4, getAverageNumbers(getResultTest(getAverage(Object.values(MC)))))}`, 200, generalSpace + 20, { align: "left" });
+
+
+  // doc.lineJoin("miter").rect(50, generalSpace, 510, 160).stroke();
+
+  //---------------------------------------------------------------------------------------------------- PAGE 2
+  doc.addPage();
+  generalSpace = 10;
+
+  //4 .- Analisis de indicadores
   doc.fontSize(9);
   generalSpace += 20;
   doc
     .font("Helvetica-Bold")
-    .text("II    Análisis de Indicadores", 60, generalSpace, { align: "left" });
+    .text("IV    Análisis de Indicadores", 60, generalSpace, { align: "left" });
 
   //4.- Creacion cuadros de tablas de analisis de indicadores
   //--------------------------------------------------------------------Intelectual
   generalSpace += 20;
+  name = "intelectual";
 
   doc.fontSize(10);
   doc
@@ -215,22 +408,28 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[0].items.push(`Razonamiento abstracto: ${elecciones[1]}`);
+      areas_mejorar[0].items.push(`Razonamiento abstracto: ${elecciones[0]} - Frase: ${paraPhrases[0].descriptions[0]}`);
+      results.push(1);
       break;
+
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[0].items.push(`Razonamiento abstracto: ${elecciones[0]}`);
+      fortalezas[0].items.push(`Razonamiento abstracto: ${elecciones[1]} - Frase: ${paraPhrases[0].descriptions[1]}`);
+      results.push(2);
       break;
+
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[0].items.push(`Razonamiento abstracto: ${elecciones[0]}`);
+      fortalezas[0].items.push(`Razonamiento abstracto: ${elecciones[2]} - Frase: ${paraPhrases[0].descriptions[2]}`);
+      results.push(3);
       break;
   }
 
+  cantItems++;
   generalSpace += 15;
 
   switch (percepcion_concentracion.toLowerCase()) {
@@ -238,22 +437,25 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[0].items.push(`Percepción y concentración: ${elecciones[1]}`);
+      areas_mejorar[0].items.push(`Percepción y concentración: ${elecciones[0]} - Frase: ${paraPhrases[1].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[0].items.push(`Percepción y concentración: ${elecciones[0]}`);
+      fortalezas[0].items.push(`Percepción y concentración: ${elecciones[1]} - Frase: ${paraPhrases[1].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[0].items.push(`Percepción y concentración: ${elecciones[0]}`);
+      fortalezas[0].items.push(`Percepción y concentración: ${elecciones[2]} - Frase: ${paraPhrases[1].descriptions[2]}`);
+      results.push(3);
       break;
   }
-
+  cantItems++;
   generalSpace += 15;
 
   switch (comprension_instrucciones.toLowerCase()) {
@@ -261,23 +463,39 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[0].items.push(`Comprensión de instrucciones: ${elecciones[1]}`);
+      areas_mejorar[0].items.push(`Comprensión de instrucciones: ${elecciones[0]} - Frase: ${paraPhrases[2].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[0].items.push(`Comprensión de instrucciones: ${elecciones[0]}`);
+      fortalezas[0].items.push(`Comprensión de instrucciones: ${elecciones[1]} - Frase: ${paraPhrases[2].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[0].items.push(`Comprensión de instrucciones: ${elecciones[0]}`);
+      fortalezas[0].items.push(`Comprensión de instrucciones: ${elecciones[2]} - Frase: ${paraPhrases[2].descriptions[2]}`);
+      results.push(3);
       break;
   }
+  cantItems++;
+
+
+  finalResults.push({
+    name,
+    weight,
+    cantItems,
+    results
+  });
+
+  cantItems = 0;
+  results = [];
 
   //--------------------------------------------------------------------Adecuacion a las normas
+  name = "adecuacion normas"
   generalSpace += 36;
   doc.fontSize(10);
   doc
@@ -335,22 +553,26 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[1].items.push(`Acato a la autoridad: ${elecciones[1]}`);
+      areas_mejorar[1].items.push(`Acato a la autoridad: ${elecciones[0]} - Frase: ${paraPhrases[3].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[1].items.push(`Acato a la autoridad: ${elecciones[0]}`);
+      fortalezas[1].items.push(`Acato a la autoridad: ${elecciones[1]} - Frase: ${paraPhrases[3].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[1].items.push(`Acato a la autoridad: ${elecciones[0]}`);
+      fortalezas[1].items.push(`Acato a la autoridad: ${elecciones[2]} - Frase: ${paraPhrases[3].descriptions[2]}`);
+      results.push(3);
       break;
   }
 
+  cantItems++;
   generalSpace += 15;
 
   switch (relacion_grupo_pares.toLowerCase()) {
@@ -358,22 +580,26 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[1].items.push(`Relación con grupos de pares: ${elecciones[1]}`);
+      areas_mejorar[1].items.push(`Relación con grupos de pares: ${elecciones[0]} - Frase: ${paraPhrases[4].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[1].items.push(`Relación con grupos de pares: ${elecciones[0]}`);
+      fortalezas[1].items.push(`Relación con grupos de pares: ${elecciones[1]} - Frase: ${paraPhrases[4].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[1].items.push(`Relación con grupos de pares: ${elecciones[0]}`);
+      fortalezas[1].items.push(`Relación con grupos de pares: ${elecciones[2]} - Frase: ${paraPhrases[4].descriptions[2]}`);
+      results.push(3);
       break;
   }
 
+  cantItems++;
   generalSpace += 15;
 
   switch (comportamiento_social.toLowerCase()) {
@@ -381,23 +607,38 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[1].items.push(`Comportamiento social: ${elecciones[1]}`);
+      areas_mejorar[1].items.push(`Comportamiento social: ${elecciones[0]} - Frase: ${paraPhrases[5].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[1].items.push(`Comportamiento social: ${elecciones[0]}`);
+      fortalezas[1].items.push(`Comportamiento social: ${elecciones[1]} - Frase: ${paraPhrases[5].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[1].items.push(`Comportamiento social: ${elecciones[0]}`);
+      fortalezas[1].items.push(`Comportamiento social: ${elecciones[2]} - Frase: ${paraPhrases[5].descriptions[2]}`);
+      results.push(3);
       break;
   }
+  cantItems++;
+
+  finalResults.push({
+    name,
+    weight,
+    cantItems,
+    results
+  });
+
+  cantItems = 0;
+  results = [];
 
   //--------------------------------------------------------------------Estabilidad emocional
+  name = "estabilidad emocional";
   generalSpace += 36;
   doc.fontSize(10);
   doc
@@ -454,22 +695,26 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[2].items.push(`Locus de control / impulsivilidad: ${elecciones[1]}`);
+      areas_mejorar[2].items.push(`Locus de control / impulsivilidad: ${elecciones[0]} - Frase: ${paraPhrases[6].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[2].items.push(`Locus de control / impulsivilidad: ${elecciones[0]}`);
+      fortalezas[2].items.push(`Locus de control / impulsivilidad: ${elecciones[1]} - Frase: ${paraPhrases[6].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[2].items.push(`Locus de control / impulsivilidad: ${elecciones[0]}`);
+      fortalezas[2].items.push(`Locus de control / impulsivilidad: ${elecciones[2]} - Frase: ${paraPhrases[6].descriptions[2]}`);
+      results.push(3);
       break;
   }
 
+  cantItems++;
   generalSpace += 15;
 
   switch (manejo_frustracion.toLowerCase()) {
@@ -477,22 +722,26 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[2].items.push(`Manejo de la frustración: ${elecciones[1]}`);
+      areas_mejorar[2].items.push(`Manejo de la frustración: ${elecciones[0]} - Frase: ${paraPhrases[7].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[2].items.push(`Manejo de la frustración: ${elecciones[0]}`);
+      fortalezas[2].items.push(`Manejo de la frustración: ${elecciones[1]} - Frase: ${paraPhrases[7].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[2].items.push(`Manejo de la frustración: ${elecciones[0]}`);
+      fortalezas[2].items.push(`Manejo de la frustración: ${elecciones[2]} - Frase: ${paraPhrases[7].descriptions[2]}`);
+      results.push(3);
       break;
   }
 
+  cantItems++;
   generalSpace += 15;
 
   switch (empatia.toLowerCase()) {
@@ -500,22 +749,26 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[2].items.push(`Empatía: ${elecciones[1]}`);
+      areas_mejorar[2].items.push(`Empatía: ${elecciones[0]} - Frase: ${paraPhrases[8].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[2].items.push(`Empatía: ${elecciones[0]}`);
+      fortalezas[2].items.push(`Empatía: ${elecciones[1]} - Frase: ${paraPhrases[8].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[2].items.push(`Empatía: ${elecciones[0]}`);
+      fortalezas[2].items.push(`Empatía: ${elecciones[2]} - Frase: ${paraPhrases[8].descriptions[2]}`);
+      results.push(3);
       break;
   }
 
+  cantItems++;
   generalSpace += 15;
 
   switch (grado_ansiedad.toLowerCase()) {
@@ -523,23 +776,38 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[2].items.push(`Grado de ansiedad: ${elecciones[1]}`);
+      areas_mejorar[2].items.push(`Grado de ansiedad: ${elecciones[0]} - Frase: ${paraPhrases[9].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[2].items.push(`Grado de ansiedad: ${elecciones[0]}`);
+      fortalezas[2].items.push(`Grado de ansiedad: ${elecciones[1]} - Frase: ${paraPhrases[9].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[2].items.push(`Grado de ansiedad: ${elecciones[0]}`);
+      fortalezas[2].items.push(`Grado de ansiedad: ${elecciones[2]} - Frase: ${paraPhrases[9].descriptions[2]}`);
+      results.push(3);
       break;
   }
+  cantItems++;
 
-  //--------------------------------------------------------------------Actitud a la prevencion de los riesgos PT1
+  finalResults.push({
+    name,
+    weight,
+    cantItems,
+    results
+  });
+
+  cantItems = 0;
+  results = [];
+
+  //--------------------------------------------------------------------Actitud a la prevencion de los riesgos
+  name = "actitud prevension de riesgos"
   generalSpace += 35;
   doc.fontSize(10);
   doc
@@ -551,7 +819,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
 
   //-- cuadro general
   doc.fontSize(9);
-  doc.lineJoin("miter").rect(50, generalSpace, 510, 95).stroke();
+  doc.lineJoin("miter").rect(50, generalSpace, 510, 135).stroke();
   //----------
   //----cabeceras
   doc.lineJoin("miter").rect(200, generalSpace, 160, 15).stroke();
@@ -577,7 +845,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .text(titles[3], 515, generalSpace + 4, { align: "center" });
   //-------------
   generalSpace += 15;
-  actPrevencionRiesgosOne.forEach(function (e) {
+  actPrevencionRiesgos.forEach(function (e) {
     doc.lineJoin("miter").rect(200, generalSpace, 160, 40).stroke();
 
     doc.lineJoin("miter").rect(360, generalSpace, 70, 40).stroke();
@@ -597,29 +865,33 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     generalSpace += 40;
   });
 
-  generalSpace -= 70;
+  generalSpace -= 110;
 
   switch (actitud_prevencion_accidentes.toLowerCase()) {
     case 'bajo':
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[3].items.push(`Actitud general hacia la prevensión de accidentes de trabajo: ${elecciones[1]}`);
+      areas_mejorar[3].items.push(`Actitud general hacia la prevensión de accidentes de trabajo: ${elecciones[0]} - Frase: ${paraPhrases[10].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[3].items.push(`Actitud general hacia la prevensión de accidentes de trabajo: ${elecciones[0]}`);
+      fortalezas[3].items.push(`Actitud general hacia la prevensión de accidentes de trabajo: ${elecciones[1]} - Frase: ${paraPhrases[10].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[3].items.push(`Actitud general hacia la prevensión de accidentes de trabajo: ${elecciones[0]}`);
+      fortalezas[3].items.push(`Actitud general hacia la prevensión de accidentes de trabajo: ${elecciones[2]} - Frase: ${paraPhrases[10].descriptions[2]}`);
+      results.push(3);
       break;
   }
 
+  cantItems++;
   generalSpace += 40;
 
   switch (confianza_acciones_realizadas.toLowerCase()) {
@@ -627,75 +899,93 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[3].items.push(`Confianza en acciones realizadas: ${elecciones[1]}`);
+      areas_mejorar[3].items.push(`Confianza en acciones realizadas: ${elecciones[0]} - Frase: ${paraPhrases[11].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[3].items.push(`Confianza en acciones realizadas: ${elecciones[0]}`);
+      fortalezas[3].items.push(`Confianza en acciones realizadas: ${elecciones[1]} - Frase: ${paraPhrases[11].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[3].items.push(`Confianza en acciones realizadas: ${elecciones[0]}`);
+      fortalezas[3].items.push(`Confianza en acciones realizadas: ${elecciones[2]} - Frase: ${paraPhrases[11].descriptions[2]}`);
+      results.push(3);
       break;
   }
 
-  //---------------------- PAGE 2
-  doc.addPage();
-  generalSpace = 15;
-  //--------------------------------------------------------------------Actitud a la prevencion de los riesgos PT2
-  //-- cuadro general
-  doc.fontSize(9);
-  doc.lineJoin("miter").rect(50, generalSpace, 510, 30).stroke();
-  //----------
-  actPrevencionRiesgosTwo.forEach(function (e) {
-    doc.lineJoin("miter").rect(200, generalSpace, 160, 30).stroke();
+  cantItems++;
 
-    doc.lineJoin("miter").rect(360, generalSpace, 70, 30).stroke();
+  // generalSpace += 30;
+  // doc.fontSize(9);
+  // doc.lineJoin("miter").rect(50, generalSpace, 510, 30).stroke();
+  // //----------
+  // actPrevencionRiesgosTwo.forEach(function (e) {
+  //   doc.lineJoin("miter").rect(200, generalSpace, 160, 30).stroke();
 
-    doc.lineJoin("miter").rect(430, generalSpace, 70, 30).stroke();
+  //   doc.lineJoin("miter").rect(360, generalSpace, 70, 30).stroke();
 
-    doc.lineJoin("miter").rect(500, generalSpace, 60, 30).stroke();
+  //   doc.lineJoin("miter").rect(430, generalSpace, 70, 30).stroke();
 
-    e.name.forEach(function (n) {
-      doc
-        .font("Helvetica")
-        .text(n, 210, generalSpace + moreSpace, { align: "left" });
-      moreSpace += 10;
-    });
+  //   doc.lineJoin("miter").rect(500, generalSpace, 60, 30).stroke();
 
-    generalSpace += 40;
-  });
+  //   e.name.forEach(function (n) {
+  //     doc
+  //       .font("Helvetica")
+  //       .text(n, 210, generalSpace + moreSpace, { align: "left" });
+  //     moreSpace += 10;
+  //   });
 
-  generalSpace -= 40;
+  //   generalSpace += 40;
+  // });
+
+  // generalSpace -= 40;
+
+  generalSpace += 40;
 
   switch (capacidad_modificar_ambiente_seguridad.toLowerCase()) {
     case 'bajo':
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 12, { align: "left" });
-      areas_mejorar[3].items.push(`Capacidad para modificar el ambiente a favor de la seguridad ${elecciones[1]}`);
+      areas_mejorar[3].items.push(`Capacidad para modificar el ambiente a favor de la seguridad ${elecciones[0]} - Frase: ${paraPhrases[12].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 12, { align: "left" });
-      fortalezas[3].items.push(`Capacidad para modificar el ambiente a favor de la seguridad ${elecciones[0]}`);
+      fortalezas[3].items.push(`Capacidad para modificar el ambiente a favor de la seguridad ${elecciones[1]} - Frase: ${paraPhrases[12].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 12, { align: "left" });
-      fortalezas[3].items.push(`Capacidad para modificar el ambiente a favor de la seguridad ${elecciones[0]}`);
+      fortalezas[3].items.push(`Capacidad para modificar el ambiente a favor de la seguridad ${elecciones[2]} - Frase: ${paraPhrases[12].descriptions[2]}`);
+      results.push(3);
       break;
   }
 
+  cantItems++;
   generalSpace += 40;
 
+  finalResults.push({
+    name,
+    weight,
+    cantItems,
+    results
+  });
+
+  cantItems = 0;
+  results = [];
+
   //--------------------------------------------------------------------Motivacion por el cargo
+  name = "motivacion por cargo"
   generalSpace += 8;
   doc.fontSize(10);
   doc
@@ -752,22 +1042,26 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[4].items.push(`Orientación a la tarea: ${elecciones[1]}`);
+      areas_mejorar[4].items.push(`Orientación a la tarea: ${elecciones[0]} - Frase: ${paraPhrases[13].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[4].items.push(`Orientación a la tarea: ${elecciones[0]}`);
+      fortalezas[4].items.push(`Orientación a la tarea: ${elecciones[1]} - Frase: ${paraPhrases[13].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[4].items.push(`Orientación a la tarea: ${elecciones[0]}`);
+      fortalezas[4].items.push(`Orientación a la tarea: ${elecciones[2]} - Frase: ${paraPhrases[13].descriptions[2]}`);
+      results.push(3);
       break;
   }
 
+  cantItems++;
   generalSpace += 15;
 
   switch (energia_vital.toLowerCase()) {
@@ -775,32 +1069,55 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[4].items.push(`Energia vital: ${elecciones[1]}`);
+      areas_mejorar[4].items.push(`Energia vital: ${elecciones[0]} - Frase: ${paraPhrases[14].descriptions[0]}`);
+      results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[4].items.push(`Energia vital: ${elecciones[0]}`);
+      fortalezas[4].items.push(`Energia vital: ${elecciones[1]} - Frase: ${paraPhrases[14].descriptions[1]}`);
+      results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[4].items.push(`Energia vital: ${elecciones[0]}`);
+      fortalezas[4].items.push(`Energia vital: ${elecciones[2]} - Frase: ${paraPhrases[14].descriptions[2]}`);
+      results.push(3);
       break;
   }
+  cantItems++;
 
-  //5 .- Analisis cualitativo
+  finalResults.push({
+    name,
+    weight,
+    cantItems,
+    results
+  });
+
+  cantItems = 0;
+  results = [];
+
+  //------------------Resultados de los calculos
+  const numberResults = calculateIndicators(finalResults);
+  const preResults = getResultsTest(numberResults);
+  const numberConclusion = finalResponseTest(preResults, 'bajo');
+  const finalDecision = testResult(numberConclusion);
+  //------------------------------------------------------------------------------------------ PAGE 3
+  doc.addPage();
+  generalSpace = 10;
+
+  //----------------------------------------------------------------- Analisis cualitativo
   //----------------FORTALEZAS
   let heightCuantitativo = 22;
-  let spaceCuantitativo = 160;
+  let spaceCuantitativo = 77;
 
   doc.fontSize(9);
   generalSpace += 30;
   doc
     .font("Helvetica-Bold")
-    .text("III    Análisis cualitativo", 60, generalSpace, { align: "left" });
+    .text("V    Análisis cualitativo", 60, generalSpace, { align: "left" });
 
   generalSpace += 20;
   //----cabecera
@@ -818,28 +1135,31 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .font("Helvetica")
     .text('El evaluado presenta las siguientes fortalezas :', 60, generalSpace + 4, { align: "left" });
 
-  // generalSpace += 15;
+  generalSpace += 15;
 
   //--array fortalezas
   fortalezas.forEach(fortaleza => {
     if (fortaleza.items.length > 0) {
-      generalSpace += 18;
-      heightCuantitativo += 18;
+      generalSpace += 10;
+      heightCuantitativo += 10;
       doc
         .font("Helvetica-Bold")
         .text(fortaleza.nombre, 60, generalSpace + 4, { align: "left" });
 
 
+      generalSpace += 13;
+      heightCuantitativo += 13;
+
       fortaleza.items.forEach((item, index) => {
-        generalSpace += 10;
-        heightCuantitativo += 10;
+        // generalSpace += 24;
+        // heightCuantitativo += 24;
+
         doc
           .font("Helvetica")
-          .text(`${index + 1} .- ${item}`, 60, generalSpace + 4, { align: "left" });
-        // doc
-        //   .font("Helvetica")
-        //   .text(elecciones[0], 60, generalSpace + 4, { align: "right" });
+          .text(`${index + 1} .- ${item}`, 60, generalSpace + 4, { align: "left", width: 496 });
 
+        generalSpace += 25;
+        heightCuantitativo += 25;
       });
     }
   });
@@ -861,33 +1181,36 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .font("Helvetica")
     .text('El evaluado presenta las siguientes areas a mejorar :', 60, spaceCuantitativo, { align: "left" });
 
-  //--array areas a mejorar
+  generalSpace += 40;
+
   areas_mejorar.forEach(area => {
     if (area.items.length > 0) {
-      heightCuantitativo += 18;
-      spaceCuantitativo += 18;
+      generalSpace += 10;
+      heightCuantitativo += 10;
       doc
         .font("Helvetica-Bold")
-        .text(area.nombre, 60, spaceCuantitativo + 4, { align: "left" });
+        .text(area.nombre, 60, generalSpace + 4, { align: "left" });
 
+
+      generalSpace += 13;
+      heightCuantitativo += 13;
 
       area.items.forEach((item, index) => {
-        spaceCuantitativo += 10;
-        heightCuantitativo += 10;
         doc
           .font("Helvetica")
-          .text(`${index + 1} .- ${item}`, 60, spaceCuantitativo + 4, { align: "left" });
-        // doc
-        //   .font("Helvetica")
-        //   .text(elecciones[1], 60, spaceCuantitativo + 4, { align: "right" });
+          .text(`${index + 1} .- ${item}`, 60, generalSpace + 4, { align: "left", width: 496 });
+
+        generalSpace += 25;
+        heightCuantitativo += 25;
       });
     }
   });
 
-  generalSpace += 46;
+  doc.lineJoin("miter").rect(50, spaceCuantitativo - 6, 510, heightCuantitativo).stroke();
+
+  // generalSpace += 2;
 
   // spaceCuantitativo += heightCuantitativo + 300;
-  doc.lineJoin("miter").rect(50, generalSpace, 510, heightCuantitativo).stroke();
 
 
 
@@ -898,7 +1221,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   generalSpace = 20;
   doc
     .font("Helvetica-Bold")
-    .text('IV    Conclusión', 60, generalSpace + 4, { align: "left" });
+    .text('VI    Conclusión', 60, generalSpace + 4, { align: "left" });
 
   generalSpace += 18;
   doc.lineJoin("miter").rect(50, generalSpace + 2, 510, 15).stroke();
@@ -941,7 +1264,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   doc.lineJoin("miter").rect(223, generalSpace + 2, 165, 15).stroke();
   doc.lineJoin("miter").rect(395, generalSpace + 2, 165, 15).stroke();
 
-  switch (conclusionRiesgos) {
+  switch (finalDecision) {
     case 1:
       doc.fontSize(11);
       doc

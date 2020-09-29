@@ -291,13 +291,13 @@ router.post('/evaluacionpsico', async (req, res) => {
 router.post('/evaluacionaversion', async (req, res) => {
   const db = await connect();
   const data = req.body;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   const I = { razonamiento_abstracto: data.razonamiento_abstracto, percepcion_concentracion: data.percepcion_concentracion, comprension_instrucciones: data.comprension_instrucciones };
 
@@ -315,8 +315,8 @@ router.post('/evaluacionaversion', async (req, res) => {
     estado: "Cargado"
   };
 
-  const fortalezas = data.fortalezas;
-  const areas_mejorar = data.area_mejora;
+  // const fortalezas = data.fortalezas;
+  // const areas_mejorar = data.area_mejora;
   const conclusionRiesgos = data.conclusion;
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
