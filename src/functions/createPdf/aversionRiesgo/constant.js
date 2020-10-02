@@ -138,8 +138,6 @@ export const conclusion = [
 ];
 
 export const nameFirma = [
-    'KARLA NUÑEZ COLLAO',
-    'Psicólogo',
     'ASIS CONSULTORES'
 ];
 

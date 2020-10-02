@@ -291,13 +291,13 @@ router.post('/evaluacionpsico', async (req, res) => {
 router.post('/evaluacionaversion', async (req, res) => {
   const db = await connect();
   const data = req.body;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   const I = { razonamiento_abstracto: data.razonamiento_abstracto, percepcion_concentracion: data.percepcion_concentracion, comprension_instrucciones: data.comprension_instrucciones };
 
@@ -328,7 +328,7 @@ router.post('/evaluacionaversion', async (req, res) => {
   const fecha_vigencia = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
 
   let resultado = '';
-  if (conclusionRiesgos === 1) { resultado = 'No representa conductas de riesgos' } else if (conclusionRiesgos === 2) { resultado = 'Presenta bajas conductas de riesgos' } else { resultado = 'Presenta altas conductas de riesgos' };
+  if (conclusionRiesgos === 1) { resultado = 'No presenta conductas de riesgos' } else if (conclusionRiesgos === 2) { resultado = 'Presenta bajas conductas de riesgos' } else { resultado = 'Presenta altas conductas de riesgos' };
 
   generateQR(nombreQR,
     `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Fecha vigencia: ${fecha_vigencia} Resultado: ${resultado}`
@@ -345,6 +345,7 @@ router.post('/evaluacionaversion', async (req, res) => {
     const informacionPersonal = {
       empresa: cp.razon_social,
       evaluador: pa.razon_social,
+      cargo_evaluador: pa.cargo || '',
       nombre: cs.razon_social,
       edad: cs.edad_gi,
       rut: cs.rut,
