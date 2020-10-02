@@ -57,7 +57,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     },
     {
       id: 4,
-      nombre: 'Actitud a la prevensión de los riesgos',
+      nombre: 'Actitud a la prevención de los riesgos',
       items: []
     },
     {
@@ -247,7 +247,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .font("Helvetica")
     .text("Actitud a la", 367, generalSpace + 145, { align: "left" })
   doc
-    .text("prevensión de los riesgos", 348, generalSpace + 152, { align: "left" })
+    .text("prevención de los riesgos", 348, generalSpace + 152, { align: "left" })
   doc.fontSize(7)
 
   verticalSpace += 60
@@ -1272,30 +1272,32 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
         .font("Helvetica-Bold")
         .text('X', 130, generalSpace + 5, { align: "left" });
       doc.fontSize(9);
-      doc.fillColor('grey')
+      doc.fillColor('black')
         .text('De los resultados se desprende que el ', 60, generalSpace + 25, {
           align: 'left',
+          width: 500,
           continued: true
         }).fillColor('black')
-        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE NO PRESENTA CONDUCTAS DE RIESGO`)
+        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE NO PRESENTA CONDUCTAS DE RIESGO desde el punto de vista psicológico`)
         .fillColor('grey')
-        .text('desde el punto de vista psicológico');
+        // .text('desde el punto de vista psicológico');
       break;
 
     case 2:
       doc.fontSize(11);
       doc
-        .font("Helvetica-Bold")
-        .text('X', 300, generalSpace + 5, { align: "left" });
+        .font("Helvetica")
+        .text('X', 300, generalSpace + 5, { align: "left"});
       doc.fontSize(9);
-      doc.fillColor('grey')
+      doc.fillColor('black')
         .text('De los resultados se desprende que el ', 60, generalSpace + 25, {
           align: 'left',
+          width: 500,
           continued: true
         }).fillColor('black')
-        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE PRESENTA BAJAS CONDUCTAS DE RIESGO`)
+        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE PRESENTA BAJAS CONDUCTAS DE RIESGO desde el punto de vista psicológico`)
         .fillColor('grey')
-        .text('desde el punto de vista psicológico');
+        // .text('desde el punto de vista psicológico');
       break;
 
     case 3:
@@ -1304,14 +1306,15 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
         .font("Helvetica-Bold")
         .text('X', 470, generalSpace + 5, { align: "left" });
       doc.fontSize(9);
-      doc.fillColor('grey')
+      doc.fillColor('black')
         .text('De los resultados se desprende que el ', 60, generalSpace + 25, {
           align: 'left',
+          width: 500,
           continued: true
         }).fillColor('black')
-        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE PRESENTA ALTAS CONDUCTAS DE RIESGO`)
+        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE PRESENTA ALTAS CONDUCTAS DE RIESGO desde el punto de vista psicológico`)
         .fillColor('grey')
-        .text('desde el punto de vista psicológico');
+        // .text('desde el punto de vista psicológico');
       break;
   }
 
