@@ -222,7 +222,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .font("Helvetica")
     .text("Adecuación", 240, generalSpace + 145, { align: "left" })
   doc
-    .text("a las normas", 238, generalSpace + 152, { align: "left" })
+    .text("a las Normas", 238, generalSpace + 152, { align: "left" })
 
   verticalSpace += 60
   chartResults = getFormatBar(getResultTest(getAverage(Object.values(EE))));
@@ -234,7 +234,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .font("Helvetica")
     .text("Estabilidad", 300, generalSpace + 145, { align: "left" })
   doc
-    .text("emocional", 302, generalSpace + 152, { align: "left" })
+    .text("Emocional", 302, generalSpace + 152, { align: "left" })
 
   verticalSpace += 60
   chartResults = getFormatBar(getResultTest(getAverage(Object.values(APR))));
@@ -247,7 +247,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .font("Helvetica")
     .text("Actitud a la", 367, generalSpace + 145, { align: "left" })
   doc
-    .text("prevención de los riesgos", 348, generalSpace + 152, { align: "left" })
+    .text("Prevención de Riesgos", 348, generalSpace + 152, { align: "left" })
   doc.fontSize(7)
 
   verticalSpace += 60
@@ -260,7 +260,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .font("Helvetica")
     .text("Motivación", 423, generalSpace + 145, { align: "left" })
   doc
-    .text("por el cargo", 421, generalSpace + 152, { align: "left" })
+    .text("por el Cargo", 421, generalSpace + 152, { align: "left" })
 
 
   //-----------------------------------------------------CUADRO RESUMEN
