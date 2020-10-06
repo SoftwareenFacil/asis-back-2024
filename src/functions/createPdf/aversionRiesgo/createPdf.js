@@ -1278,7 +1278,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
           width: 500,
           continued: true
         }).fillColor('black')
-        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE NO PRESENTA CONDUCTAS DE RIESGO desde el punto de vista psicológico`)
+        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE NO PRESENTA CONDUCTAS DE RIESGO desde el punto de vista psicológico.`)
         .fillColor('grey')
         // .text('desde el punto de vista psicológico');
       break;
@@ -1295,7 +1295,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
           width: 500,
           continued: true
         }).fillColor('black')
-        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE PRESENTA BAJAS CONDUCTAS DE RIESGO desde el punto de vista psicológico`)
+        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE PRESENTA BAJAS CONDUCTAS DE RIESGO desde el punto de vista psicológico.`)
         .fillColor('grey')
         // .text('desde el punto de vista psicológico');
       break;
@@ -1312,7 +1312,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
           width: 500,
           continued: true
         }).fillColor('black')
-        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE PRESENTA ALTAS CONDUCTAS DE RIESGO desde el punto de vista psicológico`)
+        .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE PRESENTA ALTAS CONDUCTAS DE RIESGO desde el punto de vista psicológico.`)
         .fillColor('grey')
         // .text('desde el punto de vista psicológico');
       break;

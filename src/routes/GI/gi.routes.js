@@ -45,13 +45,11 @@ router.get("/", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    let result = await db.collection("gi").find({_id: ObjectID(data.id)}).toArray();
+    let result = await db.collection("gi").find().toArray();
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ msg: ERROR, error })
   }
-
-  res.json(result);
 });
 
 // SELECT GI PAGINATED

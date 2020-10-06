@@ -215,6 +215,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   const nuevaObs = newSolicitud.observacion_solicitud;
   const token = req.headers['x-access-token'];
 
+  console.log(newSolicitud)
+
   if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
   const dataToken = await verifyToken(token);
@@ -225,34 +227,15 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
   if (!items) return res.status(401).json({ msg: "No se ha podido encontrar la solicitud seleccionada" });
 
-  // if (items.length > 0) {
-  //   newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(
-  //     items[items.length - 1]
-  //   )}`;
-  // } else {
-  //   newSolicitud.codigo = `ASIS-SOL-${YEAR}-00001`;
-  // }
-
   (items.length > 0)
     ? newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(items[items.length - 1])}`
     : newSolicitud.codigo = `ASIS-SOL-${YEAR}-00001`;
 
-  // newSolicitud.observacion_solicitud = [];
+  newSolicitud.observacion_solicitud = [];
   newSolicitud.observacion_solicitud.push({
     obs: nuevaObs,
     fecha: getDate(new Date()),
   });
-
-  // if (req.file) {
-  //   newSolicitud.url_file_adjunto = {
-  //     name: req.file.originalname,
-  //     size: req.file.size,
-  //     path: req.file.path,
-  //     type: req.file.mimetype,
-  //   };
-  // } else {
-  //   newSolicitud.url_file_adjunto = {};
-  // }
 
   (req.file)
     ? newSolicitud.url_file_adjunto = {
