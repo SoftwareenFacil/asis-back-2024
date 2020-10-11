@@ -201,7 +201,6 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
                 .font("Helvetica")
                 .text(element.obs, 370, generalSpace, { align: "left" });
         }
-
         if (index >= 4) {
             if (element.active) {
                 doc
@@ -218,7 +217,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
                     .text('No Requerido', 278, generalSpace, { align: "left" });
                 doc
                     .font("Helvetica")
-                    .text('', 370, generalSpace, { align: "left" });
+                    .text('No Aplica', 370, generalSpace, { align: "left" });
             }
         }
 
@@ -631,6 +630,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         .text(isRequired(examen_somnolencia.active) ? examen_somnolencia.epworth : 'No Requerido', 320, generalSpace + 8, { align: "center" });
 
     doc.addPage();
+    doc.page.margins.bottom = 0;
 
     //------------------------------------------- TEST PSICOLOGICO
     generalSpace = 30;
@@ -821,21 +821,16 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         moreSpace += 8;
     });
 
-    doc.fontSize(8);
-    doc.text(piePageOne[0], 200, doc.page.height - 40, {
-        lineBreak: false,
-        align: 'center'
-    });
-
-    doc.text(piePageOne[1], 40, doc.page.height - 30, {
-        lineBreak: false,
-        align: 'center'
-    });
-
-    doc.text(piePageOne[2], 100, doc.page.height - 20, {
-        lineBreak: false,
-        align: 'center'
-    });
+    doc.fontSize(6);
+    doc
+        .font("Helvetica")
+        .text(piePageOne[0], 0.5 * (doc.page.width - 200), doc.page.height - 42, { align: "center", width: 200, lineBreak: false });
+    doc
+        .font("Helvetica")
+        .text(piePageOne[1], 0.5 * (doc.page.width - 430), doc.page.height - 34, { align: "center", width: 430, lineBreak: false });
+    doc
+        .font("Helvetica")
+        .text(piePageOne[2], 0.5 * (doc.page.width - 340), doc.page.height - 26, { align: "center", width: 340, lineBreak: false });
 
     doc.end();
 }
