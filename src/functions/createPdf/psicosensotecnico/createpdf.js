@@ -813,6 +813,18 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     });
 
     generalSpace += 110;
+    doc
+        .font("Helvetica-Bold")
+        .text(evaluador && evaluador.toUpperCase(), 45, generalSpace + moreSpace, { align: "center" });
+
+    moreSpace += 8;
+
+    doc
+        .font("Helvetica-Bold")
+        .text(cargo && cargo.toUpperCase(), 45, generalSpace + moreSpace, { align: "center" });
+
+    moreSpace += 8;
+
     nameFirma.forEach(function (elemento) {
         doc
             .font("Helvetica-Bold")

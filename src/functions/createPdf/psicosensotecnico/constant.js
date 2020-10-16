@@ -178,7 +178,5 @@ export const testConoTransitoNacional = {
 };
 
 export const nameFirma = [
-    'KARLA NUÑEZ COLLAO',
-    'Psicólogo',
     'ASIS CONSULTORES'
 ];

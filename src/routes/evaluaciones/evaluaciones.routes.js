@@ -60,7 +60,7 @@ router.post('/evaluacionpsico', async (req, res) => {
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   const resultado = data.resultado;
-  const restricciones = data.restricciones;
+  const restricciones = data.restricciones || 'Sin Restricciones';
   const vencimiento = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
   const licencia = data.licencia;
 
@@ -281,7 +281,7 @@ router.post('/evaluacionpsico', async (req, res) => {
     }
 
   } catch (error) {
-
+    console.log(error)
     res.json({ msg: 'error al crear el pdf', error: error });
 
   }
