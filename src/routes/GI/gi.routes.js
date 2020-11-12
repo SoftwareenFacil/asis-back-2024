@@ -99,7 +99,7 @@ router.post("/buscar", async (req, res) => {
     rutFiltrado.replace("k", "K");
   } else {
     rutFiltrado = filtro;
-  }
+  };
 
   const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
   let result;
@@ -115,7 +115,7 @@ router.post("/buscar", async (req, res) => {
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
-  } else {
+  } else if(identificador === 2) {
     countGIs = await db
       .collection("gi")
       .find({ razon_social: rexExpresionFiltro })
@@ -123,6 +123,18 @@ router.post("/buscar", async (req, res) => {
     result = await db
       .collection("gi")
       .find({ razon_social: rexExpresionFiltro })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+  }
+  else {
+    countGIs = await db
+      .collection("gi")
+      .find({ grupo_interes: rexExpresionFiltro })
+      .count();
+    result = await db
+      .collection("gi")
+      .find({ grupo_interes: rexExpresionFiltro })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();

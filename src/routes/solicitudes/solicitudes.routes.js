@@ -337,7 +337,7 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
       res.json({
         message: "Solicitudes Ingresadas",
         isOK: true,
-        inserted: result.n
+        inserted: result
       });
 
     }

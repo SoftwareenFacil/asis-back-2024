@@ -38,7 +38,7 @@ export default function createSolicitudes(solicitudes, gis) {
     obj.faena_seleccionada_cp = '';
     obj.rut_cs = Object.entries(giSecundario).length > 0 ? giSecundario.rut : '';
     obj.razon_social_cs = Object.entries(giSecundario).length > 0 ? giSecundario.razon_social : '';
-    obj.fecha_solicitud = moment().format("DD-MM-YYYY");
+    obj.fecha_solicitud = element.FechaSolicitud;
     obj.fecha_servicio_solicitado = moment().format("DD-MM-YYYY");
     obj.mes_solicitud = moment().format("MMMM") || '';
     obj.anio_solicitud = moment().format("YYYY") || '';
@@ -61,7 +61,7 @@ export default function createSolicitudes(solicitudes, gis) {
     obj.fecha_servicio_solicitado_termino = moment().format("DD-MM-YYYY") || '';
     obj.hora_servicio_solicitado_termino = moment().format("HH:mm") || '';
     obj.jornada = element.Jornada;
-    obj.hora_solicitud = moment().format("YYYY-MM-DD HH:mm").substr(11, 5);
+    obj.hora_solicitud = element.FechaSolicitud.substr(11, 16);
     obj.estado = "Ingresado";
 
     formated_sol.push(obj);
