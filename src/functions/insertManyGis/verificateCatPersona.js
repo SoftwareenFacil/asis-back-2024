@@ -1,4 +1,4 @@
 export default function verificateCatPersona(data){
-    let result = data.filter(e => e.CategoriaEmpresa === 'No Aplica')
+    let result = data.filter(e => e.categoria_empresa === 'No Aplica')
     return result
 }

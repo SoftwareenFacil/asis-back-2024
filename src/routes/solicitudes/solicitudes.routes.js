@@ -5,6 +5,8 @@ import { getDate } from "../../functions/getDateNow";
 import excelToJson from "../../functions/insertManyGis/excelToJson";
 import sendinblue from "../../libs/sendinblue/sendinblue";
 import { isRolSolicitudes } from "../../functions/isRol";
+import createSolicitudes from "../../functions/insertManySolicitudes/createJsonSolForInsert";
+import addCodeSolicitud from "../../functions/insertManySolicitudes/addCodeSolicitud";
 // const addDays = require("add-days");
 
 import { verifyToken } from "../../libs/jwt";
@@ -117,7 +119,7 @@ router.post("/buscar", async (req, res) => {
           .toArray();
       }
     }
-    else if (dataToken.rol === 'Colaboradores'){
+    else if (dataToken.rol === 'Colaboradores') {
       if (identificador === 1) {
         countSol = await db
           .collection("solicitudes")
@@ -310,8 +312,43 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
 
   try {
     if (data.length > 0) {
+
+      const gis = await db.collection('gi').find().toArray();
+      let solicitudes = createSolicitudes(data, gis);
+
+      if (solicitudes.length === 0) {
+        return res.json({
+          message: "Ha ocurrido un error y no se ha insertado el archivo",
+          solicitudes
+        });
+      };
+
+      const lastSolicitud = await db
+        .collection("solicitudes")
+        .find({})
+        .sort({ codigo: -1 })
+        .limit(1)
+        .toArray();
+
+      solicitudes = addCodeSolicitud(solicitudes, lastSolicitud[0], YEAR);
+
+      const result = await db.collection('solicitudes').insertMany(solicitudes);
+
+      res.json({
+        message: "Solicitudes Ingresadas",
+        isOK: true,
+        inserted: result.n
+      });
+
     }
-  } catch (error) { }
+  } catch (err) {
+    console.log(err);
+    res.json({
+      message: "Algo ha salido mal",
+      isOK: false,
+      error: err,
+    });
+  }
 });
 
 //EDITAR SOLICITUD
@@ -411,7 +448,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
 
   let archivo = {};
-  
+
   const token = req.headers['x-access-token'];
 
   if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });

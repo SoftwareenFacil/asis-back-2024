@@ -332,10 +332,10 @@ router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
       array_general_personas = getPersonasGI(array_general[0].newdata);
       let personas = array_general_personas[0].newdata;
 
-      console.log(array_general_personas[0].newdata);
+      // console.log(array_general_personas[0].newdata);
 
-      empresas = eliminateDuplicated(empresas, "Rut");
-      personas = eliminateDuplicated(personas, "Rut");
+      empresas = eliminateDuplicated(empresas, "rut");
+      personas = eliminateDuplicated(personas, "rut");
 
       empresas = verificateGrupoInteres(empresas);
       personas = verificateGrupoInteres(personas);
@@ -357,7 +357,7 @@ router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
         .sort({ codigo: -1 })
         .limit(1)
         .toArray();
-      console.log(lastGi);
+      // console.log(lastGi);
 
       let arrayGIs = createJsonGIs(empresas, personas);
 
@@ -376,6 +376,7 @@ router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
       });
     }
   } catch (err) {
+    console.log(err);
     res.json({
       message: "Algo ha salido mal",
       isOK: false,

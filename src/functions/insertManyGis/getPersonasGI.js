@@ -1,7 +1,7 @@
 export default function getPersonasGI(data){
     let result = [{newdata: []}, {renegados: []}]
     result[0].newdata = data.filter(function(e){
-        if(e.TipoCliente === 'Persona Natural'){
+        if(e.categoria === 'Persona Natural'){
             return true
         }
         else{
