@@ -291,6 +291,8 @@ router.post("/confirmar/:id", async (req, res) => {
   // obs.obs = datos.observaciones;
   // obs.fecha = getDate(new Date());
 
+  console.log('datos', datos);
+
   if (datos.estado_archivo == "Aprobado") {
     obs.estado = datos.estado_archivo;
     if (

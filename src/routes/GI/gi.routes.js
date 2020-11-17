@@ -375,7 +375,14 @@ router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
 
       arrayGIs = addCodeGI(arrayGIs, lastGi[0], YEAR);
 
-      const result = await db.collection("gi").insertMany(arrayGIs);
+      //sacamos los empleados
+      const empleados = arrayGIs.filter((el) => el.GrupoInteres === 'Empleados');
+      const othersWorkers = arrayGIs.filter((el) => el.GrupoInteres !== 'Empleados');
+
+      await db.collection('gi').insertMany(othersWorkers || []);
+      await db.collection('empleados').insertMany(empleados || []);
+
+      // const result = await db.collection("gi").insertMany(arrayGIs);
 
       res.json({
         message: "Ha finalizado la inserción masiva",
@@ -425,10 +432,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   //agregar rol
   newGi.rol = newGi.rol || 'Clientes';
 
-  const result = await db.collection("gi").insertOne(newGi);
-
   if (newGi.grupo_interes === "Empleados") {
-    //se crea tambien en empleados
+    //se crea en empleados
     let obj = {};
     obj.nombre = newGi.razon_social;
     obj.rut = newGi.rut;
@@ -459,6 +464,9 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     };
 
     await db.collection("empleados").insertOne(obj);
+  }
+  else{
+    await db.collection("gi").insertOne(newGi);
   }
 
   res.json(result);

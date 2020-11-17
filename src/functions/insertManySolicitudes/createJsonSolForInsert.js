@@ -61,7 +61,7 @@ export default function createSolicitudes(solicitudes, gis) {
     obj.fecha_servicio_solicitado_termino = moment().format("DD-MM-YYYY") || '';
     obj.hora_servicio_solicitado_termino = moment().format("HH:mm") || '';
     obj.jornada = element.Jornada;
-    obj.hora_solicitud = element.FechaSolicitud.substr(11, 16);
+    obj.hora_solicitud = element.FechaSolicitud !== undefined ? element.FechaSolicitud.slice(11, 16) : '';
     obj.estado = "Ingresado";
 
     formated_sol.push(obj);

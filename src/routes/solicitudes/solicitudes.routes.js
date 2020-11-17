@@ -106,7 +106,7 @@ router.post("/buscar", async (req, res) => {
           .limit(nPerPage)
           .toArray();
       }
-      else {
+      else if (identificador === 2) {
         countSol = await db
           .collection("solicitudes")
           .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
@@ -114,6 +114,19 @@ router.post("/buscar", async (req, res) => {
         result = await db
           .collection("solicitudes")
           .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+      else {
+        countSol = await db
+          .collection("solicitudes")
+          .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .count();
+
+        result = await db
+          .collection("solicitudes")
+          .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -133,7 +146,7 @@ router.post("/buscar", async (req, res) => {
           .limit(nPerPage)
           .toArray();
       }
-      else {
+      else if (identificador === 2) {
         countSol = await db
           .collection("solicitudes")
           .find({ razon_social_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
@@ -141,6 +154,19 @@ router.post("/buscar", async (req, res) => {
         result = await db
           .collection("solicitudes")
           .find({ razon_social_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+      else {
+        countSol = await db
+          .collection("solicitudes")
+          .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+          .count();
+
+        result = await db
+          .collection("solicitudes")
+          .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -160,7 +186,7 @@ router.post("/buscar", async (req, res) => {
           .limit(nPerPage)
           .toArray();
       }
-      else {
+      else if (identificador === 2) {
         countSol = await db
           .collection("solicitudes")
           .find({ razon_social_CP: rexExpresionFiltro })
@@ -172,7 +198,20 @@ router.post("/buscar", async (req, res) => {
           .limit(nPerPage)
           .toArray();
       }
-    }
+      else {
+        countSol = await db
+          .collection("solicitudes")
+          .find({ sucursal: rexExpresionFiltro })
+          .count();
+
+        result = await db
+          .collection("solicitudes")
+          .find({ sucursal: rexExpresionFiltro })
+          .skip(skip_page)
+          .limit(nPerPage)
+          .toArray();
+      }
+    };
 
     res.json({
       total_items: countSol,
@@ -593,7 +632,7 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
   let new_array = [];
   let archivo = {};
   const obs = {
-    obs: ataJson[0].observacion_solicitud,
+    obs: dataJson[0].observacion_solicitud,
     fecha: getDate(new Date())
   }
   // let obs = {};
@@ -605,12 +644,17 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
   });
 
   //verificar si hay archivo o no
-  if (req.file) archivo = {
-    name: req.file.originalname,
-    size: req.file.size,
-    path: req.file.path,
-    type: req.file.mimetype,
-  };
+  if (req.file) {
+    archivo = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+      type: req.file.mimetype,
+    };
+  }
+  else {
+    archivo = {};
+  }
 
   try {
     db.collection("solicitudes").updateMany(
@@ -674,6 +718,7 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 
     res.status(200).json({ msg: SUCCESSFULL_UPDATE, resultReserva });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: ERROR, error });
   }
 });
