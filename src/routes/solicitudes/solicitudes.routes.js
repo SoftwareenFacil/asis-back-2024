@@ -8,6 +8,15 @@ import { isRolSolicitudes } from "../../functions/isRol";
 import createSolicitudes from "../../functions/insertManySolicitudes/createJsonSolForInsert";
 import addCodeSolicitud from "../../functions/insertManySolicitudes/addCodeSolicitud";
 // const addDays = require("add-days");
+import moment from "moment";
+moment.locale('es', {
+    months: 'Enero_Febrero_Marzo_Abril_Mayo_Junio_Julio_Agosto_Septiembre_Octubre_Noviembre_Diciembre'.split('_'),
+    monthsShort: 'Enero._Feb._Mar_Abr._May_Jun_Jul._Ago_Sept._Oct._Nov._Dec.'.split('_'),
+    weekdays: 'Domingo_Lunes_Martes_Miercoles_Jueves_Viernes_Sabado'.split('_'),
+    weekdaysShort: 'Dom._Lun._Mar._Mier._Jue._Vier._Sab.'.split('_'),
+    weekdaysMin: 'Do_Lu_Ma_Mi_Ju_Vi_Sa'.split('_')
+  }
+);
 
 import { verifyToken } from "../../libs/jwt";
 
@@ -244,9 +253,9 @@ router.get("/mostrar/:id", async (req, res) => {
     .collection("gi")
     .findOne({ _id: ObjectID(resultSol.id_GI_Principal) });
 
-  resultSol.email_gi = resultGI.email_central;
+  resultSol.email_gi = resultGI.email_central !== null ? resultGI.email_central : '';
 
-  res.json(resultSol);
+  res.status(200).json(resultSol);
 });
 
 //INSERT
@@ -255,8 +264,6 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   let newSolicitud = JSON.parse(req.body.data);
   const nuevaObs = newSolicitud.observacion_solicitud;
   const token = req.headers['x-access-token'];
-
-  console.log(newSolicitud)
 
   if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
@@ -299,27 +306,28 @@ router.post("/", multer.single("archivo"), async (req, res) => {
         .collection("gi")
         .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
 
-      sendinblue(
-        {
-          RAZON_SOCIAL_CP: result.ops[0].razon_social_CP,
-          CODIGO_SOL: result.ops[0].codigo,
-          FECHA_SOL: result.ops[0].fecha_solicitud,
-          HORA_SOL: result.ops[0].hora_solicitud,
-          CATEGORIA_UNO_SOL: result.ops[0].categoria1,
-          NOMBRE_SERVICIO: result.ops[0].nombre_servicio,
-          NOMBRE_TIPO_SERVICIO: result.ops[0].tipo_servicio,
-          LUGAR_SERVICIO: result.ops[0].lugar_servicio,
-          SUCURSAL_SERVICIO: result.ops[0].sucursal,
-        },
-        [
+      if(gi.email_central !== null && gi.email_central !== ''){
+        sendinblue(
           {
-            email: gi.email_central,
-            nombre: gi.razon_social,
+            RAZON_SOCIAL_CP: result.ops[0].razon_social_CP,
+            CODIGO_SOL: result.ops[0].codigo,
+            FECHA_SOL: result.ops[0].fecha_solicitud,
+            HORA_SOL: result.ops[0].hora_solicitud,
+            CATEGORIA_UNO_SOL: result.ops[0].categoria1,
+            NOMBRE_SERVICIO: result.ops[0].nombre_servicio,
+            NOMBRE_TIPO_SERVICIO: result.ops[0].tipo_servicio,
+            LUGAR_SERVICIO: result.ops[0].lugar_servicio,
+            SUCURSAL_SERVICIO: result.ops[0].sucursal,
           },
-        ],
-        4
-      );
-
+          [
+            {
+              email: gi.email_central,
+              nombre: gi.razon_social,
+            },
+          ],
+          4
+        );
+      }
     };
 
     return res.status(200).json({ msg: SUCCESSFULL_INSERT, result });
@@ -731,6 +739,21 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 //     .collection("solicitudes")
 //     .deleteOne({ _id: ObjectID(id) });
 //   res.json(result);
+// });
+
+// ADD FECHA Y HORA SYSTEM
+// router.get("/addfechahora", async (req, res) => {
+//   const { id } = req.params;
+//   const db = await connect();
+//   const result = await db
+//     .collection("solicitudes")
+//     .updateMany({}, {
+//       $set:{
+//         fecha_system: moment().format("DD-MM-YYYY"),
+//         hora_system: moment().format("HH:mm")
+//       }
+//     });
+//   res.json({msg: 'listo'});
 // });
 
 export default router;

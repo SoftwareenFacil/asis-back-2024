@@ -115,7 +115,7 @@ router.post("/buscar", async (req, res) => {
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
-  } else if(identificador === 2) {
+  } else if (identificador === 2) {
     countGIs = await db
       .collection("gi")
       .find({ razon_social: rexExpresionFiltro })
@@ -282,7 +282,7 @@ router.put('/editpassword/:id', async (req, res) => {
   const db = await connect();
   const { id } = req.params;
   const data = req.body;
-  
+
   console.log('id', id)
   console.log('data', data);
 
@@ -409,67 +409,73 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   const newGi = JSON.parse(req.body.data);
   const items = await db.collection("gi").find({}).toArray();
-  if (items.length > 0) {
-    newGi.codigo = `ASIS-GI-${YEAR}-${calculate(items[items.length - 1])}`;
-  } else {
-    newGi.codigo = `ASIS-GI-${YEAR}-00001`;
+
+  try {
+    if (items.length > 0) {
+      newGi.codigo = `ASIS-GI-${YEAR}-${calculate(items[items.length - 1])}`;
+    } else {
+      newGi.codigo = `ASIS-GI-${YEAR}-00001`;
+    }
+
+    if (req.file) {
+      newGi.url_file_adjunto = {
+        name: req.file.originalname,
+        size: req.file.size,
+        path: req.file.path,
+        type: req.file.mimetype,
+      };
+    } else {
+      newGi.url_file_adjunto = {};
+    }
+
+
+    //agregar password encyptada
+    // newGi.password = await encrypPassword(newGi.password);
+    //agregar rol
+    newGi.rol = newGi.rol || 'Clientes';
+
+    console.log(newGi);
+    if (newGi.grupo_interes === "Empleados") {
+      //se crea en empleados
+      let obj = {};
+      obj.nombre = newGi.razon_social;
+      obj.rut = newGi.rut;
+      obj.categoria = newGi.categoria;
+      obj.cargo = newGi.cargo;
+      obj.tipo_contrato = "";
+      obj.estado_contrato = "";
+      obj.fecha_inicio_contrato = "";
+      obj.fecha_fin_contrato = "";
+      obj.sueldo_bruto = 0;
+      obj.afp = "";
+      obj.isapre = "";
+      obj.seguridad_laboral = "";
+      obj.dias_vacaciones = 0;
+      obj.comentarios = "";
+      obj.detalle_empleado = {
+        dias_acumulados: 0,
+        dias_recuperados: 0,
+        dias_total_ausencias: 0,
+        dias_pendientes: 0,
+        enfermedad_cant: 0,
+        maternidad_cant: 0,
+        mediodia_cant: 0,
+        tramites_cant: 0,
+        vacaciones_cant: 0,
+        recuperados_cant: 0,
+        mediodia_recuperados_cant: 0,
+      };
+
+      await db.collection("empleados").insertOne(obj);
+    }
+    else {
+      await db.collection("gi").insertOne(newGi);
+    }
+
+    res.status(200).json({ msg: 'GI creado satisfactoriamente' });
+  } catch (error) {
+    res.status(500).json({ msg: `Se ha generado el siguiente error : ${String(error)}` })
   }
-
-  if (req.file) {
-    newGi.url_file_adjunto = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  } else {
-    newGi.url_file_adjunto = {};
-  }
-
-
-  //agregar password encyptada
-  // newGi.password = await encrypPassword(newGi.password);
-  //agregar rol
-  newGi.rol = newGi.rol || 'Clientes';
-
-  if (newGi.grupo_interes === "Empleados") {
-    //se crea en empleados
-    let obj = {};
-    obj.nombre = newGi.razon_social;
-    obj.rut = newGi.rut;
-    obj.categoria = newGi.categoria;
-    obj.cargo = newGi.cargo;
-    obj.tipo_contrato = "";
-    obj.estado_contrato = "";
-    obj.fecha_inicio_contrato = "";
-    obj.fecha_fin_contrato = "";
-    obj.sueldo_bruto = 0;
-    obj.afp = "";
-    obj.isapre = "";
-    obj.seguridad_laboral = "";
-    obj.dias_vacaciones = 0;
-    obj.comentarios = "";
-    obj.detalle_empleado = {
-      dias_acumulados: 0,
-      dias_recuperados: 0,
-      dias_total_ausencias: 0,
-      dias_pendientes: 0,
-      enfermedad_cant: 0,
-      maternidad_cant: 0,
-      mediodia_cant: 0,
-      tramites_cant: 0,
-      vacaciones_cant: 0,
-      recuperados_cant: 0,
-      mediodia_recuperados_cant: 0,
-    };
-
-    await db.collection("empleados").insertOne(obj);
-  }
-  else{
-    await db.collection("gi").insertOne(newGi);
-  }
-
-  res.json(result);
 });
 
 //DELETE

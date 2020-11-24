@@ -1,11 +1,11 @@
 import moment from "moment";
 moment.locale('es', {
-  months: 'Enero_Febrero_Marzo_Abril_Mayo_Junio_Julio_Agosto_Septiembre_Octubre_Noviembre_Diciembre'.split('_'),
-  monthsShort: 'Enero._Feb._Mar_Abr._May_Jun_Jul._Ago_Sept._Oct._Nov._Dec.'.split('_'),
-  weekdays: 'Domingo_Lunes_Martes_Miercoles_Jueves_Viernes_Sabado'.split('_'),
-  weekdaysShort: 'Dom._Lun._Mar._Mier._Jue._Vier._Sab.'.split('_'),
-  weekdaysMin: 'Do_Lu_Ma_Mi_Ju_Vi_Sa'.split('_')
-}
+    months: 'Enero_Febrero_Marzo_Abril_Mayo_Junio_Julio_Agosto_Septiembre_Octubre_Noviembre_Diciembre'.split('_'),
+    monthsShort: 'Enero._Feb._Mar_Abr._May_Jun_Jul._Ago_Sept._Oct._Nov._Dec.'.split('_'),
+    weekdays: 'Domingo_Lunes_Martes_Miercoles_Jueves_Viernes_Sabado'.split('_'),
+    weekdaysShort: 'Dom._Lun._Mar._Mier._Jue._Vier._Sab.'.split('_'),
+    weekdaysMin: 'Do_Lu_Ma_Mi_Ju_Vi_Sa'.split('_')
+  }
 );
 
 const getCliente = (gis, rut, categoria = '') => {
@@ -29,6 +29,8 @@ export default function createSolicitudes(solicitudes, gis) {
     const giSecundario = getCliente(gis, element.RutCS, 'Persona Natural') || {};
     const giAsignado = getPersonalAsignado(gis, element.ProfesionalAsignado, 'Persona Natural') || {};
 
+    obj.fecha_system = moment().format("DD-MM-YYYY");
+    obj.hora_system = moment().format("HH:mm");
     obj.id_GI_Principal = Object.entries(giPrincipal).length > 0 ? giPrincipal._id.toString() : '';
     obj.id_GI_Secundario = Object.entries(giSecundario).length > 0 ? giSecundario._id.toString() : '';
     obj.id_GI_PersonalAsignado = Object.entries(giAsignado).length > 0 ? giAsignado._id.toString() : '';
