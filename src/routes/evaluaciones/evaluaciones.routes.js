@@ -213,7 +213,7 @@ router.post('/evaluacionpsico', async (req, res) => {
 
   generateQR(nombreQR, `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Vencimiento: vencimiento aqui Resultado: resultado aqui`);
 
-  
+
   try {
     let objFile = {};
 
@@ -438,7 +438,7 @@ router.post("/pagination", async (req, res) => {
 
 //BUSCAR POR NOMBRE O RUT
 router.post("/buscar", async (req, res) => {
-  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
   const token = req.headers['x-access-token'];
@@ -451,12 +451,14 @@ router.post("/buscar", async (req, res) => {
 
   let rutFiltrado;
 
+  rutFiltrado = filtro;
+
   if (identificador === 1 && filtro.includes("k")) {
-    rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");
-  } else {
-    rutFiltrado = filtro;
   }
+  // else {
+  //   rutFiltrado = filtro;
+  // }
 
   const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
 
@@ -464,86 +466,127 @@ router.post("/buscar", async (req, res) => {
   let countEva;
 
   try {
+
     if (dataToken.rol === 'Clientes') {
-      if (identificador === 1) {
-        countEva = await db
-          .collection("evaluaciones")
-          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
-          .count();
+      countEva = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut })
+        .count();
 
-        result = await db
-          .collection("evaluaciones")
-          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      } else {
-        countEva = await db
-          .collection("evaluaciones")
-          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
-          .count();
-        result = await db
-          .collection("evaluaciones")
-          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
+      result = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
     }
-    else if(dataToken.rol === 'Colaboradores'){
-      if (identificador === 1) {
-        countEva = await db
-          .collection("evaluaciones")
-          .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .count();
+    else if (dataToken.rol === 'Colaboradores') {
+      countEva = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .count();
 
-        result = await db
-          .collection("evaluaciones")
-          .find({ id_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      } else {
-        countEva = await db
-          .collection("evaluaciones")
-          .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .count();
-        result = await db
-          .collection("evaluaciones")
-          .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
+      result = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
     }
     else {
-      if (identificador === 1) {
-        countEva = await db
-          .collection("evaluaciones")
-          .find({ rut_cp: rexExpresionFiltro })
-          .count();
+      countEva = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro })
+        .count();
 
-        result = await db
-          .collection("evaluaciones")
-          .find({ rut_cp: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      } else {
-        countEva = await db
-          .collection("evaluaciones")
-          .find({ razon_social_cp: rexExpresionFiltro })
-          .count();
-        result = await db
-          .collection("evaluaciones")
-          .find({ razon_social_cp: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
+      result = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
     }
 
-    res.json({
+    // if (dataToken.rol === 'Clientes') {
+    //   if (identificador === 1) {
+    //     countEva = await db
+    //       .collection("evaluaciones")
+    //       .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+    //       .count();
+
+    //     result = await db
+    //       .collection("evaluaciones")
+    //       .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   } else {
+    //     countEva = await db
+    //       .collection("evaluaciones")
+    //       .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+    //       .count();
+    //     result = await db
+    //       .collection("evaluaciones")
+    //       .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
+    // else if (dataToken.rol === 'Colaboradores') {
+    //   if (identificador === 1) {
+    //     countEva = await db
+    //       .collection("evaluaciones")
+    //       .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .count();
+
+    //     result = await db
+    //       .collection("evaluaciones")
+    //       .find({ id_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   } else {
+    //     countEva = await db
+    //       .collection("evaluaciones")
+    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .count();
+    //     result = await db
+    //       .collection("evaluaciones")
+    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
+    // else {
+    //   if (identificador === 1) {
+    //     countEva = await db
+    //       .collection("evaluaciones")
+    //       .find({ rut_cp: rexExpresionFiltro })
+    //       .count();
+
+    //     result = await db
+    //       .collection("evaluaciones")
+    //       .find({ rut_cp: rexExpresionFiltro })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   } else {
+    //     countEva = await db
+    //       .collection("evaluaciones")
+    //       .find({ razon_social_cp: rexExpresionFiltro })
+    //       .count();
+    //     result = await db
+    //       .collection("evaluaciones")
+    //       .find({ razon_social_cp: rexExpresionFiltro })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
+
+    res.status(200).json({
       total_items: countEva,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countEva / nPerPage + 1),
@@ -733,7 +776,7 @@ router.post("/evaluado/:id", async (req, res) => {
     res.status(500).json({ msg: ERROR, error });
   }
 
-  
+
 });
 
 export default router;

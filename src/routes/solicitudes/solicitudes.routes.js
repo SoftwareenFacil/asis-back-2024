@@ -10,12 +10,12 @@ import addCodeSolicitud from "../../functions/insertManySolicitudes/addCodeSolic
 // const addDays = require("add-days");
 import moment from "moment";
 moment.locale('es', {
-    months: 'Enero_Febrero_Marzo_Abril_Mayo_Junio_Julio_Agosto_Septiembre_Octubre_Noviembre_Diciembre'.split('_'),
-    monthsShort: 'Enero._Feb._Mar_Abr._May_Jun_Jul._Ago_Sept._Oct._Nov._Dec.'.split('_'),
-    weekdays: 'Domingo_Lunes_Martes_Miercoles_Jueves_Viernes_Sabado'.split('_'),
-    weekdaysShort: 'Dom._Lun._Mar._Mier._Jue._Vier._Sab.'.split('_'),
-    weekdaysMin: 'Do_Lu_Ma_Mi_Ju_Vi_Sa'.split('_')
-  }
+  months: 'Enero_Febrero_Marzo_Abril_Mayo_Junio_Julio_Agosto_Septiembre_Octubre_Noviembre_Diciembre'.split('_'),
+  monthsShort: 'Enero._Feb._Mar_Abr._May_Jun_Jul._Ago_Sept._Oct._Nov._Dec.'.split('_'),
+  weekdays: 'Domingo_Lunes_Martes_Miercoles_Jueves_Viernes_Sabado'.split('_'),
+  weekdaysShort: 'Dom._Lun._Mar._Mier._Jue._Vier._Sab.'.split('_'),
+  weekdaysMin: 'Do_Lu_Ma_Mi_Ju_Vi_Sa'.split('_')
+}
 );
 
 import { verifyToken } from "../../libs/jwt";
@@ -76,7 +76,7 @@ router.post("/pagination", async (req, res) => {
 //BUSCAR POR RUT O NOMBRE
 router.post("/buscar", async (req, res) => {
   const db = await connect();
-  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const token = req.headers['x-access-token'];
 
@@ -88,12 +88,14 @@ router.post("/buscar", async (req, res) => {
 
   let rutFiltrado;
 
+  rutFiltrado = filtro;
+
   if (identificador === 1 && filtro.includes("k")) {
-    rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");
-  } else {
-    rutFiltrado = filtro;
-  }
+  } 
+  // else {
+  //   rutFiltrado = filtro;
+  // }
 
   const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
 
@@ -101,128 +103,169 @@ router.post("/buscar", async (req, res) => {
   let countSol;
 
   try {
+
     if (dataToken.rol === 'Clientes') {
-      if (identificador === 1) {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .count();
+      countSol = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+        .count();
 
-        result = await db
-          .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else if (identificador === 2) {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .count();
-        result = await db
-          .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .count();
-
-        result = await db
-          .collection("solicitudes")
-          .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
+      result = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
     }
     else if (dataToken.rol === 'Colaboradores') {
-      if (identificador === 1) {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
-          .count();
+      countSol = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+        .count();
 
-        result = await db
-          .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else if (identificador === 2) {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
-          .count();
-        result = await db
-          .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .count();
-
-        result = await db
-          .collection("solicitudes")
-          .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
+      result = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
     }
     else {
-      if (identificador === 1) {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ rut_CP: rexExpresionFiltro })
-          .count();
+      countSol = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro })
+        .count();
 
-        result = await db
-          .collection("solicitudes")
-          .find({ rut_CP: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else if (identificador === 2) {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ razon_social_CP: rexExpresionFiltro })
-          .count();
-        result = await db
-          .collection("solicitudes")
-          .find({ razon_social_CP: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ sucursal: rexExpresionFiltro })
-          .count();
+      result = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
 
-        result = await db
-          .collection("solicitudes")
-          .find({ sucursal: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-    };
+    // if (dataToken.rol === 'Clientes') {
+    //   if (identificador === 1) {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .count();
 
-    res.json({
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else if (identificador === 2) {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .count();
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .count();
+
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
+    // else if (dataToken.rol === 'Colaboradores') {
+    //   if (identificador === 1) {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ rut_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+    //       .count();
+
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ rut_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else if (identificador === 2) {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+    //       .count();
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .count();
+
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
+    // else {
+    //   if (identificador === 1) {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ rut_CP: rexExpresionFiltro })
+    //       .count();
+
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ rut_CP: rexExpresionFiltro })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else if (identificador === 2) {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ razon_social_CP: rexExpresionFiltro })
+    //       .count();
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ razon_social_CP: rexExpresionFiltro })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ sucursal: rexExpresionFiltro })
+    //       .count();
+
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ sucursal: rexExpresionFiltro })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // };
+
+    res.status(200).json({
       total_items: countSol,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countSol / nPerPage + 1),
@@ -306,7 +349,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
         .collection("gi")
         .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
 
-      if(gi.email_central !== null && gi.email_central !== ''){
+      if (gi.email_central !== null && gi.email_central !== '') {
         sendinblue(
           {
             RAZON_SOCIAL_CP: result.ops[0].razon_social_CP,

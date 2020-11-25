@@ -96,7 +96,7 @@ router.get("/:id", async (req, res) => {
 
 //BUSCAR POR RUT O NOMBRE
 router.post('/buscar', async (req, res) => {
-  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const { identificador, filtro, pageNumber, headFilter, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
   let rutFiltrado;
@@ -108,13 +108,14 @@ router.post('/buscar', async (req, res) => {
 
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
+  rutFiltrado = filtro;
 
   if (identificador === 1 && filtro.includes("k")) {
-    rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");
-  } else {
-    rutFiltrado = filtro;
   }
+  // else {
+  //   rutFiltrado = filtro;
+  // }
 
   const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
 
@@ -122,89 +123,130 @@ router.post('/buscar', async (req, res) => {
   let countRes;
 
   try {
+
     if (dataToken.rol === 'Clientes') {
-      if (identificador === 1) {
-        countRes = await db
-          .collection("reservas")
-          .find({ rut_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .count();
+      countRes = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+        .count();
 
-        result = await db
-          .collection("reservas")
-          .find({ rut_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else {
-        countRes = await db
-          .collection("reservas")
-          .find({ razon_social_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .count();
-        result = await db
-          .collection("reservas")
-          .find({ razon_social_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
+      result = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
     }
-    else if(dataToken.rol === 'Colaboradores'){
-      if (identificador === 1) {
-        countRes = await db
-          .collection("reservas")
-          .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .count();
+    else if (dataToken.rol === 'Colaboradores') {
+      countRes = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .count();
 
-        result = await db
-          .collection("reservas")
-          .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else {
-        countRes = await db
-          .collection("reservas")
-          .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .count();
-        result = await db
-          .collection("reservas")
-          .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
+      result = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
     }
     else {
-      if (identificador === 1) {
-        countRes = await db
-          .collection("reservas")
-          .find({ rut_cp: rexExpresionFiltro })
-          .count();
+      countRes = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro })
+        .count();
 
-        result = await db
-          .collection("reservas")
-          .find({ rut_cp: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else {
-        countRes = await db
-          .collection("reservas")
-          .find({ razon_social_cp: rexExpresionFiltro })
-          .count();
-        result = await db
-          .collection("reservas")
-          .find({ razon_social_cp: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
+      result = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
     }
 
-    res.json({
+    // if (dataToken.rol === 'Clientes') {
+    //   if (identificador === 1) {
+    //     countRes = await db
+    //       .collection("reservas")
+    //       .find({ rut_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .count();
+
+    //     result = await db
+    //       .collection("reservas")
+    //       .find({ rut_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else {
+    //     countRes = await db
+    //       .collection("reservas")
+    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .count();
+    //     result = await db
+    //       .collection("reservas")
+    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
+    // else if (dataToken.rol === 'Colaboradores') {
+    //   if (identificador === 1) {
+    //     countRes = await db
+    //       .collection("reservas")
+    //       .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .count();
+
+    //     result = await db
+    //       .collection("reservas")
+    //       .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else {
+    //     countRes = await db
+    //       .collection("reservas")
+    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .count();
+    //     result = await db
+    //       .collection("reservas")
+    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
+    // else {
+    //   if (identificador === 1) {
+    //     countRes = await db
+    //       .collection("reservas")
+    //       .find({ rut_cp: rexExpresionFiltro })
+    //       .count();
+
+    //     result = await db
+    //       .collection("reservas")
+    //       .find({ rut_cp: rexExpresionFiltro })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else {
+    //     countRes = await db
+    //       .collection("reservas")
+    //       .find({ razon_social_cp: rexExpresionFiltro })
+    //       .count();
+    //     result = await db
+    //       .collection("reservas")
+    //       .find({ razon_social_cp: rexExpresionFiltro })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
+
+    res.status(200).json({
       total_items: countRes,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countRes / nPerPage + 1),

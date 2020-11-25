@@ -88,7 +88,7 @@ router.post("/pagination", async (req, res) => {
 
 //BUSCAR POR RUT O NOMBRE
 router.post('/buscar', async (req, res) => {
-  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
   const token = req.headers['x-access-token'];
@@ -101,12 +101,14 @@ router.post('/buscar', async (req, res) => {
 
   let rutFiltrado;
 
+  rutFiltrado = filtro;
+
   if (identificador === 1 && filtro.includes("k")) {
-    rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");
-  } else {
-    rutFiltrado = filtro;
   }
+  // else {
+  //   rutFiltrado = filtro;
+  // }
 
   const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
 
@@ -114,87 +116,129 @@ router.post('/buscar', async (req, res) => {
   let countRes;
 
   try {
+
     if (dataToken.rol === 'Clientes') {
-      if (identificador === 1) {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
-          .count();
+      countSol = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut })
+        .count();
 
-        result = await db
-          .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
-          .count();
-        result = await db
-          .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
+      result = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
     }
-    else if(dataToken.rol === 'Colaboradores'){
-      if (identificador === 1) {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ rut_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .count();
+    else if (dataToken.rol === 'Colaboradores') {
+      countSol = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .count();
 
-        result = await db
-          .collection("solicitudes")
-          .find({ id_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else {
-        countSol = await db
-          .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .count();
-        result = await db
-          .collection("solicitudes")
-          .find({ razon_social_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
+      result = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
     }
     else {
-      if (identificador === 1) {
-        countRes = await db
-          .collection("resultados")
-          .find({ rut_cp: rexExpresionFiltro })
-          .count();
+      countRes = await db
+        .collection("resultados")
+        .find({ [headFilter]: rexExpresionFiltro })
+        .count();
 
-        result = await db
-          .collection("resultados")
-          .find({ rut_cp: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-      else {
-        countRes = await db
-          .collection("resultados")
-          .find({ razon_social_cp: rexExpresionFiltro })
-          .count();
-        result = await db
-          .collection("resultados")
-          .find({ razon_social_cp: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-    };
+      result = await db
+        .collection("resultados")
+        .find({ [headFilter]: rexExpresionFiltro })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+
+
+    // if (dataToken.rol === 'Clientes') {
+    //   if (identificador === 1) {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
+    //       .count();
+
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
+    //       .count();
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
+    // else if (dataToken.rol === 'Colaboradores') {
+    //   if (identificador === 1) {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ rut_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .count();
+
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ id_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else {
+    //     countSol = await db
+    //       .collection("solicitudes")
+    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .count();
+    //     result = await db
+    //       .collection("solicitudes")
+    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
+    // else {
+    //   if (identificador === 1) {
+    //     countRes = await db
+    //       .collection("resultados")
+    //       .find({ rut_cp: rexExpresionFiltro })
+    //       .count();
+
+    //     result = await db
+    //       .collection("resultados")
+    //       .find({ rut_cp: rexExpresionFiltro })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    //   else {
+    //     countRes = await db
+    //       .collection("resultados")
+    //       .find({ razon_social_cp: rexExpresionFiltro })
+    //       .count();
+    //     result = await db
+    //       .collection("resultados")
+    //       .find({ razon_social_cp: rexExpresionFiltro })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // };
 
     res.json({
       total_items: countRes,
