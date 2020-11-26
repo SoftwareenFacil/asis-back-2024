@@ -18,8 +18,8 @@ import { ObjectID } from "mongodb";
 router.get("/", async (req, res) => {
   const db = await connect();
   const result = await db
-    .collection("empleados")
-    .find({ activo_inactivo: true })
+    .collection("gi")
+    .find({ activo_inactivo: true, grupo_interes: 'Empleados' })
     .toArray();
   res.json(result);
 });
@@ -38,10 +38,12 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countEmpleados = await db.collection("empleados").find(isRolEmpleados(dataToken.rol, dataToken.rut, "")).count();
+    const countEmpleados = await db
+      .collection("gi")
+      .find({...isRolEmpleados(dataToken.rol, dataToken.rut, ""), grupo_interes: 'Empleados'}).count();
     const result = await db
-      .collection("empleados")
-      .find(isRolEmpleados(dataToken.rol, dataToken.rut, ""))
+      .collection("gi")
+      .find({...isRolEmpleados(dataToken.rol, dataToken.rut, ""), grupo_interes: 'Empleados'})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -156,7 +158,7 @@ router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const result = await db
-    .collection("empleados")
+    .collection("gi")
     .findOne({ _id: ObjectID(id) });
 
   res.json(result);
@@ -197,14 +199,15 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   }
 
   const empleado = await db
-    .collection("empleados")
+    .collection("gi")
     .findOne({ _id: ObjectID(id) });
 
   if (empleado) {
-    const result = await db.collection("empleados").updateOne(
+    const result = await db.collection("gi").updateOne(
       { _id: ObjectID(id) },
       {
         $set: {
+          ...empleado,
           cargo: data.cargo,
           tipo_contrato: data.tipo_contrato,
           estado_contrato: data.estado_contrato,
@@ -228,8 +231,9 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
         },
       }
     );
-    res.json(result);
+    res.status(200).json(result);
   } else {
+    console.log(error)
     res.status(500).json({ msg: "No se ha encontrado el empleado" });
   }
 });
@@ -291,11 +295,12 @@ router.get("/traspaso/test", async (req, res) => {
   }
 });
 
+//DELETE EMPLEADOS
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
 
-  const result = await db.collection("empleados").updateOne(
+  const result = await db.collection("gi").updateOne(
     { _id: ObjectID(id) },
     {
       $set: {

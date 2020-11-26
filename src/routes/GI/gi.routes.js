@@ -184,6 +184,39 @@ router.get("/:id", async (req, res) => {
   res.json(result);
 });
 
+//UPDATE GI
+router.put('/:id', multer.single("archivo"), async (req, res) => {
+  const { id } = req.params;
+  const updatedGI = JSON.parse(req.body.data);
+  const db = await connect();
+
+  updatedGI.url_file_adjunto = {
+    name: req.file.originalname,
+    size: req.file.size,
+    path: req.file.path,
+  };
+
+  try {
+    updatedGI.rol = updatedGI.rol || 'Clientes';
+
+    const exitstGI = await db.collection('gi').findOne({_id: ObjectID(id)});
+    if(!exitstGI){
+      return res.status(401).json({ message: "GI no existe" });
+    };
+
+    await db.collection('gi').updateOne({_id: ObjectID(id)}, {
+      $set:{
+        ...exitstGI,
+        ...updatedGI
+      }
+    });
+    return res.status(201).json({ message: "GI modificado correctamente" });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: "ha ocurrido un error", error: String(error) });
+  }
+});
+
 //UPDATE
 router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
@@ -202,9 +235,9 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     //agregar rol
     updatedGI.rol = updatedGI.rol || 'Clientes';
 
-    const result = await db
-      .collection("gi")
-      .replaceOne({ _id: ObjectID(id) }, updatedGI);
+    // const result = await db
+    //   .collection("gi")
+    //   .replaceOne({ _id: ObjectID(id) }, updatedGI);
 
     const existEmpleado = await db
       .collection("empleados")
@@ -407,7 +440,7 @@ router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
 //INSERT
 router.post("/", multer.single("archivo"), async (req, res) => {
   const db = await connect();
-  const newGi = JSON.parse(req.body.data);
+  let newGi = JSON.parse(req.body.data);
   const items = await db.collection("gi").find({}).toArray();
 
   try {
@@ -433,15 +466,15 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     // newGi.password = await encrypPassword(newGi.password);
     //agregar rol
     newGi.rol = newGi.rol || 'Clientes';
+    newGi.activo_inactivo = true;
 
-    console.log(newGi);
     if (newGi.grupo_interes === "Empleados") {
       //se crea en empleados
       let obj = {};
-      obj.nombre = newGi.razon_social;
-      obj.rut = newGi.rut;
-      obj.categoria = newGi.categoria;
-      obj.cargo = newGi.cargo;
+      // obj.nombre = newGi.razon_social;
+      // obj.rut = newGi.rut;
+      // obj.categoria = newGi.categoria;
+      // obj.cargo = newGi.cargo;
       obj.tipo_contrato = "";
       obj.estado_contrato = "";
       obj.fecha_inicio_contrato = "";
@@ -466,14 +499,16 @@ router.post("/", multer.single("archivo"), async (req, res) => {
         mediodia_recuperados_cant: 0,
       };
 
-      await db.collection("empleados").insertOne(obj);
-    }
-    else {
-      await db.collection("gi").insertOne(newGi);
-    }
+      newGi = {...newGi, ...obj}
+
+      // await db.collection("empleados").insertOne(obj);
+    };
+
+    await db.collection("gi").insertOne(newGi);
 
     res.status(200).json({ msg: 'GI creado satisfactoriamente' });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ msg: `Se ha generado el siguiente error : ${String(error)}` })
   }
 });

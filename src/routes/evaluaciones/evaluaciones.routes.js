@@ -414,8 +414,53 @@ router.post("/pagination", async (req, res) => {
 
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-
   try {
+
+    const mergedEvaluaciones = await db.collection('evaluaciones').aggregate([
+      {
+        $lookup:
+        {
+          from: "gi",
+          localField: "id_GI_personalAsignado",
+          foreignField: "ObjectId(_id)",
+          as: "evaluador"
+        }
+      },
+      {
+        $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ["$evaluador", 0] }, "$$ROOT"] } }
+      },
+      {
+        $project: {
+          id_GI_personalAsignado: 1,
+          valor_servicio: 1,
+          faena_seleccionada_cp: 1,
+          fecha_evaluacion: 1,
+          fecha_evaluacion_fin: 1,
+          hora_inicio_evaluacion: 1,
+          hora_termino_evaluacion: 1,
+          mes: 1,
+          anio: 1,
+          nombre_servicio: 1,
+          rut_cp: 1,
+          razon_social_cp: 1,
+          rut_cs: 1,
+          razon_social_cs: 1,
+          lugar_servicio: 1,
+          sucursal: 1,
+          observaciones: 1,
+          estado_archivo: 1,
+          estado: 1,
+          razon_social: 1,
+        }
+      },
+      {
+        $match: isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id)
+      },
+    ]
+    ).toArray();
+
+    console.log('agregate', mergedEvaluaciones);
+
     const countEva = await db.collection("evaluaciones").find(isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id)).count();
     const result = await db
       .collection("evaluaciones")
@@ -432,6 +477,7 @@ router.post("/pagination", async (req, res) => {
       evaluaciones: result,
     });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ msg: ERROR, error });
   }
 });
