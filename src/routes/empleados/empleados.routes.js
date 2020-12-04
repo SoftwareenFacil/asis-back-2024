@@ -40,15 +40,15 @@ router.post("/pagination", async (req, res) => {
   try {
     const countEmpleados = await db
       .collection("gi")
-      .find({...isRolEmpleados(dataToken.rol, dataToken.rut, ""), grupo_interes: 'Empleados'}).count();
+      .find({ ...isRolEmpleados(dataToken.rol, dataToken.rut, ""), grupo_interes: 'Empleados' }).count();
     const result = await db
       .collection("gi")
-      .find({...isRolEmpleados(dataToken.rol, dataToken.rut, ""), grupo_interes: 'Empleados'})
+      .find({ ...isRolEmpleados(dataToken.rol, dataToken.rut, ""), grupo_interes: 'Empleados' })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
 
-    res.json({
+    return res.json({
       auth: AUTHORIZED,
       total_items: countEmpleados,
       pagina_actual: pageNumber,
@@ -89,13 +89,13 @@ router.post("/buscar", async (req, res) => {
   let countEmpleados;
 
   try {
-    if(dataToken.rol === 'Empleados'){
+    if (dataToken.rol === 'Empleados') {
       if (identificador === 1) {
         countEmpleados = await db
           .collection("empleados")
           .find({ rut: rexExpresionFiltro, rut: dataToken.rut })
           .count();
-  
+
         result = await db
           .collection("empleados")
           .find({ rut: rexExpresionFiltro, rut: dataToken.rut })
@@ -115,13 +115,13 @@ router.post("/buscar", async (req, res) => {
           .toArray();
       }
     }
-    else{
+    else {
       if (identificador === 1) {
         countEmpleados = await db
           .collection("empleados")
           .find({ rut: rexExpresionFiltro })
           .count();
-  
+
         result = await db
           .collection("empleados")
           .find({ rut: rexExpresionFiltro })

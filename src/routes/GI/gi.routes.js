@@ -45,7 +45,7 @@ router.get("/", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    let result = await db.collection("gi").find().toArray();
+    let result = await db.collection("gi").find({ activo_inactivo: true }).toArray();
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ msg: ERROR, error })
@@ -59,10 +59,10 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
 
   try {
-    const countGIs = await db.collection("gi").find().count();
+    const countGIs = await db.collection("gi").find({ activo_inactivo: true }).count();
     const result = await db
       .collection("gi")
-      .find()
+      .find({ activo_inactivo: true })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -74,7 +74,7 @@ router.post("/pagination", async (req, res) => {
       gis: result,
     });
   } catch (error) {
-    res.status(501).json(error);
+    res.status(500).json(error);
   }
 });
 
@@ -83,7 +83,7 @@ router.get("/empresas", async (req, res) => {
   const db = await connect();
   const result = await db
     .collection("gi")
-    .find({ categoria: "Empresa/Organizacion" })
+    .find({ categoria: "Empresa/Organizacion", activo_inactivo: true })
     .toArray();
   res.json(result);
 });
@@ -107,22 +107,22 @@ router.post("/buscar", async (req, res) => {
   if (identificador === 1) {
     countGIs = await db
       .collection("gi")
-      .find({ rut: rexExpresionFiltro })
+      .find({ rut: rexExpresionFiltro, activo_inactivo: true })
       .count();
     result = await db
       .collection("gi")
-      .find({ rut: rexExpresionFiltro })
+      .find({ rut: rexExpresionFiltro, activo_inactivo: true })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
   } else if (identificador === 2) {
     countGIs = await db
       .collection("gi")
-      .find({ razon_social: rexExpresionFiltro })
+      .find({ razon_social: rexExpresionFiltro, activo_inactivo: true })
       .count();
     result = await db
       .collection("gi")
-      .find({ razon_social: rexExpresionFiltro })
+      .find({ razon_social: rexExpresionFiltro, activo_inactivo: true })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -130,11 +130,11 @@ router.post("/buscar", async (req, res) => {
   else {
     countGIs = await db
       .collection("gi")
-      .find({ grupo_interes: rexExpresionFiltro })
+      .find({ grupo_interes: rexExpresionFiltro, activo_inactivo: true })
       .count();
     result = await db
       .collection("gi")
-      .find({ grupo_interes: rexExpresionFiltro })
+      .find({ grupo_interes: rexExpresionFiltro, activo_inactivo: true })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -165,12 +165,12 @@ router.post("/:rut", async (req, res) => {
   if (verificador == 1) {
     result = await db
       .collection("gi")
-      .findOne({ rut: rutFiltrado, categoria: "Empresa/Organizacion" });
+      .findOne({ rut: rutFiltrado, categoria: "Empresa/Organizacion", activo_inactivo: true });
     console.log(result);
   } else if (verificador == 2) {
     result = await db
       .collection("gi")
-      .findOne({ rut: rutFiltrado, categoria: "Persona Natural" });
+      .findOne({ rut: rutFiltrado, categoria: "Persona Natural", activo_inactivo: true });
   }
 
   res.json(result);
@@ -180,7 +180,7 @@ router.post("/:rut", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const result = await db.collection("gi").findOne({ _id: ObjectID(id) });
+  const result = await db.collection("gi").findOne({ _id: ObjectID(id), activo_inactivo: true });
   res.json(result);
 });
 
@@ -199,18 +199,18 @@ router.put('/:id', multer.single("archivo"), async (req, res) => {
   try {
     updatedGI.rol = updatedGI.rol || 'Clientes';
 
-    const exitstGI = await db.collection('gi').findOne({_id: ObjectID(id)});
-    if(!exitstGI){
-      return res.status(401).json({ message: "GI no existe" });
+    const exitstGI = await db.collection('gi').findOne({ _id: ObjectID(id) });
+    if (!exitstGI) {
+      return res.status(400).json({ message: "GI no existe" });
     };
 
-    await db.collection('gi').updateOne({_id: ObjectID(id)}, {
-      $set:{
+    await db.collection('gi').updateOne({ _id: ObjectID(id) }, {
+      $set: {
         ...exitstGI,
         ...updatedGI
       }
     });
-    return res.status(201).json({ message: "GI modificado correctamente" });
+    return res.status(200).json({ message: "GI modificado correctamente" });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ message: "ha ocurrido un error", error: String(error) });
@@ -460,7 +460,6 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       newGi.url_file_adjunto = {};
     }
 
-
     //agregar password encyptada
     // newGi.password = await encrypPassword(newGi.password);
     //agregar rol
@@ -468,8 +467,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     newGi.activo_inactivo = true;
 
     if (newGi.grupo_interes === "Empleados") {
-      //se crea en empleados
       let obj = {};
+      //se crea en empleados
       // obj.nombre = newGi.razon_social;
       // obj.rut = newGi.rut;
       // obj.categoria = newGi.categoria;
@@ -498,7 +497,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
         mediodia_recuperados_cant: 0,
       };
 
-      newGi = {...newGi, ...obj}
+      newGi = { ...newGi, ...obj }
 
       // await db.collection("empleados").insertOne(obj);
     };
@@ -516,8 +515,21 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const result = await db.collection("gi").deleteOne({ _id: ObjectID(id) });
-  res.json(result);
+
+  try {
+    const result = await db.collection("gi").updateOne(
+      { _id: ObjectID(id) },
+      {
+        $set: {
+          activo_inactivo: false,
+        },
+      }
+    );
+    return res.status(200).json(result);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: `Se ha generado el siguiente error : ${String(error)}` })
+  }
 });
 
 //para programar solamente limpiar toda la db
