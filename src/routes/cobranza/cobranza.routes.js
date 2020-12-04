@@ -12,7 +12,7 @@ import { ObjectID } from "mongodb";
 //SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("cobranza").find({}).toArray();
+  const result = await db.collection("cobranza").find({ isActive: true }).toArray();
   res.json(result);
 });
 
@@ -66,10 +66,10 @@ router.post('/pagination', async (req, res) =>{
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
 
   try {
-    const countCobranza = await db.collection("cobranza").find().count();
+    const countCobranza = await db.collection("cobranza").find({ isActive: true }).count();
     const result = await db
       .collection("cobranza")
-      .find()
+      .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -109,23 +109,23 @@ router.post('/buscar', async (req, res) => {
     if (identificador === 1) {
       countCobranza = await db
         .collection("cobranza")
-        .find({ rut_cp: rexExpresionFiltro })
+        .find({ rut_cp: rexExpresionFiltro, isActive: true })
         .count();
 
       result = await db
         .collection("cobranza")
-        .find({ rut_cp: rexExpresionFiltro })
+        .find({ rut_cp: rexExpresionFiltro, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
     } else {
       countCobranza = await db
         .collection("cobranza")
-        .find({ razon_social_cp: rexExpresionFiltro })
+        .find({ razon_social_cp: rexExpresionFiltro, isActive: true })
         .count();
       result = await db
         .collection("cobranza")
-        .find({ razon_social_cp: rexExpresionFiltro })
+        .find({ razon_social_cp: rexExpresionFiltro, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -176,5 +176,22 @@ router.post("/envio/:id", async (req, res) => {
 
   res.json(result);
 });
+
+// router.get('/addisactive/sdsdsd', async (req, res) => {
+//   const db = await connect();
+
+//   try {
+//     const result = await db
+//       .collection("cobranza")
+//       .updateMany({}, {
+//         $set: {
+//           isActive: true
+//         }
+//       });
+//     res.status(200).json(result);
+//   } catch (error) {
+//     res.status(500).json({ msg: String(error) });
+//   }
+// });
 
 export default router;

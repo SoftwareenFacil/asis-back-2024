@@ -34,7 +34,7 @@ import { ObjectID } from "mongodb";
 //SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("solicitudes").find().toArray();
+  const result = await db.collection("solicitudes").find({ isActive: true }).toArray();
 
   res.json(result);
 });
@@ -53,10 +53,10 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countSol = await db.collection("solicitudes").find(isRolSolicitudes(dataToken.rol, dataToken.id)).count();
+    const countSol = await db.collection("solicitudes").find({...isRolSolicitudes(dataToken.rol, dataToken.id), isActive: true}).count();
     const result = await db
       .collection("solicitudes")
-      .find(isRolSolicitudes(dataToken.rol, dataToken.id))
+      .find({...isRolSolicitudes(dataToken.rol, dataToken.id), isActive: true})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -92,7 +92,7 @@ router.post("/buscar", async (req, res) => {
 
   if (identificador === 1 && filtro.includes("k")) {
     rutFiltrado.replace("k", "K");
-  } 
+  }
   // else {
   //   rutFiltrado = filtro;
   // }
@@ -107,12 +107,12 @@ router.post("/buscar", async (req, res) => {
     if (dataToken.rol === 'Clientes') {
       countSol = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
         .count();
 
       result = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -120,12 +120,12 @@ router.post("/buscar", async (req, res) => {
     else if (dataToken.rol === 'Colaboradores') {
       countSol = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id, isActive: true })
         .count();
 
       result = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -133,12 +133,12 @@ router.post("/buscar", async (req, res) => {
     else {
       countSol = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro })
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
         .count();
 
       result = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro })
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -314,7 +314,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  const items = await db.collection("solicitudes").find({}).toArray();
+  const items = await db.collection("solicitudes").find({isActive: true}).toArray();
 
   if (!items) return res.status(401).json({ msg: "No se ha podido encontrar la solicitud seleccionada" });
 
@@ -341,6 +341,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   try {
+    newSolicitud.isActive = true;
     const result = await db.collection("solicitudes").insertOne(newSolicitud);
 
     //envio correo
@@ -626,6 +627,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         url_file_adjunto: archivo,
         observacion: [],
         estado: "Ingresado",
+        isActive: true
       };
 
       const resulReserva = await db
@@ -760,6 +762,7 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
         sucursal: element.sucursal,
         observacion: [],
         estado: "Ingresado",
+        isActive: true
       });
     });
 
@@ -797,6 +800,24 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 //       }
 //     });
 //   res.json({msg: 'listo'});
+// });
+
+// ADD IsActive
+// router.get('/addisactive', async (req, res) => {
+//   const db = await connect();
+
+//   try {
+//     const result = await db
+//       .collection("solicitudes")
+//       .updateMany({}, {
+//         $set: {
+//           isActive: true
+//         }
+//       });
+//     res.status(200).json(result);
+//   } catch (error) {
+//     res.status(500).json({ msg: String(error) });
+//   }
 // });
 
 export default router;

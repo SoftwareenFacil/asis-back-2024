@@ -17,7 +17,7 @@ import { ObjectID } from "mongodb";
 //SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("facturaciones").find({}).toArray();
+  const result = await db.collection("facturaciones").find({ isActive: true }).toArray();
   const empresa = await db.collection("empresa").findOne({});
   res.json({
     datos: result,
@@ -65,11 +65,12 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countFac = await db.collection("facturaciones").find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {}).count();
+    const countFac = await db.collection("facturaciones")
+      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut, isActive: true } : { isActive: true }).count();
     const empresa = await db.collection("empresa").findOne({});
     const result = await db
       .collection("facturaciones")
-      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {})
+      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut, isActive: true } : { isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -118,23 +119,23 @@ router.post("/buscar", async (req, res) => {
       if (identificador === 1) {
         countFac = await db
           .collection("facturaciones")
-          .find({ rut_cp: rexExpresionFiltro })
+          .find({ rut_cp: rexExpresionFiltro, isActive: true })
           .count();
 
         result = await db
           .collection("facturaciones")
-          .find({ rut_cp: rexExpresionFiltro })
+          .find({ rut_cp: rexExpresionFiltro, isActive: true })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
       } else {
         countFac = await db
           .collection("facturaciones")
-          .find({ razon_social_cp: rexExpresionFiltro })
+          .find({ razon_social_cp: rexExpresionFiltro, isActive: true })
           .count();
         result = await db
           .collection("facturaciones")
-          .find({ razon_social_cp: rexExpresionFiltro })
+          .find({ razon_social_cp: rexExpresionFiltro, isActive: true })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -144,23 +145,23 @@ router.post("/buscar", async (req, res) => {
       if (identificador === 1) {
         countFac = await db
           .collection("facturaciones")
-          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
           .count();
 
         result = await db
           .collection("facturaciones")
-          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
       } else {
         countFac = await db
           .collection("facturaciones")
-          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
           .count();
         result = await db
           .collection("facturaciones")
-          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -604,6 +605,7 @@ router.post("/validar/:id", async (req, res) => {
         Number(gi.dias_credito)
       ),
       pagos: [],
+      isActive: true
     });
 
     //si no tiene dias credito , pasa directo a cobranza
@@ -627,6 +629,7 @@ router.post("/validar/:id", async (req, res) => {
         valor_cancelado: 0,
         valor_deuda: Number(servicio.precio),
         cartas_cobranza: [],
+        isActive: true
       });
     }
   }
@@ -752,6 +755,7 @@ router.post("/validar/factura/asis/many", async (req, res) => {
           Number(gi.dias_credito)
         ),
         pagos: [],
+        isActive: true
       });
     });
 
@@ -791,6 +795,7 @@ router.post("/validar/factura/asis/many", async (req, res) => {
           valor_cancelado: 0,
           valor_deuda: Number(servicio.precio),
           cartas_cobranza: [],
+          isActive: true
         });
       }
     });
@@ -806,5 +811,23 @@ router.post("/validar/factura/asis/many", async (req, res) => {
     }
   }
 });
+
+// ADD IsActive
+// router.get('/addisactive/sdsdsd', async (req, res) => {
+//   const db = await connect();
+
+//   try {
+//     const result = await db
+//       .collection("facturaciones")
+//       .updateMany({}, {
+//         $set: {
+//           isActive: true
+//         }
+//       });
+//     res.status(200).json(result);
+//   } catch (error) {
+//     res.status(500).json({ msg: String(error) });
+//   }
+// });
 
 export default router;

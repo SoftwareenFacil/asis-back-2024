@@ -15,7 +15,7 @@ import { ObjectID } from "mongodb";
 //SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("pagos").find({}).toArray();
+  const result = await db.collection("pagos").find({ isActive: true }).toArray();
   res.json(result);
 });
 
@@ -44,10 +44,11 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countPagos = await db.collection("pagos").find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {}).count();
+    const countPagos = await db.collection("pagos")
+      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut, isActive: true } : { isActive: true }).count();
     const result = await db
       .collection("pagos")
-      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut } : {})
+      .find(dataToken.rol === 'Clientes' ? { rut_cp: dataToken.rut, isActive: true } : { isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -96,23 +97,23 @@ router.post("/buscar", async (req, res) => {
       if (identificador === 1) {
         countPagos = await db
           .collection("pagos")
-          .find({ rut_cp: rexExpresionFiltro })
+          .find({ rut_cp: rexExpresionFiltro, isActive: true })
           .count();
   
         result = await db
           .collection("pagos")
-          .find({ rut_cp: rexExpresionFiltro })
+          .find({ rut_cp: rexExpresionFiltro, isActive: true })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
       } else {
         countPagos = await db
           .collection("pagos")
-          .find({ razon_social_cp: rexExpresionFiltro })
+          .find({ razon_social_cp: rexExpresionFiltro, isActive: true })
           .count();
         result = await db
           .collection("pagos")
-          .find({ razon_social_cp: rexExpresionFiltro })
+          .find({ razon_social_cp: rexExpresionFiltro, isActive: true })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -121,23 +122,23 @@ router.post("/buscar", async (req, res) => {
       if (identificador === 1) {
         countPagos = await db
           .collection("pagos")
-          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
           .count();
   
         result = await db
           .collection("pagos")
-          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
       } else {
         countPagos = await db
           .collection("pagos")
-          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
           .count();
         result = await db
           .collection("pagos")
-          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
+          .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
           .skip(skip_page)
           .limit(nPerPage)
           .toArray();
@@ -189,6 +190,7 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
   obj.observaciones = datos.observaciones;
   obj.institucion_bancaria = datos.institucion_bancaria;
   obj.archivo_adjunto = archivo;
+  obj.isActive = true
 
   let result = await db.collection("pagos").findOneAndUpdate(
     { _id: ObjectID(id) },
@@ -307,6 +309,7 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
                 observaciones: datos[0].observaciones,
                 institucion_bancaria: datos[0].institucion_bancaria,
                 archivo_adjunto: archivo,
+                isActive: true
               },
             },
             $set: {
@@ -582,5 +585,23 @@ router.delete("/:id", async (req, res) => {
 
   res.json(result);
 });
+
+// ADD IsActive
+// router.get('/addisactive/sdsdsd', async (req, res) => {
+//   const db = await connect();
+
+//   try {
+//     const result = await db
+//       .collection("pagos")
+//       .updateMany({}, {
+//         $set: {
+//           isActive: true
+//         }
+//       });
+//     res.status(200).json(result);
+//   } catch (error) {
+//     res.status(500).json({ msg: String(error) });
+//   }
+// });
 
 export default router;

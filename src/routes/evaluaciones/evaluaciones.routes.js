@@ -22,7 +22,7 @@ import { ObjectID, ObjectId } from "mongodb";
 //SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("evaluaciones").find({}).toArray();
+  const result = await db.collection("evaluaciones").find({ isActive: true }).toArray();
   res.json(result);
 });
 
@@ -454,17 +454,17 @@ router.post("/pagination", async (req, res) => {
         }
       },
       {
-        $match: isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id)
+        $match: {...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true}
       },
     ]
     ).toArray();
 
     console.log('agregate', mergedEvaluaciones);
 
-    const countEva = await db.collection("evaluaciones").find(isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id)).count();
+    const countEva = await db.collection("evaluaciones").find({...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true}).count();
     const result = await db
       .collection("evaluaciones")
-      .find(isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id))
+      .find({...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -516,12 +516,12 @@ router.post("/buscar", async (req, res) => {
     if (dataToken.rol === 'Clientes') {
       countEva = await db
         .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut })
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
         .count();
 
       result = await db
         .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut })
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -529,12 +529,12 @@ router.post("/buscar", async (req, res) => {
     else if (dataToken.rol === 'Colaboradores') {
       countEva = await db
         .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
         .count();
 
       result = await db
         .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -542,12 +542,12 @@ router.post("/buscar", async (req, res) => {
     else {
       countEva = await db
         .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro })
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
         .count();
 
       result = await db
         .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro })
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -812,6 +812,7 @@ router.post("/evaluado/:id", async (req, res) => {
         url_file_adjunto_res: result.value.url_file_adjunto_EE,
         estado_archivo: isOnline ? "Cargado" : "Sin Documento",
         estado_resultado: "",
+        isActive: true
       });
 
       result = resultinsert;
@@ -824,5 +825,23 @@ router.post("/evaluado/:id", async (req, res) => {
 
 
 });
+
+// ADD IsActive
+// router.get('/addisactive/sdsdsd', async (req, res) => {
+//   const db = await connect();
+
+//   try {
+//     const result = await db
+//       .collection("evaluaciones")
+//       .updateMany({}, {
+//         $set: {
+//           isActive: true
+//         }
+//       });
+//     res.status(200).json(result);
+//   } catch (error) {
+//     res.status(500).json({ msg: String(error) });
+//   }
+// });
 
 export default router;

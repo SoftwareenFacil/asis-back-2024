@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const result = await db.collection("reservas").find().toArray();
+    const result = await db.collection("reservas").find({ isActive: true }).toArray();
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ msg: ERROR, error });
@@ -54,10 +54,10 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countRes = await db.collection("reservas").find(isRolReservas(dataToken.rol, dataToken.id)).count();
+    const countRes = await db.collection("reservas").find({...isRolReservas(dataToken.rol, dataToken.id), isActive: true}).count();
     const result = await db
       .collection("reservas")
-      .find(isRolReservas(dataToken.rol, dataToken.id))
+      .find({...isRolReservas(dataToken.rol, dataToken.id), isActive: true})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -127,12 +127,12 @@ router.post('/buscar', async (req, res) => {
     if (dataToken.rol === 'Clientes') {
       countRes = await db
         .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
         .count();
 
       result = await db
         .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -140,12 +140,12 @@ router.post('/buscar', async (req, res) => {
     else if (dataToken.rol === 'Colaboradores') {
       countRes = await db
         .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
         .count();
 
       result = await db
         .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -153,12 +153,12 @@ router.post('/buscar', async (req, res) => {
     else {
       countRes = await db
         .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro })
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
         .count();
 
       result = await db
         .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro })
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -405,6 +405,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         observaciones: [],
         estado_archivo: "Sin Documento",
         estado: "Ingresado",
+        isActive: true
       });
     } else {
       //verificar si tiene OC o no el GI
@@ -462,6 +463,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         exento: 0,
         descuento: 0,
         total: 0,
+        isActive: true
       });
     }
 
@@ -618,6 +620,7 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
         observaciones: [],
         estado_archivo: "Sin Documento",
         estado: "Ingresado",
+        isActive: true
       });
     });
 
@@ -694,6 +697,7 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
         exento: 0,
         descuento: 0,
         total: 0,
+        isActive: true
       });
     });
 
@@ -704,5 +708,23 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
     res.json(resultFac);
   }
 });
+
+// ADD IsActive
+// router.get('/addisactive/sdsdsd', async (req, res) => {
+//   const db = await connect();
+
+//   try {
+//     const result = await db
+//       .collection("reservas")
+//       .updateMany({}, {
+//         $set: {
+//           isActive: true
+//         }
+//       });
+//     res.status(200).json(result);
+//   } catch (error) {
+//     res.status(500).json({ msg: String(error) });
+//   }
+// });
 
 export default router;

@@ -29,7 +29,8 @@ router.get("/", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const result = await db.collection("resultados").find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id } : {}).toArray();
+    const result = await db.collection("resultados")
+      .find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id, isActive: true } : { isActive: true }).toArray();
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ msg: ERROR, error })
@@ -67,10 +68,10 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countRes = await db.collection("resultados").find(isRolResultados(dataToken.rol, dataToken.rut, dataToken.id)).count();
+    const countRes = await db.collection("resultados").find({...isRolResultados(dataToken.rol, dataToken.rut, dataToken.id), isActive: true}).count();
     const result = await db
       .collection("resultados")
-      .find(isRolResultados(dataToken.rol, dataToken.rut, dataToken.id))
+      .find({...isRolResultados(dataToken.rol, dataToken.rut, dataToken.id), isActive: true})
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -120,12 +121,12 @@ router.post('/buscar', async (req, res) => {
     if (dataToken.rol === 'Clientes') {
       countSol = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut })
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
         .count();
 
       result = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut })
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -133,12 +134,12 @@ router.post('/buscar', async (req, res) => {
     else if (dataToken.rol === 'Colaboradores') {
       countSol = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
         .count();
 
       result = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -146,12 +147,12 @@ router.post('/buscar', async (req, res) => {
     else {
       countRes = await db
         .collection("resultados")
-        .find({ [headFilter]: rexExpresionFiltro })
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
         .count();
 
       result = await db
         .collection("resultados")
-        .find({ [headFilter]: rexExpresionFiltro })
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
@@ -335,8 +336,6 @@ router.post("/confirmar/:id", async (req, res) => {
   // obs.obs = datos.observaciones;
   // obs.fecha = getDate(new Date());
 
-  console.log('datos', datos);
-
   if (datos.estado_archivo == "Aprobado") {
     obs.estado = datos.estado_archivo;
     if (
@@ -436,6 +435,7 @@ router.post("/confirmar/:id", async (req, res) => {
         exento: 0,
         descuento: 0,
         total: 0,
+        isActive: true
       });
     }
   } else {
@@ -454,5 +454,23 @@ router.post("/confirmar/:id", async (req, res) => {
   }
   res.json(result);
 });
+
+// ADD IsActive
+// router.get('/addisactive/sdsdsd', async (req, res) => {
+//   const db = await connect();
+
+//   try {
+//     const result = await db
+//       .collection("resultados")
+//       .updateMany({}, {
+//         $set: {
+//           isActive: true
+//         }
+//       });
+//     res.status(200).json(result);
+//   } catch (error) {
+//     res.status(500).json({ msg: String(error) });
+//   }
+// });
 
 export default router;
