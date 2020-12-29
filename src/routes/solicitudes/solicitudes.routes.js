@@ -350,28 +350,28 @@ router.post("/", multer.single("archivo"), async (req, res) => {
         .collection("gi")
         .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
 
-      if (gi.email_central !== null && gi.email_central !== '') {
-        sendinblue(
-          {
-            RAZON_SOCIAL_CP: result.ops[0].razon_social_CP,
-            CODIGO_SOL: result.ops[0].codigo,
-            FECHA_SOL: result.ops[0].fecha_solicitud,
-            HORA_SOL: result.ops[0].hora_solicitud,
-            CATEGORIA_UNO_SOL: result.ops[0].categoria1,
-            NOMBRE_SERVICIO: result.ops[0].nombre_servicio,
-            NOMBRE_TIPO_SERVICIO: result.ops[0].tipo_servicio,
-            LUGAR_SERVICIO: result.ops[0].lugar_servicio,
-            SUCURSAL_SERVICIO: result.ops[0].sucursal,
-          },
-          [
-            {
-              email: gi.email_central,
-              nombre: gi.razon_social,
-            },
-          ],
-          4
-        );
-      }
+      // if (gi.email_central !== null && gi.email_central !== '') {
+      //   sendinblue(
+      //     {
+      //       RAZON_SOCIAL_CP: result.ops[0].razon_social_CP,
+      //       CODIGO_SOL: result.ops[0].codigo,
+      //       FECHA_SOL: result.ops[0].fecha_solicitud,
+      //       HORA_SOL: result.ops[0].hora_solicitud,
+      //       CATEGORIA_UNO_SOL: result.ops[0].categoria1,
+      //       NOMBRE_SERVICIO: result.ops[0].nombre_servicio,
+      //       NOMBRE_TIPO_SERVICIO: result.ops[0].tipo_servicio,
+      //       LUGAR_SERVICIO: result.ops[0].lugar_servicio,
+      //       SUCURSAL_SERVICIO: result.ops[0].sucursal,
+      //     },
+      //     [
+      //       {
+      //         email: gi.email_central,
+      //         nombre: gi.razon_social,
+      //       },
+      //     ],
+      //     4
+      //   );
+      // }
     };
 
     return res.status(200).json({ msg: SUCCESSFULL_INSERT, result });
@@ -635,34 +635,34 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         .insertOne(newReserva);
       res.json(resulReserva);
 
-      if (resulReserva.result.ok) {
-        const respMail = sendinblue(
-          {
-            RAZON_SOCIAL_CP: resp.razon_social_CP,
-            CODIGO_SOL: resp.codigo,
-            FECHA_SOL: resp.fecha_solicitud,
-            HORA_SOL: resp.hora_solicitud,
-            CATEGORIA_UNO_SOL: resp.categoria1,
-            NOMBRE_SERVICIO: resp.nombre_servicio,
-            NOMBRE_TIPO_SERVICIO: resp.tipo_servicio,
-            LUGAR_SERVICIO: resp.lugar_servicio,
-            SUCURSAL_SERVICIO: resp.sucursal,
-            FECHA_CONFIRMACION_SOL: resp.fecha_confirmacion,
-            HORA_CONFIRMACION_SOL: resp.hora_confirmacion,
-            MEDIO_CONFIRMACION: resp.medio_confirmacion,
-            OBSERVACION_CONFIRMACION:
-              resp.observacion_solicitud[resp.observacion_solicitud.length - 1]
-                .obs,
-          },
-          [
-            {
-              email: solicitud.email_central,
-              nombre: resp.razon_social_CP,
-            },
-          ],
-          5
-        );
-      }
+      // if (resulReserva.result.ok) {
+      //   const respMail = sendinblue(
+      //     {
+      //       RAZON_SOCIAL_CP: resp.razon_social_CP,
+      //       CODIGO_SOL: resp.codigo,
+      //       FECHA_SOL: resp.fecha_solicitud,
+      //       HORA_SOL: resp.hora_solicitud,
+      //       CATEGORIA_UNO_SOL: resp.categoria1,
+      //       NOMBRE_SERVICIO: resp.nombre_servicio,
+      //       NOMBRE_TIPO_SERVICIO: resp.tipo_servicio,
+      //       LUGAR_SERVICIO: resp.lugar_servicio,
+      //       SUCURSAL_SERVICIO: resp.sucursal,
+      //       FECHA_CONFIRMACION_SOL: resp.fecha_confirmacion,
+      //       HORA_CONFIRMACION_SOL: resp.hora_confirmacion,
+      //       MEDIO_CONFIRMACION: resp.medio_confirmacion,
+      //       OBSERVACION_CONFIRMACION:
+      //         resp.observacion_solicitud[resp.observacion_solicitud.length - 1]
+      //           .obs,
+      //     },
+      //     [
+      //       {
+      //         email: solicitud.email_central,
+      //         nombre: resp.razon_social_CP,
+      //       },
+      //     ],
+      //     5
+      //   );
+      // }
     }
   }
 });

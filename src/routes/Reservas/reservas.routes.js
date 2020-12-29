@@ -479,40 +479,40 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       .collection("gi")
       .findOne({ _id: ObjectID(reserva.id_GI_Secundario) });
 
-    sendinblue(
-      {
-        RAZON_SOCIAL_CP: reserva.razon_social_cp,
-        CODIGO_SOL: reserva.codigo,
-        FECHA_INICIO_RESERVA: reserva.fecha_reserva,
-        HORA_INICIO_RESERVA: reserva.hora_reserva,
-        FECHA_FIN_RESERVA: reserva.fecha_reserva_fin,
-        HORA_FIN_RESERVA: reserva.hora_reserva_fin,
-        NOMBRE_SERVICIO: reserva.nombre_servicio,
-        SUCURSAL_SERVICIO: reserva.sucursal,
-        JORNADA_RESERVA: reserva.jornada,
-        REQUIERE_EVALUACION: reserva.reqEvaluacion,
-        OBSERVACION_RESERVA: datos.observacion,
-        RUT_PROFESIONAL_ASIGNADO: profesionalAsignado.rut,
-        PROFESIONAL_ASIGNADO: profesionalAsignado.razon_social,
-        RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut,
-        NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social,
-      },
-      [
-        {
-          email: clientePrincipal.email_central,
-          nombre: clientePrincipal.razon_social,
-        },
-        {
-          email: profesionalAsignado.email_central,
-          nombre: profesionalAsignado.razon_social,
-        },
-        {
-          email: clienteSecundario.email_central,
-          nombre: clienteSecundario.razon_social,
-        },
-      ],
-      6
-    );
+    // sendinblue(
+    //   {
+    //     RAZON_SOCIAL_CP: reserva.razon_social_cp,
+    //     CODIGO_SOL: reserva.codigo,
+    //     FECHA_INICIO_RESERVA: reserva.fecha_reserva,
+    //     HORA_INICIO_RESERVA: reserva.hora_reserva,
+    //     FECHA_FIN_RESERVA: reserva.fecha_reserva_fin,
+    //     HORA_FIN_RESERVA: reserva.hora_reserva_fin,
+    //     NOMBRE_SERVICIO: reserva.nombre_servicio,
+    //     SUCURSAL_SERVICIO: reserva.sucursal,
+    //     JORNADA_RESERVA: reserva.jornada,
+    //     REQUIERE_EVALUACION: reserva.reqEvaluacion,
+    //     OBSERVACION_RESERVA: datos.observacion,
+    //     RUT_PROFESIONAL_ASIGNADO: profesionalAsignado.rut,
+    //     PROFESIONAL_ASIGNADO: profesionalAsignado.razon_social,
+    //     RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut,
+    //     NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social,
+    //   },
+    //   [
+    //     {
+    //       email: clientePrincipal.email_central,
+    //       nombre: clientePrincipal.razon_social,
+    //     },
+    //     {
+    //       email: profesionalAsignado.email_central,
+    //       nombre: profesionalAsignado.razon_social,
+    //     },
+    //     {
+    //       email: clienteSecundario.email_central,
+    //       nombre: clienteSecundario.razon_social,
+    //     },
+    //   ],
+    //   6
+    // );
 
     res.status(200).json({
       msg: CONFIRM_SUCCESSFULL,
