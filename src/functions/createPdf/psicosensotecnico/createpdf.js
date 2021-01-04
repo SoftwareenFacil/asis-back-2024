@@ -2,7 +2,21 @@ var PDF = require("pdfkit");
 var fs = require("fs");
 var path = require("path");
 
-import { generalInformation, resultadosEvaluaciones, piePageOne, examenesSensometricos, examenesPsicotecnicos, testEspeVelReaccion, examenSomnolencia, testPsicologico, testToleranciaMonotonia, testReacMultiples, testConoTransitoNacional, nameFirma } from "./constant";
+import {
+    generalInformation,
+    signByAssigmentProfessional,
+    resultadosEvaluaciones,
+    piePageOne,
+    examenesSensometricos,
+    examenesPsicotecnicos,
+    testEspeVelReaccion,
+    examenSomnolencia,
+    testPsicologico,
+    testToleranciaMonotonia,
+    testReacMultiples,
+    testConoTransitoNacional,
+    nameFirma } from "./constant";
+import { sign } from "crypto";
 
 export default function createPdf(InformacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia, test_psicologico,
     test_espe_tol_monotonia, test_espe_reac_multiples, test_conocimiento_ley_nacional, nombrePdf, nombreQR) {
@@ -11,7 +25,21 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     let horizontalSpace = 0;
     let moreSpace = 0;
 
-    const { empresa, nombre, rut, fecha_nacimiento, cargo, licencia_acreditar, ley, vencimiento_licencia, observaciones_licencia, fecha_examen, resultado, restricciones, vencimiento, evaluador } = InformacionPersonal;
+    const {
+        empresa,
+        nombre,
+        rut,
+        rut_evaluador,
+        fecha_nacimiento,
+        cargo,
+        licencia_acreditar,
+        ley,
+        vencimiento_licencia,
+        observaciones_licencia,
+        fecha_examen, resultado,
+        restricciones,
+        vencimiento,
+        evaluador } = InformacionPersonal;
 
     //--------------------------------------------------PDF----------------------------------------
 
@@ -803,10 +831,13 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         valign: "center",
     });
 
-    //--firma
+    //------------------------------------------------------------ FIRMA -----------------------------------------------
+
+    const signSelected = signByAssigmentProfessional.find(el => el.rut === rut_evaluador);
+
     generalSpace += 65;
     moreSpace = 5
-    doc.image(path.resolve("./") + "/src/assets/img/firma_archivos_asis.png", 220, generalSpace, {
+    doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 220, generalSpace, {
         fit: [130, 130],
         align: "center",
         valign: "center",

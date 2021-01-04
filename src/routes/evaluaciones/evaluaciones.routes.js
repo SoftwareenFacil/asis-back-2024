@@ -225,6 +225,7 @@ router.post('/evaluacionpsico', async (req, res) => {
       const informacionPersonal = {
         empresa: cp.razon_social,
         evaluador: pa.razon_social,
+        rut_evaluador: pa.rut,
         nombre: cs.razon_social,
         rut: cs.rut,
         fecha_nacimiento: cs.fecha_inic_nac,
