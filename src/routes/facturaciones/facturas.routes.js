@@ -586,7 +586,7 @@ router.post("/validar/:id", async (req, res) => {
       nombre_servicio: result.value.nombre_servicio,
       id_GI_personalAsignado: result.value.id_GI_personalAsignado,
       faena_seleccionada_cp: result.value.faena_seleccionada_cp,
-      valor_servicio: result.value.valor_servicio,
+      // valor_servicio: result.value.valor_servicio,
       rut_cp: result.value.rut_cp,
       razon_social_cp: result.value.razon_social_cp,
       rut_cs: result.value.rut_cs,
@@ -748,7 +748,7 @@ router.post("/validar/factura/asis/many", async (req, res) => {
         nro_factura: element.nro_factura,
         credito: gi.credito,
         dias_credito: gi.dias_credito,
-        valor_servicio: Number(servicio.precio),
+        // valor_servicio: Number(servicio.precio),
         valor_cancelado: 0,
         fecha_pago: getFechaPago(
           element.fecha_facturacion,
