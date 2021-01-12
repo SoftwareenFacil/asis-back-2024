@@ -17,25 +17,6 @@ export const generalInformation = [
     'Fecha de Vencimiento'
 ];
 
-export const signByAssigmentProfessional = [
-    {
-        rut: '12398638-5',
-        sign: 'firma_12398638-5.jpeg'
-    },
-    {
-        rut: '17969180-9',
-        sign: 'firma_17969180-9.jpeg'
-    },
-    {
-        rut: '18915456-9',
-        sign: 'firma_18915456-9.jpeg'
-    },
-    {
-        rut: '',
-        sign: 'firma.jpeg'
-    }
-]
-
 export const intelectual = [
     {
         name: 'Razonamiento Abstracto',
