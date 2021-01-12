@@ -35,6 +35,7 @@ export default function createGIs(empresas, personas){
         obj.dias_credito = element.dias_credito
         obj.orden_compra = element.orden_compra
         obj.url_file_adjunto = {}
+        obj.activo_inactivo = true
 
         array_final.push(obj)
         obj = {}
@@ -87,6 +88,7 @@ export default function createGIs(empresas, personas){
         obj.id_GI_org_perteneciente = "",
         obj.razon_social_org_perteneciente = "",
         obj.url_file_adjunto = {}
+        obj.activo_inactivo = true
 
         array_final.push(obj)
         obj = {}
