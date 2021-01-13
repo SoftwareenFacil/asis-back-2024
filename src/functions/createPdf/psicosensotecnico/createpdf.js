@@ -37,7 +37,8 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         ley,
         vencimiento_licencia,
         observaciones_licencia,
-        fecha_examen, resultado,
+        fecha_examen, 
+        resultado,
         restricciones,
         vencimiento,
         evaluador } = InformacionPersonal;
@@ -838,8 +839,8 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     generalSpace += 65;
     moreSpace = 5
-    doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 220, generalSpace, {
-        fit: [90, 90],
+    doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 235, generalSpace + 22, {
+        fit: [60, 60],
         align: "center",
         valign: "center",
     });

@@ -211,7 +211,9 @@ router.post('/evaluacionpsico', async (req, res) => {
     porce_conducta_vial: data.porcentaje_conducta_vial
   }
 
-  generateQR(nombreQR, `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Vencimiento: vencimiento aqui Resultado: resultado aqui`);
+  generateQR(
+    nombreQR, 
+    `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Vencimiento: ${vencimiento} Resultado: ${resultado}`);
 
 
   try {
