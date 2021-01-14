@@ -59,6 +59,7 @@ router.post("/pagination", async (req, res) => {
       .find({...isRolSolicitudes(dataToken.rol, dataToken.id), isActive: true})
       .skip(skip_page)
       .limit(nPerPage)
+      .sort({ codigo: -1 })
       .toArray();
 
     return res.json({
@@ -69,6 +70,7 @@ router.post("/pagination", async (req, res) => {
       solicitudes: result,
     });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ msg: ERROR, error });
   }
 });
