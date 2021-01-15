@@ -1,11 +1,11 @@
 import moment from "moment";
 moment.locale('es', {
-    months: 'Enero_Febrero_Marzo_Abril_Mayo_Junio_Julio_Agosto_Septiembre_Octubre_Noviembre_Diciembre'.split('_'),
-    monthsShort: 'Enero._Feb._Mar_Abr._May_Jun_Jul._Ago_Sept._Oct._Nov._Dec.'.split('_'),
-    weekdays: 'Domingo_Lunes_Martes_Miercoles_Jueves_Viernes_Sabado'.split('_'),
-    weekdaysShort: 'Dom._Lun._Mar._Mier._Jue._Vier._Sab.'.split('_'),
-    weekdaysMin: 'Do_Lu_Ma_Mi_Ju_Vi_Sa'.split('_')
-  }
+  months: 'Enero_Febrero_Marzo_Abril_Mayo_Junio_Julio_Agosto_Septiembre_Octubre_Noviembre_Diciembre'.split('_'),
+  monthsShort: 'Enero._Feb._Mar_Abr._May_Jun_Jul._Ago_Sept._Oct._Nov._Dec.'.split('_'),
+  weekdays: 'Domingo_Lunes_Martes_Miercoles_Jueves_Viernes_Sabado'.split('_'),
+  weekdaysShort: 'Dom._Lun._Mar._Mier._Jue._Vier._Sab.'.split('_'),
+  weekdaysMin: 'Do_Lu_Ma_Mi_Ju_Vi_Sa'.split('_')
+}
 );
 
 const getCliente = (gis, rut, categoria = '') => {
@@ -40,10 +40,10 @@ export default function createSolicitudes(solicitudes, gis) {
     obj.faena_seleccionada_cp = '';
     obj.rut_cs = Object.entries(giSecundario).length > 0 ? giSecundario.rut : '';
     obj.razon_social_cs = Object.entries(giSecundario).length > 0 ? giSecundario.razon_social : '';
-    obj.fecha_solicitud = element.FechaSolicitud;
-    obj.fecha_servicio_solicitado = moment().format("DD-MM-YYYY");
-    obj.mes_solicitud = moment().format("MMMM") || '';
-    obj.anio_solicitud = moment().format("YYYY") || '';
+    obj.fecha_solicitud = element.FechaSolicitud !== undefined ? element.FechaSolicitud.slice(0, 10) : '';
+    obj.fecha_servicio_solicitado = element.FechaReservaInicioPreeliminar || '';
+    obj.mes_solicitud = element.FechaSolicitud !== undefined ? parseInt(element.FechaSolicitud.slice(4, 6)) : '';
+    obj.anio_solicitud = element.FechaSolicitud !== undefined ? parseInt(moment(element.FechaSolicitud).format("YYYY")) : '';
     obj.nombre_receptor = element.Receptor;
     obj.categoria1 = element.Categoria1 || "";
     obj.categoria2 = element.Categoria2 || "";
@@ -58,10 +58,10 @@ export default function createSolicitudes(solicitudes, gis) {
     obj.lugar_servicio = element.LugarServicio || '';
     obj.sucursal = element.Sucursal || '';
     obj.descripcion_servicio = '';
-    obj.observacion_solicitud = [{obs: element.ObservacionSolicitudIngreso, fecha: moment().format("YYYY-MM-DD HH:mm")}]|| [];
-    obj.hora_servicio_solicitado = moment().format("HH:mm") || '';
-    obj.fecha_servicio_solicitado_termino = moment().format("DD-MM-YYYY") || '';
-    obj.hora_servicio_solicitado_termino = moment().format("HH:mm") || '';
+    obj.observacion_solicitud = [{ obs: element.ObservacionSolicitudIngreso, fecha: moment().format("YYYY-MM-DD HH:mm") }] || [];
+    obj.hora_servicio_solicitado = element.HoraReservaInicioPreeliminar || '';
+    obj.fecha_servicio_solicitado_termino = element.FechaReservaTerminoPreeliminar || '';
+    obj.hora_servicio_solicitado_termino = element.HoraReservaTerminoPreeliminar || '';
     obj.jornada = element.Jornada;
     obj.hora_solicitud = element.FechaSolicitud !== undefined ? element.FechaSolicitud.slice(11, 16) : '';
     // obj.hora_solicitud = moment(element.FechaSolicitud).format('DD-MM-YYYY HH:mm').slice(11, 16) || '';

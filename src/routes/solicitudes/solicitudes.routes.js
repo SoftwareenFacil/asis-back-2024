@@ -20,7 +20,14 @@ moment.locale('es', {
 
 import { verifyToken } from "../../libs/jwt";
 
-import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR, SUCCESSFULL_INSERT, SUCCESSFULL_UPDATE } from "../../constant/text_messages";
+import { 
+  MESSAGE_UNAUTHORIZED_TOKEN, 
+  UNAUTHOTIZED, 
+  ERROR_MESSAGE_TOKEN, 
+  AUTHORIZED, ERROR, 
+  SUCCESSFULL_INSERT, 
+  SUCCESSFULL_UPDATE,
+  DELETE_SUCCESSFULL } from "../../constant/text_messages";
 
 import multer from "../../libs/multer";
 
@@ -384,17 +391,6 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
   }
 
-});
-
-router.post("/test", async (req, res) => {
-  const { id } = req.body;
-  const db = await connect();
-
-  const gi = await db
-    .collection("gi")
-    .findOne({ _id: ObjectID(id) }, { email_central: 1 });
-
-  res.json(gi.email_central);
 });
 
 //TEST PARA RECIBIR EXCEL DE INGRESO MASIVO DE SOLICITUDES
@@ -778,6 +774,35 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
     res.status(500).json({ msg: ERROR, error });
   }
 });
+
+//DELETE / ANULAR
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+
+  try {
+    await db.collection('solicitudes').updateOne({ _id: ObjectID(id) }, {
+      $set:{
+        isActive: false
+      }
+    });
+    res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'ok' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
+  }
+});
+
+// router.post("/test", async (req, res) => {
+//   const { id } = req.body;
+//   const db = await connect();
+
+//   const gi = await db
+//     .collection("gi")
+//     .findOne({ _id: ObjectID(id) }, { email_central: 1 });
+
+//   res.json(gi.email_central);
+// });
 
 //ANULAR SOLICITUD
 // router.delete("/:id", async (req, res) => {

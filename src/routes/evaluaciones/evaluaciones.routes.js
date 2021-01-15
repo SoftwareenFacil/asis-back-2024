@@ -10,7 +10,14 @@ import { isRolEvaluaciones } from "../../functions/isRol";
 
 import { verifyToken } from "../../libs/jwt";
 
-import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR, SUCCESSFULL_INSERT, SUCCESSFULL_UPDATE } from "../../constant/text_messages";
+import { 
+  MESSAGE_UNAUTHORIZED_TOKEN, 
+  UNAUTHOTIZED, 
+  ERROR_MESSAGE_TOKEN, 
+  AUTHORIZED, ERROR, 
+  SUCCESSFULL_INSERT, 
+  SUCCESSFULL_UPDATE,
+  DELETE_SUCCESSFULL } from "../../constant/text_messages";
 
 
 const router = Router();
@@ -827,6 +834,45 @@ router.post("/evaluado/:id", async (req, res) => {
   }
 
 
+});
+
+//DELETE / ANULAR
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+
+  try {
+    const existEvaluacion = await db.collection('evaluaciones').findOne({ _id: ObjectID(id) });
+    if(!existEvaluacion) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'evaluacion no existe' });
+
+    const codeReserva= existEvaluacion.codigo.replace('EVA', 'AGE');
+    const existReserva = await db.collection('reservas').findOne({ codigo: codeReserva });
+    if(!existReserva) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'reserva no existe' });
+
+    const codeSolicitud = existReserva.codigo.replace('AGE', 'SOL');
+    const existSolicitud = await db.collection('solicitudes').findOne({ codigo: codeSolicitud });
+    if(!existSolicitud) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'solicitud no existe no existe' });
+
+    await db.collection('evaluaciones').updateOne({ _id: ObjectID(id) }, {
+      $set:{
+        isActive: false
+      }
+    });
+    await db.collection('reservas').updateOne({ codigo: codeReserva }, {
+      $set:{
+        isActive: false
+      }
+    });
+    await db.collection('solicitudes').updateOne({ codigo: codeSolicitud }, {
+      $set:{
+        isActive: false
+      }
+    });
+    return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'ok' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
+  }
 });
 
 // ADD IsActive
