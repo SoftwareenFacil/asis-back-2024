@@ -2,7 +2,6 @@ import { Router } from "express";
 import { getDate } from "../../functions/getDateNow";
 import multer from "../../libs/multer";
 import moment from "moment";
-var path = require("path");
 import pdfAversionRiesgo from "../../functions/createPdf/aversionRiesgo/createPdf";
 import pdfPsicosensotecnico from "../../functions/createPdf/psicosensotecnico/createpdf";
 import { generateQR } from "../../functions/createPdf/aversionRiesgo/constant";
@@ -18,7 +17,8 @@ import {
   SUCCESSFULL_INSERT, 
   SUCCESSFULL_UPDATE,
   DELETE_SUCCESSFULL } from "../../constant/text_messages";
-
+  
+var path = require("path");
 
 const router = Router();
 
@@ -276,6 +276,7 @@ router.post('/evaluacionpsico', async (req, res) => {
             archivo_examen: null,
             fecha_carga_examen: moment().format('DD-MM-YYYY'),
             hora_carga_examen: moment().format('HH:mm'),
+            meses_vigencia: data.meses_vigencia,
             url_file_adjunto_EE: objFile,
           },
           $push: {
@@ -355,6 +356,7 @@ router.post('/evaluacionaversion', async (req, res) => {
     const informacionPersonal = {
       empresa: cp.razon_social,
       evaluador: pa.razon_social,
+      rut_evaluador: pa.rut,
       cargo_evaluador: pa.cargo || '',
       nombre: cs.razon_social,
       edad: cs.edad_gi,
@@ -391,6 +393,7 @@ router.post('/evaluacionaversion', async (req, res) => {
             archivo_examen: null,
             fecha_carga_examen: moment().format('DD-MM-YYYY'),
             hora_carga_examen: moment().format('HH:mm'),
+            meses_vigencia: data.meses_vigencia,
             url_file_adjunto_EE: objFile,
           },
           $push: {
@@ -814,14 +817,14 @@ router.post("/evaluado/:id", async (req, res) => {
         lugar_servicio: result.value.lugar_servicio,
         sucursal: result.value.sucursal,
         condicionantes: [],
-        vigencia_examen: "",
+        vigencia_examen: result.value.meses_vigencia || null,
         observaciones: [],
         fecha_confirmacion_examen: datos.fecha_confirmacion_examen,
         hora_confirmacion_examen: datos.hora_confirmacion_examen,
         estado: "En Revisión",
         url_file_adjunto_res: result.value.url_file_adjunto_EE,
         estado_archivo: isOnline ? "Cargado" : "Sin Documento",
-        estado_resultado: "",
+        estado_resultado: '',
         isActive: true
       });
 

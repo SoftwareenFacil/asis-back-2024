@@ -14,8 +14,8 @@ import {
   motivacionCargo,
   conclusion,
   nameFirma,
+  signByAssigmentProfessional
 } from "./constant";
-import { info } from "console";
 
 
 //I - Analisis de indicadores
@@ -31,6 +31,9 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   const { locus_control_impulsividad, manejo_frustracion, empatia, grado_ansiedad } = EE;
   const { actitud_prevencion_accidentes, confianza_acciones_realizadas, capacidad_modificar_ambiente_seguridad } = APR;
   const { orientacion_tarea, energia_vital } = MC;
+
+  const { rut_evaluador } = informacionPersonal;
+
   let generalSpace = -15;
   let moreSpace = 5;
   let finalResults = [];
@@ -1280,14 +1283,14 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
         }).fillColor('black')
         .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE NO PRESENTA CONDUCTAS DE RIESGO desde el punto de vista psicológico.`)
         .fillColor('grey')
-        // .text('desde el punto de vista psicológico');
+      // .text('desde el punto de vista psicológico');
       break;
 
     case 2:
       doc.fontSize(11);
       doc
         .font("Helvetica")
-        .text('X', 300, generalSpace + 5, { align: "left"});
+        .text('X', 300, generalSpace + 5, { align: "left" });
       doc.fontSize(9);
       doc.fillColor('black')
         .text('De los resultados se desprende que el ', 60, generalSpace + 25, {
@@ -1297,7 +1300,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
         }).fillColor('black')
         .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE PRESENTA BAJAS CONDUCTAS DE RIESGO desde el punto de vista psicológico.`)
         .fillColor('grey')
-        // .text('desde el punto de vista psicológico');
+      // .text('desde el punto de vista psicológico');
       break;
 
     case 3:
@@ -1314,15 +1317,17 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
         }).fillColor('black')
         .text(`SR./SRA ${informacionPersonal.nombre && informacionPersonal.nombre.toUpperCase()} ACTUALMENTE PRESENTA ALTAS CONDUCTAS DE RIESGO desde el punto de vista psicológico.`)
         .fillColor('grey')
-        // .text('desde el punto de vista psicológico');
+      // .text('desde el punto de vista psicológico');
       break;
   }
 
   generalSpace += 63;
 
-  //--firma
-  doc.image(path.resolve("./") + "/src/assets/img/firma_archivos_asis.png", 225, generalSpace, {
-    fit: [130, 130],
+  //------------------------------------------------------------ FIRMA -----------------------------------------------
+  const signSelected = signByAssigmentProfessional.find(el => el.rut === rut_evaluador);
+
+  doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 235, generalSpace + 22, {
+    fit: [60, 60],
     align: "center",
     valign: "center",
   });
