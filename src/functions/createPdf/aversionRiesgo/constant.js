@@ -161,6 +161,10 @@ export const signByAssigmentProfessional = [
         sign: 'firma_12398638-5.jpeg'
     },
     {
+        rut: '15977537-2',
+        sign: 'firma_15977537-2.jpeg'
+    },
+    {
         rut: '17969180-9',
         sign: 'firma_17969180-9.jpeg'
     },
