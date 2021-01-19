@@ -1326,8 +1326,8 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   //------------------------------------------------------------ FIRMA -----------------------------------------------
   const signSelected = signByAssigmentProfessional.find(el => el.rut === rut_evaluador);
 
-  doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 235, generalSpace + 22, {
-    fit: [60, 60],
+  doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 250, generalSpace + 22, {
+    fit: [100, 100],
     align: "center",
     valign: "center",
   });
