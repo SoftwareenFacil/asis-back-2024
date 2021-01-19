@@ -45,7 +45,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     //--Logo
     doc.pipe(fs.createWriteStream(path.resolve("./") + "/uploads/" + nombrePdf));
-    doc.image(path.resolve("./") + "/uploads/asis_logo.png", 225, generalSpace, {
+    doc.image(path.resolve("./") + "/src/assets/img/asis_logo.png", 225, generalSpace, {
         fit: [155, 155],
         align: "center",
         valign: "start",
