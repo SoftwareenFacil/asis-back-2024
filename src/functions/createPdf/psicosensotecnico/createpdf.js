@@ -15,8 +15,9 @@ import {
     testToleranciaMonotonia,
     testReacMultiples,
     testConoTransitoNacional,
-    nameFirma } from "./constant";
-    
+    nameFirma
+} from "./constant";
+
 export default function createPdf(InformacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia, test_psicologico,
     test_espe_tol_monotonia, test_espe_reac_multiples, test_conocimiento_ley_nacional, nombrePdf, nombreQR) {
     const doc = new PDF();
@@ -35,7 +36,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         ley,
         vencimiento_licencia,
         observaciones_licencia,
-        fecha_examen, 
+        fecha_examen,
         resultado,
         restricciones,
         vencimiento,
@@ -837,11 +838,13 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     generalSpace += 65;
     moreSpace = 5
-    doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 250, generalSpace + 22, {
-        fit: [100, 100],
-        align: "center",
-        valign: "center",
-    });
+    if (signSelected && Object.entries(signSelected).length > 0) {
+        doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 250, generalSpace + 22, {
+            fit: [100, 100],
+            align: "center",
+            valign: "center",
+        });
+    }
 
     generalSpace += 110;
     doc
