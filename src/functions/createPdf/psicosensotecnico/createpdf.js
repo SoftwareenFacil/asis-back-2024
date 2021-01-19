@@ -837,8 +837,8 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     generalSpace += 65;
     moreSpace = 5
-    doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 235, generalSpace + 22, {
-        fit: [60, 60],
+    doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 250, generalSpace + 22, {
+        fit: [100, 100],
         align: "center",
         valign: "center",
     });
