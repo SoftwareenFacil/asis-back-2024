@@ -29,7 +29,11 @@ import { ObjectID, ObjectId } from "mongodb";
 //SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("evaluaciones").find({ isActive: true }).toArray();
+  const result = await db
+    .collection("evaluaciones")
+    .find({ isActive: true })
+    .sort({codigo: 1})
+    .toArray();
   res.json(result);
 });
 
@@ -268,7 +272,7 @@ router.post('/evaluacionpsico', async (req, res) => {
       // });
 
       const result = await db.collection("evaluaciones").updateOne(
-        { codigo: data.codigo },
+        { codigo: data.codigo, isActive: true },
         {
           $set: {
             estado: "En Evaluacion",
@@ -378,14 +382,14 @@ router.post('/evaluacionaversion', async (req, res) => {
         option: "online"
       }
 
-      const result = await db.collection('evaluaciones').updateOne({ codigo: data.codigo }, {
-        $set: {
-          url_file_adjunto_EE: objFile
-        }
-      });
+      // const result = await db.collection('evaluaciones').updateOne({ codigo: data.codigo }, {
+      //   $set: {
+      //     url_file_adjunto_EE: objFile
+      //   }
+      // });
 
-      await db.collection("evaluaciones").updateOne(
-        { codigo: data.codigo },
+      const result = await db.collection("evaluaciones").updateOne(
+        { codigo: data.codigo, isActive: true },
         {
           $set: {
             estado: "En Evaluacion",
@@ -406,6 +410,7 @@ router.post('/evaluacionaversion', async (req, res) => {
 
       res.status(200).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
     } catch (error) {
+      console.log(error)
       res.json({ msg: 'error al crear el pdf', error: error })
     }
   }
