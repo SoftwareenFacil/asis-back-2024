@@ -117,9 +117,20 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     generalSpace += 15;
 
-    doc
-        .font("Helvetica")
-        .text(licencia_acreditar, 242, generalSpace, { align: "left" });
+    if (licencia_acreditar && licencia_acreditar.length > 0) {
+        licencia_acreditar.forEach(element => {
+            let leftSpace = 242;
+            doc
+                .font("Helvetica")
+                .text(element, leftSpace, generalSpace, { align: "left" });
+            leftSpace += 15
+        });
+    }
+    else {
+        doc
+            .font("Helvetica")
+            .text(licencia_acreditar, 242, generalSpace, { align: "left" });
+    }
 
     generalSpace += 15;
 
