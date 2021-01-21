@@ -236,21 +236,21 @@ router.post('/evaluacionpsico', async (req, res) => {
 
     if (cp && cs) {
       const informacionPersonal = {
-        empresa: cp.razon_social,
-        evaluador: pa.razon_social,
-        rut_evaluador: pa.rut,
-        nombre: cs.razon_social,
-        rut: cs.rut,
-        fecha_nacimiento: cs.fecha_inic_nac,
-        cargo: pa.cargo,
-        licencia_acreditar: licencia,
-        ley: cs.ley_aplicable,
-        vencimiento_licencia: cs.fecha_venc_licencia,
-        observaciones_licencia: cs.estado_licencia,
-        fecha_examen: moment().format('DD-MM-YYYY'),
-        resultado: resultado,
-        restricciones: restricciones,
-        vencimiento: vencimiento
+        empresa: cp.razon_social || '',
+        evaluador: pa.razon_social || '',
+        rut_evaluador: pa.rut || '',
+        nombre: cs.razon_social || '',
+        rut: cs.rut || '',
+        fecha_nacimiento: cs.fecha_inic_nac || '',
+        cargo: cs.cargo || '',
+        licencia_acreditar: licencia || '',
+        ley: cs.ley_aplicable || '',
+        vencimiento_licencia: cs.fecha_venc_licencia || '',
+        observaciones_licencia: cs.estado_licencia || '',
+        fecha_examen: moment().format('DD-MM-YYYY') || '',
+        resultado: resultado || '',
+        restricciones: restricciones || '',
+        vencimiento: vencimiento || ''
       };
 
       pdfPsicosensotecnico(informacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia,
