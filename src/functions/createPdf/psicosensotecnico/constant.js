@@ -45,7 +45,7 @@ export const resultadosEvaluaciones = [
 export const piePageOne = [
     'EMPRESA CERTIFICADA NORMA DE CALIDAD ISO 9001-2015',
     'BLAS VIAL N° 320, SALAMANCA ,FONO: 53-2551499/AV. I. SILVA Nº 98 OF. 02 Y 03 EDIFICIO MARAY, ILLAPEL FONO: 53-2521964 CEL 09-1283495',
-    'Página web: www.asisconsultores.cL E- MAIL: examenes@asisconsultores.cl (CERTIFICADO VALIDO CON SELLO SECO)'
+    'Página web: www.asisconsultores.cL E- MAIL: examenes@asisconsultores.cl'
 ];
 
 export const examenesSensometricos = {
