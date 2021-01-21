@@ -475,7 +475,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 
   try {
     await db.collection("solicitudes").updateOne(
-      { _id: ObjectID(id) },
+      { _id: ObjectID(id), isActive: true },
       {
         $set: {
           id_GI_Principal: solicitud.id_GI_Principal,

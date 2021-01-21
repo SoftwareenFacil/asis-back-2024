@@ -298,7 +298,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 
   try {
     await db.collection("reservas").updateOne(
-      { _id: ObjectID(id) },
+      { _id: ObjectID(id), isActive: true },
       {
         $set: {
           fecha_reserva: datos.fecha_reserva,

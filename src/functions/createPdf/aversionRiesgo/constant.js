@@ -158,22 +158,18 @@ export const generateQR = async (path, text) => {
 export const signByAssigmentProfessional = [
     {
         rut: '12398638-5',
-        sign: 'firma_12398638-5.jpeg'
-    },
-    {
-        rut: '15977537-2',
-        sign: 'firma_15977537-2.jpeg'
+        sign: 'firma_12398638-5.png'
     },
     {
         rut: '17969180-9',
-        sign: 'firma_17969180-9.jpeg'
+        sign: 'firma_17969180-9.png'
+    },
+    {
+        rut: '15977537-2',
+        sign: 'firma_15977537-2.png'
     },
     {
         rut: '18915456-9',
-        sign: 'firma_18915456-9.jpeg'
+        sign: 'firma_18915456-9.png'
     },
-    {
-        rut: '',
-        sign: 'firma.jpeg'
-    }
 ]
