@@ -118,11 +118,12 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     generalSpace += 15;
 
     if (licencia_acreditar && licencia_acreditar.length > 0) {
+        let leftSpace = 242;
+        let contador = 1;
         licencia_acreditar.forEach(element => {
-            let leftSpace = 242;
             doc
                 .font("Helvetica")
-                .text(element, leftSpace, generalSpace, { align: "left" });
+                .text(`${element}, `, leftSpace, generalSpace, { align: "left" });
             leftSpace += 15
         });
     }

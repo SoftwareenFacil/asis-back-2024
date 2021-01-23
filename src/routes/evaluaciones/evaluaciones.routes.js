@@ -253,6 +253,8 @@ router.post('/evaluacionpsico', async (req, res) => {
         vencimiento: vencimiento || ''
       };
 
+      console.log(informacionPersonal);
+
       pdfPsicosensotecnico(informacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia,
         test_psicologico, test_espe_tol_monotonia, test_espe_reac_multiples,
         test_conocimiento_ley_nacional, nombrePdf, nombreQR);
