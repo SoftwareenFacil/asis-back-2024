@@ -9,15 +9,16 @@ import { isRolEvaluaciones } from "../../functions/isRol";
 
 import { verifyToken } from "../../libs/jwt";
 
-import { 
-  MESSAGE_UNAUTHORIZED_TOKEN, 
-  UNAUTHOTIZED, 
-  ERROR_MESSAGE_TOKEN, 
-  AUTHORIZED, ERROR, 
-  SUCCESSFULL_INSERT, 
+import {
+  MESSAGE_UNAUTHORIZED_TOKEN,
+  UNAUTHOTIZED,
+  ERROR_MESSAGE_TOKEN,
+  AUTHORIZED, ERROR,
+  SUCCESSFULL_INSERT,
   SUCCESSFULL_UPDATE,
-  DELETE_SUCCESSFULL } from "../../constant/text_messages";
-  
+  DELETE_SUCCESSFULL
+} from "../../constant/text_messages";
+
 var path = require("path");
 
 const router = Router();
@@ -32,7 +33,7 @@ router.get("/", async (req, res) => {
   const result = await db
     .collection("evaluaciones")
     .find({ isActive: true })
-    .sort({codigo: -1})
+    .sort({ codigo: -1 })
     .toArray();
   res.json(result);
 });
@@ -223,7 +224,7 @@ router.post('/evaluacionpsico', async (req, res) => {
   }
 
   generateQR(
-    nombreQR, 
+    nombreQR,
     `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Vencimiento: ${vencimiento} Resultado: ${resultado}`);
 
 
@@ -236,13 +237,13 @@ router.post('/evaluacionpsico', async (req, res) => {
 
     if (cp && cs) {
       const informacionPersonal = {
-        empresa: cp.razon_social || '',
         evaluador: pa.razon_social || '',
+        empresa: cp.razon_social || '',
         rut_evaluador: pa.rut || '',
         nombre: cs.razon_social || '',
         rut: cs.rut || '',
         fecha_nacimiento: cs.fecha_inic_nac || '',
-        cargo: cs.cargo || '',
+        cargo: pa.cargo || '',
         licencia_acreditar: licencia || '',
         ley: cs.ley_aplicable || '',
         vencimiento_licencia: cs.fecha_venc_licencia || '',
@@ -253,7 +254,7 @@ router.post('/evaluacionpsico', async (req, res) => {
         vencimiento: vencimiento || ''
       };
 
-      console.log(informacionPersonal);
+      // console.log(informacionPersonal);
 
       pdfPsicosensotecnico(informacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia,
         test_psicologico, test_espe_tol_monotonia, test_espe_reac_multiples,
@@ -474,17 +475,17 @@ router.post("/pagination", async (req, res) => {
         }
       },
       {
-        $match: {...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true}
+        $match: { ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }
       },
     ]
     ).toArray();
 
     console.log('agregate', mergedEvaluaciones);
 
-    const countEva = await db.collection("evaluaciones").find({...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true}).count();
+    const countEva = await db.collection("evaluaciones").find({ ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }).count();
     const result = await db
       .collection("evaluaciones")
-      .find({...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true})
+      .find({ ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
       .sort({ codigo: -1 })
@@ -854,28 +855,28 @@ router.delete('/:id', async (req, res) => {
 
   try {
     const existEvaluacion = await db.collection('evaluaciones').findOne({ _id: ObjectID(id) });
-    if(!existEvaluacion) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'evaluacion no existe' });
+    if (!existEvaluacion) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'evaluacion no existe' });
 
-    const codeReserva= existEvaluacion.codigo.replace('EVA', 'AGE');
+    const codeReserva = existEvaluacion.codigo.replace('EVA', 'AGE');
     const existReserva = await db.collection('reservas').findOne({ codigo: codeReserva });
-    if(!existReserva) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'reserva no existe' });
+    if (!existReserva) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'reserva no existe' });
 
     const codeSolicitud = existReserva.codigo.replace('AGE', 'SOL');
     const existSolicitud = await db.collection('solicitudes').findOne({ codigo: codeSolicitud });
-    if(!existSolicitud) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'solicitud no existe no existe' });
+    if (!existSolicitud) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'solicitud no existe no existe' });
 
     await db.collection('evaluaciones').updateOne({ _id: ObjectID(id) }, {
-      $set:{
+      $set: {
         isActive: false
       }
     });
     await db.collection('reservas').updateOne({ codigo: codeReserva }, {
-      $set:{
+      $set: {
         isActive: false
       }
     });
     await db.collection('solicitudes').updateOne({ codigo: codeSolicitud }, {
-      $set:{
+      $set: {
         isActive: false
       }
     });

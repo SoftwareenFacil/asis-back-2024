@@ -1,7 +1,7 @@
 export const generalInformation = [
-    'Empresa',
     'Evaluador',
-    'Nombre',
+    'Empresa',
+    'Evaluado',
     'Rut',
     'Fecha de Nacimiento',
     'Cargo',

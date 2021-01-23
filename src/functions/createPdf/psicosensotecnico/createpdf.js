@@ -83,13 +83,13 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     doc
         .font("Helvetica")
-        .text(empresa, 242, generalSpace, { align: "left" });
+        .text(evaluador, 242, generalSpace, { align: "left" });
 
     generalSpace += 15;
 
     doc
         .font("Helvetica")
-        .text(evaluador, 242, generalSpace, { align: "left" });
+        .text(empresa, 242, generalSpace, { align: "left" });
 
     generalSpace += 15;
 
