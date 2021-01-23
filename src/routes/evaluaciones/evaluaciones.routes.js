@@ -32,7 +32,7 @@ router.get("/", async (req, res) => {
   const result = await db
     .collection("evaluaciones")
     .find({ isActive: true })
-    .sort({codigo: 1})
+    .sort({codigo: -1})
     .toArray();
   res.json(result);
 });
@@ -487,6 +487,7 @@ router.post("/pagination", async (req, res) => {
       .find({...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true})
       .skip(skip_page)
       .limit(nPerPage)
+      .sort({ codigo: -1 })
       .toArray();
 
     return res.json({

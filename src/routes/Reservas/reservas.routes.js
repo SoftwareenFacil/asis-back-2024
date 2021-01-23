@@ -67,6 +67,7 @@ router.post("/pagination", async (req, res) => {
       .find({...isRolReservas(dataToken.rol, dataToken.id), isActive: true})
       .skip(skip_page)
       .limit(nPerPage)
+      .sort({ codigo: -1 })
       .toArray();
 
     res.json({

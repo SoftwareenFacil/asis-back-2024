@@ -38,7 +38,9 @@ router.get("/", async (req, res) => {
 
   try {
     const result = await db.collection("resultados")
-      .find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id, isActive: true } : { isActive: true }).toArray();
+      .find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id, isActive: true } : { isActive: true })
+      .sort({ codigo: -1 })
+      .toArray();
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ msg: ERROR, error })
@@ -82,6 +84,7 @@ router.post("/pagination", async (req, res) => {
       .find({...isRolResultados(dataToken.rol, dataToken.rut, dataToken.id), isActive: true})
       .skip(skip_page)
       .limit(nPerPage)
+      .sort({ codigo: -1 })
       .toArray();
 
     res.json({

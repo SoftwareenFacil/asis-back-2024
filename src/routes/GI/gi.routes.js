@@ -45,7 +45,10 @@ router.get("/", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    let result = await db.collection("gi").find({ activo_inactivo: true }).toArray();
+    let result = await db
+      .collection("gi").find({ activo_inactivo: true })
+      .sort({ codigo: -1 })
+      .toArray();
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ msg: ERROR, error })
@@ -65,6 +68,7 @@ router.post("/pagination", async (req, res) => {
       .find({ activo_inactivo: true })
       .skip(skip_page)
       .limit(nPerPage)
+      .sort({ codigo: -1 })
       .toArray();
 
     res.json({
