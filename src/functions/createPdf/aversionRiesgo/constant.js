@@ -5,7 +5,7 @@ export const titles = ['Definición de escala', 'Bajo', 'Promedio', 'Alto'];
 
 export const generalInformation = [
     'Empresa',
-    'Nombre',
+    'Evaluado',
     'Edad',
     'RUT',
     'Educación Formal',
