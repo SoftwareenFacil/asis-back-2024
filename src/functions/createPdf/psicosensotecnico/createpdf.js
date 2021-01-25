@@ -30,6 +30,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         nombre,
         rut,
         rut_evaluador,
+        cargo_evaluador,
         fecha_nacimiento,
         cargo,
         licencia_acreditar,
@@ -867,7 +868,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     doc
         .font("Helvetica-Bold")
-        .text(cargo && cargo.toUpperCase(), 45, generalSpace + moreSpace, { align: "center" });
+        .text(cargo_evaluador && cargo_evaluador.toUpperCase(), 45, generalSpace + moreSpace, { align: "center" });
 
     moreSpace += 8;
 

@@ -240,6 +240,7 @@ router.post('/evaluacionpsico', async (req, res) => {
         evaluador: pa.razon_social || '',
         empresa: cp.razon_social || '',
         rut_evaluador: pa.rut || '',
+        cargo_evaluador: pa.cargo || '',
         nombre: cs.razon_social || '',
         rut: cs.rut || '',
         fecha_nacimiento: cs.fecha_inic_nac || '',

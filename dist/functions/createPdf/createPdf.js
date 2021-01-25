@@ -219,7 +219,7 @@ function createPdf() {
 
   generalSpace += 35;
   doc.fontSize(10);
-  doc.font("Helvetica-Bold").text("Actitud a la prevensión", 72, generalSpace + 35, {
+  doc.font("Helvetica-Bold").text("Actitud a la prevención", 72, generalSpace + 35, {
     align: "left"
   });
   doc.font("Helvetica-Bold").text("de los riesgos", 90, generalSpace + 47, {

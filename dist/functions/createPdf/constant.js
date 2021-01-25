@@ -65,7 +65,7 @@ var estabilidadEmocional = [{
 }];
 exports.estabilidadEmocional = estabilidadEmocional;
 var actPrevencionRiesgosOne = [{
-  name: ['Actitud general hacia la', 'prevensión de accidentes de', 'trabajo'],
+  name: ['Actitud general hacia la', 'prevención de accidentes de', 'trabajo'],
   bajo: false,
   promedio: true,
   alto: false

@@ -108,7 +108,7 @@ export const paraPhrasesTitles = (selectionOne, selectionTwo) => {
             ]
         },
         {
-            name: 'actitud a la prevension de los riesgos',
+            name: 'actitud a la prevención de los riesgos',
             descriptions: [
                 'Se observa una actitud insegura ante la prevención de accidentes laborales, mostrando dificultades para modificar acciones o el entorno para prevenir riesgos.',
                 'Se observa un comportamiento dubitativo con respecto a la actitud general hacia la prevención, la confianza en las acciones preventivas y la capacidad de modificar el ambiente en favor de la seguridad.',
@@ -221,7 +221,7 @@ export const paraPhrases = [
     },
     {
         id: 11,
-        name: 'actitud hacia prevencion de accidentes de trabajo',
+        name: 'actitud hacia prevención de accidentes de trabajo',
         descriptions: [
             'Muestra una actitud insegura hacia la prevención de accidentes de trabajo. Se sugiere reforzar conocimientos y prácticas en el área preventiva.',
             'se observa una actitud neutral hacia la prevención de accidentes de trabajo, requiere mayor motivación y conocimiento de las mismas',

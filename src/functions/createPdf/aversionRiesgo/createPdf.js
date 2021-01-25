@@ -21,7 +21,7 @@ import {
 //I - Analisis de indicadores
 //AN - Adecuacion a las normas
 //EE - Estabilidad emocional
-//APR - Actitud a la prevension de los riesgos
+//APR - Actitud a la prevencion de los riesgos
 //MC - Motivacion por el cargo
 
 export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informacionPersonal, nombrePdf, nombreQR, fecha_vigencia, observacionConclusion) {
@@ -87,7 +87,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     },
     {
       id: 4,
-      nombre: 'Actitud a la prevensión de los riesgos',
+      nombre: 'Actitud a la prevención de los riesgos',
       items: []
     },
     {
@@ -320,7 +320,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   //.-------Actitud a la Prevensión de los Riesgos
   doc
     .font("Helvetica-Bold")
-    .text("Actitud a la Prevensión ", 65, generalSpace + 30, { align: "left" });
+    .text("Actitud a la Prevención ", 65, generalSpace + 30, { align: "left" });
   doc
     .font("Helvetica-Bold")
     .text("de los Riesgos ", 65, generalSpace + 40, { align: "left" });
@@ -811,12 +811,12 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   results = [];
 
   //--------------------------------------------------------------------Actitud a la prevencion de los riesgos
-  name = "actitud prevension de riesgos"
+  name = "actitud prevención de riesgos"
   generalSpace += 35;
   doc.fontSize(10);
   doc
     .font("Helvetica-Bold")
-    .text("Actitud a la prevensión", 72, generalSpace + 35, { align: "left" });
+    .text("Actitud a la prevención", 72, generalSpace + 35, { align: "left" });
   doc
     .font("Helvetica-Bold")
     .text("de los riesgos", 90, generalSpace + 47, { align: "left" });
@@ -876,21 +876,21 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[3].items.push(`Actitud general hacia la prevensión de accidentes de trabajo: ${elecciones[0]} - ${paraPhrases[10].descriptions[0]}`);
+      areas_mejorar[3].items.push(`Actitud general hacia la prevención de accidentes de trabajo: ${elecciones[0]} - ${paraPhrases[10].descriptions[0]}`);
       results.push(1);
       break;
     case 'promedio':
       doc
         .font("Helvetica-Bold")
         .text("X", 462, generalSpace + 5, { align: "left" });
-      fortalezas[3].items.push(`Actitud general hacia la prevensión de accidentes de trabajo: ${elecciones[1]} - ${paraPhrases[10].descriptions[1]}`);
+      fortalezas[3].items.push(`Actitud general hacia la prevención de accidentes de trabajo: ${elecciones[1]} - ${paraPhrases[10].descriptions[1]}`);
       results.push(2);
       break;
     case 'alto':
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[3].items.push(`Actitud general hacia la prevensión de accidentes de trabajo: ${elecciones[2]} - ${paraPhrases[10].descriptions[2]}`);
+      fortalezas[3].items.push(`Actitud general hacia la prevención de accidentes de trabajo: ${elecciones[2]} - ${paraPhrases[10].descriptions[2]}`);
       results.push(3);
       break;
   }

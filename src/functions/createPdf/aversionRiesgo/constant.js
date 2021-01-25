@@ -88,7 +88,7 @@ export const estabilidadEmocional = [
 
 export const actPrevencionRiesgos = [
     {
-        name: ['Actitud general hacia la', 'prevensión de accidentes de', 'trabajo'],
+        name: ['Actitud general hacia la', 'prevención de accidentes de', 'trabajo'],
         bajo: false,
         promedio: true,
         alto: false,
