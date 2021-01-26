@@ -7,6 +7,10 @@
 //     }
 // ]
 
+export const multiplyResult = (results = [], weight = 0) => {
+    return results.length > 0 && results.map(e => e * weight);
+};
+
 export const calculateIndicators = results => {
     return results.length > 0 && results.map(function (el) {
         const multipliedResults = multiplyResult(el.results, el.weight);
@@ -16,10 +20,6 @@ export const calculateIndicators = results => {
             result: reduceredResults / el.cantItems
         }
     });
-};
-
-export const multiplyResult = (results = [], weight = 0) => {
-    return results.length > 0 && results.map(e => e * weight);
 };
 
 export const getResultsTest = results => {

@@ -3,7 +3,19 @@ var fs = require("fs");
 var path = require("path");
 var base64 = require('base64-stream');
 
-import { calculateIndicators, getResultsTest, getResultTest, finalResponseTest, testResult, paraPhrases, paraPhrasesTitles, getAverage, getAverageNumbers, footer, getFormatBar } from "../../../functions/createPdf/aversionRiesgo/calculateResults";
+import { 
+  calculateIndicators, 
+  getResultsTest, 
+  getResultTest, 
+  finalResponseTest, 
+  testResult, 
+  paraPhrases, 
+  paraPhrasesTitles, 
+  getAverage, 
+  getAverageNumbers, 
+  footer, 
+  getFormatBar
+} from "../../../functions/createPdf/aversionRiesgo/calculateResults";
 import {
   titles,
   generalInformation,
@@ -1106,8 +1118,11 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   //------------------Resultados de los calculos
   const numberResults = calculateIndicators(finalResults);
   const preResults = getResultsTest(numberResults);
-  const numberConclusion = finalResponseTest(preResults, 'bajo');
-  const finalDecision = testResult(numberConclusion);
+  const resultBajo = finalResponseTest(preResults, 'bajo');
+  const resultPromedio = finalResponseTest(preResults, 'promedio');
+  const resultAlto = finalResponseTest(preResults, 'alto');
+  // const numberConclusion = finalResponseTest(preResults, 'bajo');
+  const finalDecision = testResult((resultBajo + resultPromedio + resultAlto) / 3);
   //------------------------------------------------------------------------------------------ PAGE 3
   doc.addPage();
   generalSpace = 10;
