@@ -24,18 +24,19 @@ export const calculateIndicators = results => {
 
 export const getResultsTest = results => {
     return results.length > 0 && results.map(e => {
-        if (e.result > 1 && e.result <= 1.49) return 'bajo';
-        if (e.result > 1.49 && e.result <= 2.49) return 'promedio';
-        if (e.result > 2.49 && e.result <= 3) return 'alto';
-        if (e.result > 3) return 'alto';
+        if (e.result >= 0 && e.result <= 3.99) return 'bajo';
+        if (e.result > 3.99 && e.result <= 5.99) return 'promedio';
+        // if (e.result > 2.49 && e.result <= 3) return 'alto';
+        if (e.result >= 6) return 'alto';
         return 'sin definicion';
     })
 };
 
 export const getResultTest = number => {
-    if (number >= 1 && number <= 1.49) return 'Bajo';
-    if (number > 1.49 && number <= 2.49) return 'Promedio';
-    if (number > 2.49 && number <= 3) return 'Alto';
+    if (number >= 0 && number <= 3.99) return 'Bajo';
+    if (number > 3.99 && number <= 5.99) return 'Promedio';
+    // if (number > 5.99 && number <= 6) return 'Alto';
+    if (number >= 6) return 'alto';
     return 'sin definicion';
 }
 
@@ -46,10 +47,9 @@ export const finalResponseTest = (results, word) => {
 };
 
 export const testResult = number => {
-    if (number >= 0 && number <= 1) return 1;
-    if (number > 1 && number <= 2) return 2;
-    if (number > 2 && number <= 3) return 3;
-    if (number > 3) return 3;
+    if (number >= 0 && number <= 3.99) return 1;
+    if (number > 3.99 && number <= 5.99) return 2;
+    if (number >= 6) return 3;
     return 0;
 };
 
@@ -58,11 +58,11 @@ export const getAverage = array => {
     const arrayNumbers = array.map(e => {
         switch (e) {
             case 'Bajo':
-                return 1;
-            case 'Promedio':
                 return 2;
+            case 'Promedio':
+                return 4;
             case 'Alto':
-                return 3;
+                return 6;
             default:
                 break;
         }

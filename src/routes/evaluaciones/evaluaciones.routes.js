@@ -420,7 +420,7 @@ router.post('/evaluacionaversion', async (req, res) => {
       cargo: cs.cargo,
       ciudad: cs.localidad,
       maquinarias_conducir: maquinariasConducir,
-      fecha_evaluacion: conclusionRiesgos === 1 || conclusionRiesgos === 2 ? moment().format('DD-MM-YYYY') : '',
+      fecha_evaluacion: data.fecha_actual_examen || moment().format('DD-MM-YYYY'),
     };
 
     try {

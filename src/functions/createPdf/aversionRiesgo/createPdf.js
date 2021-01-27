@@ -326,7 +326,6 @@ export default function createPdf(
   doc
     .font("Helvetica")
     .text(`${getResultTest(TOTAL_I.reduce((acc, el) => acc + el) / TOTAL_I.length)} - ${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
-
   generalSpace += 40;
   //.-------adecuacion a las normas
   doc
