@@ -318,15 +318,62 @@ router.post('/evaluacionaversion', async (req, res) => {
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  const I = { razonamiento_abstracto: data.razonamiento_abstracto, percepcion_concentracion: data.percepcion_concentracion, comprension_instrucciones: data.comprension_instrucciones };
+  const I = { 
+    razonamiento_abstracto: data.razonamiento_abstracto, 
+    percepcion_concentracion: data.percepcion_concentracion, 
+    comprension_instrucciones: data.comprension_instrucciones 
+  };
 
-  const AN = { acato_autoridad: data.acato_autoridad, relacion_grupo_pares: data.relacion_grupo_pares, comportamiento_social: data.comportamiento_social };
+  const AN = { 
+    acato_autoridad: data.acato_autoridad, 
+    relacion_grupo_pares: data.relacion_grupo_pares, 
+    comportamiento_social: data.comportamiento_social 
+  };
 
-  const EE = { locus_control_impulsividad: data.locus_control_impulsividad, manejo_frustracion: data.manejo_frustracion, empatia: data.empatia, grado_ansiedad: data.grado_ansiedad };
+  const EE = { 
+    locus_control_impulsividad: data.locus_control_impulsividad, 
+    manejo_frustracion: data.manejo_frustracion, 
+    empatia: data.empatia, 
+    grado_ansiedad: data.grado_ansiedad 
+  };
 
-  const APR = { actitud_prevencion_accidentes: data.actitud_prevencion_accidentes, confianza_acciones_realizadas: data.confianza_acciones_realizadas, capacidad_modificar_ambiente_seguridad: data.capacidad_modificar_ambiente_seguridad };
+  const APR = { 
+    actitud_prevencion_accidentes: data.actitud_prevencion_accidentes, 
+    confianza_acciones_realizadas: data.confianza_acciones_realizadas, 
+    capacidad_modificar_ambiente_seguridad: data.capacidad_modificar_ambiente_seguridad 
+  };
 
-  const MC = { orientacion_tarea: data.orientacion_tarea, energia_vital: data.energia_vital };
+  const MC = {
+    orientacion_tarea: data.orientacion_tarea, 
+    energia_vital: data.energia_vital 
+  };
+
+  //-------
+  const TOTAL_I = [
+    data.total_razonamiento_abstracto, 
+    data.total_percepcion_concentracion, 
+    data.total_comprension_instrucciones 
+  ];
+  const TOTAL_AN = [
+    data.total_acato_autoridad, 
+    data.total_relacion_grupo_pares, 
+    data.total_comportamiento_social
+  ];
+  const TOTAL_EE = [
+    data.total_locus_control_impulsividad, 
+    data.total_manejo_frustracion, 
+    data.total_empatia, 
+    data.total_grado_ansiedad
+  ];
+  const TOTAL_APR = [
+    data.total_actitud_prevencion_accidentes, 
+    data.total_confianza_acciones_realizadas, 
+    data.total_capacidad_modificar_ambiente_seguridad
+  ];
+  const TOTAL_MC = [
+    data.total_orientacion_tarea, 
+    data.total_energia_vital
+  ];
 
   const obs = {
     obs: data.observaciones_conclusion,
@@ -386,12 +433,6 @@ router.post('/evaluacionaversion', async (req, res) => {
         option: "online"
       }
 
-      // const result = await db.collection('evaluaciones').updateOne({ codigo: data.codigo }, {
-      //   $set: {
-      //     url_file_adjunto_EE: objFile
-      //   }
-      // });
-
       const result = await db.collection("evaluaciones").updateOne(
         { codigo: data.codigo, isActive: true },
         {
@@ -410,7 +451,26 @@ router.post('/evaluacionaversion', async (req, res) => {
         }
       );
 
-      pdfAversionRiesgo(I, AN, EE, APR, MC, conclusionRiesgos, informacionPersonal, nombrePdf, nombreQR, fecha_vigencia, observacionConclusion);
+      // console.log(data)
+
+      pdfAversionRiesgo(
+        I, 
+        AN, 
+        EE, 
+        APR, 
+        MC, 
+        conclusionRiesgos, 
+        informacionPersonal, 
+        nombrePdf, 
+        nombreQR, 
+        fecha_vigencia, 
+        observacionConclusion,
+        TOTAL_I,
+        TOTAL_AN,
+        TOTAL_EE,
+        TOTAL_APR,
+        TOTAL_MC
+      );
 
       res.status(200).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
     } catch (error) {

@@ -3,17 +3,17 @@ var fs = require("fs");
 var path = require("path");
 var base64 = require('base64-stream');
 
-import { 
-  calculateIndicators, 
-  getResultsTest, 
-  getResultTest, 
-  finalResponseTest, 
-  testResult, 
-  paraPhrases, 
-  paraPhrasesTitles, 
-  getAverage, 
-  getAverageNumbers, 
-  footer, 
+import {
+  calculateIndicators,
+  getResultsTest,
+  getResultTest,
+  finalResponseTest,
+  testResult,
+  paraPhrases,
+  paraPhrasesTitles,
+  getAverage,
+  getAverageNumbers,
+  footer,
   getFormatBar
 } from "../../../functions/createPdf/aversionRiesgo/calculateResults";
 import {
@@ -36,7 +36,24 @@ import {
 //APR - Actitud a la prevencion de los riesgos
 //MC - Motivacion por el cargo
 
-export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informacionPersonal, nombrePdf, nombreQR, fecha_vigencia, observacionConclusion) {
+export default function createPdf(
+  I,
+  AN,
+  EE,
+  APR,
+  MC,
+  conclusionRiesgos,
+  informacionPersonal,
+  nombrePdf,
+  nombreQR,
+  fecha_vigencia,
+  observacionConclusion,
+  TOTAL_I,
+  TOTAL_AN,
+  TOTAL_EE,
+  TOTAL_APR,
+  TOTAL_MC
+) {
   //Intelectual
   const { razonamiento_abstracto, percepcion_concentracion, comprension_instrucciones } = I;
   const { acato_autoridad, relacion_grupo_pares, comportamiento_social } = AN;
@@ -308,7 +325,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .text("Intelectual ", 85, generalSpace + 28, { align: "left" });
   doc
     .font("Helvetica")
-    .text(`${getResultTest(getAverage(Object.values(I)))} - ${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
+    .text(`${getResultTest(TOTAL_I.reduce((acc, el) => acc + el) / TOTAL_I.length)} - ${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
 
   generalSpace += 40;
   //.-------adecuacion a las normas
@@ -317,7 +334,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .text("Adecuacion a las normas ", 63, generalSpace + 25, { align: "left" });
   doc
     .font("Helvetica")
-    .text(`${getResultTest(getAverage(Object.values(AN)))} - ${paraPhrasesTitles(1, getAverageNumbers(getResultTest(getAverage(Object.values(AN)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
+    .text(`${getResultTest(TOTAL_AN.reduce((acc, el) => acc + el) / TOTAL_AN.length)} - ${paraPhrasesTitles(1, getAverageNumbers(getResultTest(getAverage(Object.values(AN)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
 
   generalSpace += 30;
   //.-------estabilidad emocional
@@ -326,7 +343,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .text("Estabilidad Emocional ", 65, generalSpace + 30, { align: "left" });
   doc
     .font("Helvetica")
-    .text(`${getResultTest(getAverage(Object.values(EE)))} - ${paraPhrasesTitles(2, getAverageNumbers(getResultTest(getAverage(Object.values(EE)))))}`, 200, generalSpace + 23, { align: "left", width: 360 });
+    .text(`${getResultTest(TOTAL_EE.reduce((acc, el) => acc + el) / TOTAL_EE.length)} - ${paraPhrasesTitles(2, getAverageNumbers(getResultTest(getAverage(Object.values(EE)))))}`, 200, generalSpace + 23, { align: "left", width: 360 });
 
   generalSpace += 30;
   //.-------Actitud a la Prevensión de los Riesgos
@@ -338,7 +355,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .text("de los Riesgos ", 65, generalSpace + 40, { align: "left" });
   doc
     .font("Helvetica")
-    .text(`${getResultTest(getAverage(Object.values(APR)))} - ${paraPhrasesTitles(3, getAverageNumbers(getResultTest(getAverage(Object.values(APR)))))}`, 200, generalSpace + 30, { align: "left", width: 360 });
+    .text(`${getResultTest(TOTAL_APR.reduce((acc, el) => acc + el) / TOTAL_APR.length)} - ${paraPhrasesTitles(3, getAverageNumbers(getResultTest(getAverage(Object.values(APR)))))}`, 200, generalSpace + 30, { align: "left", width: 360 });
 
   generalSpace += 52;
   //.-------Motivación por el cargo
@@ -347,7 +364,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
     .text("Motivación por el cargo ", 65, generalSpace + 20, { align: "left" });
   doc
     .font("Helvetica")
-    .text(`${getResultTest(getAverage(Object.values(MC)))} - ${paraPhrasesTitles(4, getAverageNumbers(getResultTest(getAverage(Object.values(MC)))))}`, 200, generalSpace + 20, { align: "left" });
+    .text(`${getResultTest(TOTAL_MC.reduce((acc, el) => acc + el) / TOTAL_MC.length)} - ${paraPhrasesTitles(4, getAverageNumbers(getResultTest(getAverage(Object.values(MC)))))}`, 200, generalSpace + 20, { align: "left" });
 
 
   // doc.lineJoin("miter").rect(50, generalSpace, 510, 160).stroke();
@@ -1116,13 +1133,19 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   results = [];
 
   //------------------Resultados de los calculos
-  const numberResults = calculateIndicators(finalResults);
-  const preResults = getResultsTest(numberResults);
-  const resultBajo = finalResponseTest(preResults, 'bajo');
-  const resultPromedio = finalResponseTest(preResults, 'promedio');
-  const resultAlto = finalResponseTest(preResults, 'alto');
+  // const numberResults = calculateIndicators(finalResults);
+  // const preResults = getResultsTest(numberResults);
+  // const resultBajo = finalResponseTest(preResults, 'bajo');
+  // const resultPromedio = finalResponseTest(preResults, 'promedio');
+  // const resultAlto = finalResponseTest(preResults, 'alto');
   // const numberConclusion = finalResponseTest(preResults, 'bajo');
-  const finalDecision = testResult((resultBajo + resultPromedio + resultAlto) / 3);
+  const result_I = TOTAL_I.reduce((acc, el) => acc + el) / TOTAL_I.length;
+  const result_AN = TOTAL_AN.reduce((acc, el) => acc + el) / TOTAL_AN.length;
+  const result_EE = TOTAL_EE.reduce((acc, el) => acc + el) / TOTAL_EE.length;
+  const result_APR = TOTAL_APR.reduce((acc, el) => acc + el) / TOTAL_APR.length;
+  const result_MC = TOTAL_MC.reduce((acc, el) => acc + el) / TOTAL_MC.length;
+  console.log('result', [(result_I + result_AN + result_EE + result_APR + result_MC) / 5])
+  const finalDecision = testResult((result_I + result_AN + result_EE + result_APR + result_MC) / 5);
   //------------------------------------------------------------------------------------------ PAGE 3
   doc.addPage();
   generalSpace = 10;
@@ -1284,7 +1307,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
   doc.lineJoin("miter").rect(395, generalSpace + 2, 165, 15).stroke();
 
   switch (finalDecision) {
-    case 1:
+    case 3:
       doc.fontSize(11);
       doc
         .font("Helvetica-Bold")
@@ -1318,7 +1341,7 @@ export default function createPdf(I, AN, EE, APR, MC, conclusionRiesgos, informa
       // .text('desde el punto de vista psicológico');
       break;
 
-    case 3:
+    case 1:
       doc.fontSize(11);
       doc
         .font("Helvetica-Bold")
