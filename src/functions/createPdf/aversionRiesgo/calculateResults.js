@@ -36,7 +36,7 @@ export const getResultTest = number => {
     if (number >= 0 && number <= 3.99) return 'Bajo';
     if (number > 3.99 && number <= 5.99) return 'Promedio';
     // if (number > 5.99 && number <= 6) return 'Alto';
-    if (number >= 6) return 'alto';
+    if (number >= 6) return 'Alto';
     return 'sin definicion';
 }
 

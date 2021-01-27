@@ -247,7 +247,7 @@ router.post('/evaluacionpsico', async (req, res) => {
         cargo: cs.cargo || '',
         licencia_acreditar: licencia || '',
         ley: cs.ley_aplicable || '',
-        vencimiento_licencia: cs.fecha_venc_licencia || '',
+        vencimiento_licencia: cs.fecha_venc_licencia ? moment(cs.fecha_venc_licencia).format('DD-MM-YYYY') : '',
         observaciones_licencia: cs.estado_licencia || '',
         fecha_examen: moment().format('DD-MM-YYYY') || '',
         resultado: resultado || '',
