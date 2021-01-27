@@ -138,7 +138,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     doc
         .font("Helvetica")
-        .text(ley, 242, generalSpace, { align: "left" });
+        .text(ley !== '' ? ley : 'No Aplica', 242, generalSpace, { align: "left" });
 
     generalSpace += 15;
 

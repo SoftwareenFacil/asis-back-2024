@@ -243,7 +243,7 @@ router.post('/evaluacionpsico', async (req, res) => {
         cargo_evaluador: pa.cargo || '',
         nombre: cs.razon_social || '',
         rut: cs.rut || '',
-        fecha_nacimiento: cs.fecha_inic_nac || '',
+        fecha_nacimiento: cs.fecha_inic_nac ? moment(cs.fecha_inic_nac).format('DD-MM-YYYY') : '',
         cargo: cs.cargo || '',
         licencia_acreditar: licencia || '',
         ley: cs.ley_aplicable || '',
