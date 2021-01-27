@@ -96,7 +96,7 @@ var motivacionCargo = [{
 }];
 exports.motivacionCargo = motivacionCargo;
 var conclusion = [{
-  name: ['No representa conductas de', 'riegos'],
+  name: ['No presenta conductas de', 'riegos'],
   verticalSpace: 0
 }, {
   name: ['Presenta bajas conductas', 'de riesgos'],

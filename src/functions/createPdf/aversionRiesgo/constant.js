@@ -124,7 +124,7 @@ export const motivacionCargo = [
 
 export const conclusion = [
     {
-        name: ['No representa conductas de', 'riegos'],
+        name: ['No presenta conductas de', 'riegos'],
         verticalSpace: 0
     },
     {
