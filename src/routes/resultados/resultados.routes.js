@@ -11,15 +11,16 @@ import { verifyToken } from "../../libs/jwt";
 
 const router = Router();
 
-import { 
-  MESSAGE_UNAUTHORIZED_TOKEN, 
-  UNAUTHOTIZED, 
-  ERROR_MESSAGE_TOKEN, 
-  AUTHORIZED, 
-  ERROR, 
-  SUCCESSFULL_INSERT, 
+import {
+  MESSAGE_UNAUTHORIZED_TOKEN,
+  UNAUTHOTIZED,
+  ERROR_MESSAGE_TOKEN,
+  AUTHORIZED,
+  ERROR,
+  SUCCESSFULL_INSERT,
   SUCCESSFULL_UPDATE,
-  DELETE_SUCCESSFULL } from "../../constant/text_messages";
+  DELETE_SUCCESSFULL
+} from "../../constant/text_messages";
 
 //database connection
 import { connect } from "../../database";
@@ -78,10 +79,10 @@ router.post("/pagination", async (req, res) => {
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countRes = await db.collection("resultados").find({...isRolResultados(dataToken.rol, dataToken.rut, dataToken.id), isActive: true}).count();
+    const countRes = await db.collection("resultados").find({ ...isRolResultados(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }).count();
     const result = await db
       .collection("resultados")
-      .find({...isRolResultados(dataToken.rol, dataToken.rut, dataToken.id), isActive: true})
+      .find({ ...isRolResultados(dataToken.rol, dataToken.rut, dataToken.id), isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
       .sort({ codigo: -1 })
@@ -335,7 +336,7 @@ router.post("/confirmar/:id", async (req, res) => {
 
   if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores' || dataToken.rol === 'Empleados')
+  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
     return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   let result = "";
@@ -347,123 +348,128 @@ router.post("/confirmar/:id", async (req, res) => {
   // obs.obs = datos.observaciones;
   // obs.fecha = getDate(new Date());
 
-  if (datos.estado_archivo == "Aprobado") {
-    obs.estado = datos.estado_archivo;
-    if (
-      datos.estado_resultado == "Aprobado con Obs" ||
-      datos.estado_resultado == "Aprobado"
-    ) {
-      result = await db.collection("resultados").findOneAndUpdate(
-        { _id: ObjectID(id) },
-        {
-          $set: {
-            estado: "Revisado",
-            estado_archivo: datos.estado_archivo,
-            estado_resultado: datos.estado_resultado,
-            vigencia_examen: datos.vigencia_examen,
-            fecha_resultado: datos.fecha_resultado,
-            hora_resultado: datos.hora_resultado,
-            condicionantes: datos.condicionantes,
-            fecha_vencimiento_examen: getDateEspecific(
-              getFechaVencExam(datos.fecha_resultado, datos.vigencia_examen)
-            ).substr(0, 10),
-          },
-          $push: {
-            observaciones: obs,
-          },
-        }
-      );
-    } else {
-      result = await db.collection("resultados").findOneAndUpdate(
-        { _id: ObjectID(id) },
-        {
-          $set: {
-            estado: "Revisado",
-            estado_archivo: datos.estado_archivo,
-            estado_resultado: datos.estado_resultado,
-            fecha_resultado: datos.fecha_resultado,
-            hora_resultado: datos.hora_resultado,
-          },
-          $push: {
-            observaciones: obs,
-          },
-        }
-      );
-    }
-
-    //insercion de la facturación
-    let codAsis = result.value.codigo;
-    let gi = await db
-      .collection("gi")
-      .findOne({ rut: result.value.rut_cp, categoria: "Empresa/Organizacion" });
-    var isOC = "";
-    let estado_archivo = "";
-    let estado = "";
-
-    if (gi) {
-      isOC = gi.orden_compra;
-      if (isOC == "Si") {
-        (estado_archivo = "Sin Documento"), (estado = "Ingresado");
+  try {
+    if (datos.estado_archivo == "Aprobado") {
+      obs.estado = datos.estado_archivo;
+      if (
+        datos.estado_resultado == "Aprobado con Obs" ||
+        datos.estado_resultado == "Aprobado"
+      ) {
+        result = await db.collection("resultados").findOneAndUpdate(
+          { _id: ObjectID(id) },
+          {
+            $set: {
+              estado: "Revisado",
+              estado_archivo: datos.estado_archivo,
+              estado_resultado: datos.estado_resultado,
+              vigencia_examen: datos.vigencia_examen,
+              fecha_resultado: datos.fecha_resultado,
+              hora_resultado: datos.hora_resultado,
+              condicionantes: datos.condicionantes,
+              fecha_vencimiento_examen: getDateEspecific(
+                getFechaVencExam(datos.fecha_resultado, datos.vigencia_examen)
+              ).substr(0, 10),
+            },
+            $push: {
+              observaciones: obs,
+            },
+          }
+        );
       } else {
+        result = await db.collection("resultados").findOneAndUpdate(
+          { _id: ObjectID(id) },
+          {
+            $set: {
+              estado: "Revisado",
+              estado_archivo: datos.estado_archivo,
+              estado_resultado: datos.estado_resultado,
+              fecha_resultado: datos.fecha_resultado,
+              hora_resultado: datos.hora_resultado,
+            },
+            $push: {
+              observaciones: obs,
+            },
+          }
+        );
+      }
+
+      //insercion de la facturación
+      let codAsis = result.value.codigo;
+      let gi = await db
+        .collection("gi")
+        .findOne({ rut: result.value.rut_cp, categoria: "Empresa/Organizacion" });
+      var isOC = "";
+      let estado_archivo = "";
+      let estado = "";
+
+      if (gi) {
+        isOC = gi.orden_compra;
+        if (isOC == "Si") {
+          (estado_archivo = "Sin Documento"), (estado = "Ingresado");
+        } else {
+          (estado = "En Facturacion"), (estado_archivo = "Sin Documento");
+        }
+      } else {
+        isOC = "No";
         (estado = "En Facturacion"), (estado_archivo = "Sin Documento");
       }
-    } else {
-      isOC = "No";
-      (estado = "En Facturacion"), (estado_archivo = "Sin Documento");
-    }
 
-    if (result) {
-      result = await db.collection("facturaciones").insertOne({
-        codigo: codAsis.replace("RES", "FAC"),
-        nombre_servicio: result.value.nombre_servicio,
-        id_GI_personalAsignado: result.value.id_GI_personalAsignado,
-        faena_seleccionada_cp: result.value.faena_seleccionada_cp,
-        valor_servicio: result.value.valor_servicio,
-        rut_cp: result.value.rut_cp,
-        razon_social_cp: result.value.razon_social_cp,
-        rut_cs: result.value.rut_cs,
-        razon_social_cs: result.value.razon_social_cs,
-        lugar_servicio: result.value.lugar_servicio,
-        sucursal: result.value.sucursal,
-        condicionantes: result.value.condicionantes,
-        vigencia_examen: result.value.vigencia_examen,
-        oc: isOC,
-        archivo_oc: null,
-        fecha_oc: "",
-        hora_oc: "",
-        nro_oc: "",
-        observacion_oc: [],
-        observacion_factura: [],
-        estado: estado,
-        estado_archivo: estado_archivo,
-        fecha_facturacion: "",
-        nro_factura: "",
-        archivo_factura: null,
-        monto_neto: 0,
-        porcentaje_impuesto: "",
-        valor_impuesto: 0,
-        sub_total: 0,
-        exento: 0,
-        descuento: 0,
-        total: 0,
-        isActive: true
-      });
-    }
-  } else {
-    obs.estado = datos.estado_archivo;
-    result = await db.collection("resultados").updateOne(
-      { _id: ObjectID(id) },
-      {
-        $set: {
-          estado_archivo: datos.estado_archivo,
-        },
-        $push: {
-          observaciones: obs,
-        },
+      if (result) {
+        result = await db.collection("facturaciones").insertOne({
+          codigo: codAsis.replace("RES", "FAC"),
+          nombre_servicio: result.value.nombre_servicio,
+          id_GI_personalAsignado: result.value.id_GI_personalAsignado,
+          faena_seleccionada_cp: result.value.faena_seleccionada_cp,
+          valor_servicio: result.value.valor_servicio,
+          rut_cp: result.value.rut_cp,
+          razon_social_cp: result.value.razon_social_cp,
+          rut_cs: result.value.rut_cs,
+          razon_social_cs: result.value.razon_social_cs,
+          lugar_servicio: result.value.lugar_servicio,
+          sucursal: result.value.sucursal,
+          condicionantes: result.value.condicionantes,
+          vigencia_examen: result.value.vigencia_examen,
+          oc: isOC,
+          archivo_oc: null,
+          fecha_oc: "",
+          hora_oc: "",
+          nro_oc: "",
+          observacion_oc: [],
+          observacion_factura: [],
+          estado: estado,
+          estado_archivo: estado_archivo,
+          fecha_facturacion: "",
+          nro_factura: "",
+          archivo_factura: null,
+          monto_neto: 0,
+          porcentaje_impuesto: "",
+          valor_impuesto: 0,
+          sub_total: 0,
+          exento: 0,
+          descuento: 0,
+          total: 0,
+          isActive: true
+        });
       }
-    );
+    } else {
+      obs.estado = datos.estado_archivo;
+      result = await db.collection("resultados").updateOne(
+        { _id: ObjectID(id) },
+        {
+          $set: {
+            estado_archivo: datos.estado_archivo,
+          },
+          $push: {
+            observaciones: obs,
+          },
+        }
+      );
+    }
+    return res.status(200).json(result);
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({ msg: 'error al confirmar resultado', err: String(error) });
   }
-  res.json(result);
 });
 
 //DELETE / ANULAR
@@ -473,37 +479,37 @@ router.delete('/:id', async (req, res) => {
 
   try {
     const existResultado = await db.collection('resultados').findOne({ _id: ObjectID(id) });
-    if(!existResultado) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'resultado no existe' });
+    if (!existResultado) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'resultado no existe' });
 
     const codeEvaluacion = existResultado.codigo.replace('RES', 'EVA');
     const existEvaluacion = await db.collection('evaluaciones').findOne({ codigo: codeEvaluacion });
-    if(!existEvaluacion) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'evaluacion no existe' });
+    if (!existEvaluacion) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'evaluacion no existe' });
 
-    const codeReserva= existEvaluacion.codigo.replace('EVA', 'AGE');
+    const codeReserva = existEvaluacion.codigo.replace('EVA', 'AGE');
     const existReserva = await db.collection('reservas').findOne({ codigo: codeReserva });
-    if(!existReserva) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'reserva no existe' });
+    if (!existReserva) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'reserva no existe' });
 
     const codeSolicitud = existReserva.codigo.replace('AGE', 'SOL');
     const existSolicitud = await db.collection('solicitudes').findOne({ codigo: codeSolicitud });
-    if(!existSolicitud) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'solicitud no existe no existe' });
+    if (!existSolicitud) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'solicitud no existe no existe' });
 
     await db.collection('resultados').updateOne({ _id: ObjectID(id) }, {
-      $set:{
+      $set: {
         isActive: false
       }
     });
     await db.collection('evaluaciones').updateOne({ codigo: codeEvaluacion }, {
-      $set:{
+      $set: {
         isActive: false
       }
     });
     await db.collection('reservas').updateOne({ codigo: codeReserva }, {
-      $set:{
+      $set: {
         isActive: false
       }
     });
     await db.collection('solicitudes').updateOne({ codigo: codeSolicitud }, {
-      $set:{
+      $set: {
         isActive: false
       }
     });
