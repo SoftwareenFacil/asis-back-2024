@@ -78,8 +78,7 @@ router.post("/pagination", async (req, res) => {
       gis: result,
     });
   } catch (error) {
-    db.close();
-    res.status(500).json(error);
+    return res.status(500).json(error);
   }
 });
 
@@ -90,7 +89,6 @@ router.get("/empresas", async (req, res) => {
     .collection("gi")
     .find({ categoria: "Empresa/Organizacion", activo_inactivo: true })
     .toArray();
-  db.close();
   return res.json(result);
 });
 
@@ -146,8 +144,6 @@ router.post("/buscar", async (req, res) => {
       .toArray();
   }
 
-  db.close();
-
   return res.json({
     total_items: countGIs,
     pagina_actual: pageNumber,
@@ -181,7 +177,6 @@ router.post("/:rut", async (req, res) => {
       .findOne({ rut: rutFiltrado, categoria: "Persona Natural", activo_inactivo: true });
   }
 
-  db.close();
   return res.json(result);
 });
 
