@@ -43,7 +43,7 @@ router.get("/", async (req, res) => {
   const db = await connect();
   const result = await db.collection("solicitudes").find({ isActive: true }).toArray();
 
-  res.json(result);
+  return res.json(result);
 });
 
 //SELECT WITH PAGINATION
@@ -101,10 +101,7 @@ router.post("/buscar", async (req, res) => {
 
   if (identificador === 1 && filtro.includes("k")) {
     rutFiltrado.replace("k", "K");
-  }
-  // else {
-  //   rutFiltrado = filtro;
-  // }
+  };
 
   const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
 
@@ -153,128 +150,7 @@ router.post("/buscar", async (req, res) => {
         .toArray();
     }
 
-    // if (dataToken.rol === 'Clientes') {
-    //   if (identificador === 1) {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .count();
-
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ rut_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else if (identificador === 2) {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .count();
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .count();
-
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // }
-    // else if (dataToken.rol === 'Colaboradores') {
-    //   if (identificador === 1) {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ rut_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
-    //       .count();
-
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ rut_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else if (identificador === 2) {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
-    //       .count();
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .count();
-
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ sucursal: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // }
-    // else {
-    //   if (identificador === 1) {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ rut_CP: rexExpresionFiltro })
-    //       .count();
-
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ rut_CP: rexExpresionFiltro })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else if (identificador === 2) {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ razon_social_CP: rexExpresionFiltro })
-    //       .count();
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ razon_social_CP: rexExpresionFiltro })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ sucursal: rexExpresionFiltro })
-    //       .count();
-
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ sucursal: rexExpresionFiltro })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // };
-
-    res.status(200).json({
+    return res.status(200).json({
       total_items: countSol,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countSol / nPerPage + 1),
@@ -282,7 +158,7 @@ router.post("/buscar", async (req, res) => {
     });
 
   } catch (error) {
-    res.status(500).json({ mgs: ERROR, error });
+    return res.status(500).json({ mgs: ERROR, error });
   }
 });
 
@@ -307,7 +183,7 @@ router.get("/mostrar/:id", async (req, res) => {
 
   resultSol.email_gi = resultGI.email_central !== null ? resultGI.email_central : '';
 
-  res.status(200).json(resultSol);
+  return res.status(200).json(resultSol);
 });
 
 //INSERT
@@ -358,36 +234,13 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       const gi = await db
         .collection("gi")
         .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
-
-      // if (gi.email_central !== null && gi.email_central !== '') {
-      //   sendinblue(
-      //     {
-      //       RAZON_SOCIAL_CP: result.ops[0].razon_social_CP,
-      //       CODIGO_SOL: result.ops[0].codigo,
-      //       FECHA_SOL: result.ops[0].fecha_solicitud,
-      //       HORA_SOL: result.ops[0].hora_solicitud,
-      //       CATEGORIA_UNO_SOL: result.ops[0].categoria1,
-      //       NOMBRE_SERVICIO: result.ops[0].nombre_servicio,
-      //       NOMBRE_TIPO_SERVICIO: result.ops[0].tipo_servicio,
-      //       LUGAR_SERVICIO: result.ops[0].lugar_servicio,
-      //       SUCURSAL_SERVICIO: result.ops[0].sucursal,
-      //     },
-      //     [
-      //       {
-      //         email: gi.email_central,
-      //         nombre: gi.razon_social,
-      //       },
-      //     ],
-      //     4
-      //   );
-      // }
     };
 
     return res.status(200).json({ msg: SUCCESSFULL_INSERT, result });
 
   } catch (error) {
 
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
 
   }
 
@@ -423,7 +276,7 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
 
       const result = await db.collection('solicitudes').insertMany(solicitudes);
 
-      res.json({
+      return res.json({
         message: "Solicitudes Ingresadas",
         isOK: true,
         inserted: result
@@ -432,7 +285,7 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-    res.json({
+    return res.json({
       message: "Algo ha salido mal",
       isOK: false,
       error: err,
@@ -455,15 +308,6 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 
   if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
     return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
-
-  // if (req.file) {
-  //   solicitud.url_file_adjunto = {
-  //     name: req.file.originalname,
-  //     size: req.file.size,
-  //     path: req.file.path,
-  //     type: req.file.mimetype,
-  //   };
-  // }
 
   if (req.file)
     solicitud.url_file_adjunto = {
@@ -524,9 +368,9 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
       }
     );
 
-    res.status(200).json({ msg: SUCCESSFULL_UPDATE });
+    return res.status(200).json({ msg: SUCCESSFULL_UPDATE });
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -548,11 +392,6 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
 
   if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
     return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
-
-  // let obs = {};
-  // let archivo = {};
-  // obs.obs = solicitud.observacion_solicitud;
-  // obs.fecha = getDate(new Date());
 
   const obs = {
     obs: solicitud.observacion_solicitud,
@@ -631,36 +470,8 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       const resulReserva = await db
         .collection("reservas")
         .insertOne(newReserva);
-      res.json(resulReserva);
 
-      // if (resulReserva.result.ok) {
-      //   const respMail = sendinblue(
-      //     {
-      //       RAZON_SOCIAL_CP: resp.razon_social_CP,
-      //       CODIGO_SOL: resp.codigo,
-      //       FECHA_SOL: resp.fecha_solicitud,
-      //       HORA_SOL: resp.hora_solicitud,
-      //       CATEGORIA_UNO_SOL: resp.categoria1,
-      //       NOMBRE_SERVICIO: resp.nombre_servicio,
-      //       NOMBRE_TIPO_SERVICIO: resp.tipo_servicio,
-      //       LUGAR_SERVICIO: resp.lugar_servicio,
-      //       SUCURSAL_SERVICIO: resp.sucursal,
-      //       FECHA_CONFIRMACION_SOL: resp.fecha_confirmacion,
-      //       HORA_CONFIRMACION_SOL: resp.hora_confirmacion,
-      //       MEDIO_CONFIRMACION: resp.medio_confirmacion,
-      //       OBSERVACION_CONFIRMACION:
-      //         resp.observacion_solicitud[resp.observacion_solicitud.length - 1]
-      //           .obs,
-      //     },
-      //     [
-      //       {
-      //         email: solicitud.email_central,
-      //         nombre: resp.razon_social_CP,
-      //       },
-      //     ],
-      //     5
-      //   );
-      // }
+      return res.json(resulReserva);
     }
   }
 });
@@ -768,10 +579,10 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
       .collection("reservas")
       .insertMany(arrayReservas);
 
-    res.status(200).json({ msg: SUCCESSFULL_UPDATE, resultReserva });
+    return res.status(200).json({ msg: SUCCESSFULL_UPDATE, resultReserva });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -786,65 +597,32 @@ router.delete('/:id', async (req, res) => {
         isActive: false
       }
     });
-    res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'ok' });
+    return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'ok' });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
+    return res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
   }
 });
 
-// router.post("/test", async (req, res) => {
-//   const { id } = req.body;
-//   const db = await connect();
+router.delete('/deletemany/many', async (req, res) => {
+  const db = await connect();
+  try {
+    
+    let ids = [];
+    let contador = 6210;
 
-//   const gi = await db
-//     .collection("gi")
-//     .findOne({ _id: ObjectID(id) }, { email_central: 1 });
+    for (let i = 0; i < 533; i++) {
+      ids.push(`ASIS-SOL-2021-0${contador}`);
+      contador++;   
+    };
 
-//   res.json(gi.email_central);
-// });
+    await db.collection('solicitudes').deleteMany({ codigo: { $in: ids } });
 
-//ANULAR SOLICITUD
-// router.delete("/:id", async (req, res) => {
-//   const { id } = req.params;
-//   const db = await connect();
-//   const result = await db
-//     .collection("solicitudes")
-//     .deleteOne({ _id: ObjectID(id) });
-//   res.json(result);
-// });
-
-// ADD FECHA Y HORA SYSTEM
-// router.get("/addfechahora", async (req, res) => {
-//   const { id } = req.params;
-//   const db = await connect();
-//   const result = await db
-//     .collection("solicitudes")
-//     .updateMany({}, {
-//       $set:{
-//         fecha_system: moment().format("DD-MM-YYYY"),
-//         hora_system: moment().format("HH:mm")
-//       }
-//     });
-//   res.json({msg: 'listo'});
-// });
-
-// ADD IsActive
-// router.get('/addisactive', async (req, res) => {
-//   const db = await connect();
-
-//   try {
-//     const result = await db
-//       .collection("solicitudes")
-//       .updateMany({}, {
-//         $set: {
-//           isActive: true
-//         }
-//       });
-//     res.status(200).json(result);
-//   } catch (error) {
-//     res.status(500).json({ msg: String(error) });
-//   }
-// });
+    return res.status(200).json({ msg: 'solicitudes eliminadas' });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ msg: 'error', err: String(error) });
+  }
+});
 
 export default router;

@@ -21,7 +21,7 @@ router.get("/", async (req, res) => {
     .collection("gi")
     .find({ activo_inactivo: true, grupo_interes: 'Empleados' })
     .toArray();
-  res.json(result);
+  return res.json(result);
 });
 
 //SELECT WITH PAGINATION
@@ -142,14 +142,14 @@ router.post("/buscar", async (req, res) => {
       }
     }
 
-    res.json({
+    return res.json({
       total_items: countEmpleados,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countEmpleados / nPerPage + 1),
       empleados: result,
     });
   } catch (error) {
-    res.status(500).json({ mgs: ERROR, error });
+    return res.status(500).json({ mgs: ERROR, error });
   }
 });
 
@@ -161,7 +161,7 @@ router.get("/:id", async (req, res) => {
     .collection("gi")
     .findOne({ _id: ObjectID(id) });
 
-  res.json(result);
+  return res.json(result);
 });
 
 //EDITAR EMPLEADO
@@ -231,10 +231,10 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
         },
       }
     );
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } else {
     console.log(error)
-    res.status(500).json({ msg: "No se ha encontrado el empleado" });
+    return res.status(500).json({ msg: "No se ha encontrado el empleado" });
   }
 });
 
@@ -286,9 +286,9 @@ router.get("/traspaso/test", async (req, res) => {
 
     const r = await db.collection("empleados").insertMany(newArray);
 
-    res.json(r);
+    return res.json(r);
   } else {
-    res.json({
+    return res.json({
       cant: result.length,
       data: result,
     });
@@ -309,7 +309,7 @@ router.delete("/:id", async (req, res) => {
     }
   );
 
-  res.json(result);
+  return res.json(result);
 });
 
 export default router;

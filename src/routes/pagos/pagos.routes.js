@@ -16,7 +16,7 @@ import { ObjectID } from "mongodb";
 router.get("/", async (req, res) => {
   const db = await connect();
   const result = await db.collection("pagos").find({ isActive: true }).toArray();
-  res.json(result);
+  return res.json(result);
 });
 
 //SELECT ONE
@@ -26,7 +26,7 @@ router.get('/:id', async (req, res) =>{
 
   const result = await db.collection('pagos').findOne({_id: ObjectID(id)});
 
-  res.json(result);
+  return res.json(result);
 
 })
 
@@ -53,7 +53,7 @@ router.post("/pagination", async (req, res) => {
       .limit(nPerPage)
       .toArray();
 
-    res.json({
+    return res.json({
       auth: AUTHORIZED,
       total_items: countPagos,
       pagina_actual: pageNumber,
@@ -61,7 +61,7 @@ router.post("/pagination", async (req, res) => {
       pagos: result,
     });
   } catch (error) {
-    res.status(500).json(error);
+    return res.status(500).json(error);
   }
 });
 
@@ -145,14 +145,14 @@ router.post("/buscar", async (req, res) => {
       }
     }
 
-    res.json({
+    return res.json({
       total_items: countPagos,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countPagos / nPerPage + 1),
       pagos: result,
     });
   } catch (error) {
-    res.status(500).json({ mgs: ERROR, error  });
+    return res.status(500).json({ mgs: ERROR, error  });
   }
 });
 
@@ -257,7 +257,7 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
     );
   }
 
-  res.json(result);
+  return res.json(result);
 });
 
 //INGRESO MASIVO DE PAGOS
@@ -340,12 +340,12 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
         );
       });
 
-    res.json({
+    return res.json({
       message: "Pagos realizados satisfactoriamente",
       isOK: true,
     });
   } catch (error) {
-    res.json({
+    return res.json({
       message: "ha ocurrido un error",
       err: error,
       isOK: false,
@@ -481,7 +481,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
       );
     }
 
-    res.json(result);
+    return res.json(result);
   }
 });
 
@@ -583,7 +583,7 @@ router.delete("/:id", async (req, res) => {
     );
   };
 
-  res.json(result);
+  return res.json(result);
 });
 
 // ADD IsActive

@@ -13,7 +13,7 @@ import { ObjectID } from "mongodb";
 router.get("/", async (req, res) => {
   const db = await connect();
   const result = await db.collection("cobranza").find({ isActive: true }).toArray();
-  res.json(result);
+  return res.json(result);
 });
 
 //SELECT ONE
@@ -23,7 +23,7 @@ router.get('/:id', async (req, res) => {
 
   const result = await db.collection('cobranza').findOne({_id: ObjectID(id)});
 
-  res.json(result);
+  return res.json(result);
 })
 
 //TEST CREACION DE PDF PARA ENVIO POR CORREO
@@ -49,12 +49,12 @@ router.get("/pdf", async (req, res) => {
         }
       });
 
-      res.status(201).json({
+      return res.status(201).json({
         msg: 'Codigo creado satisfactoriamente',
         code: codeQR
       });
   } catch (error) {
-    res.status(400).json({msg: error});
+    return res.status(400).json({msg: error});
   }
 });
 
@@ -74,14 +74,14 @@ router.post('/pagination', async (req, res) =>{
       .limit(nPerPage)
       .toArray();
 
-    res.json({
+    return res.json({
       total_items: countCobranza,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countCobranza / nPerPage + 1),
       cobranzas: result,
     });
   } catch (error) {
-    res.status(501).json(error);
+    return res.status(501).json(error);
   }
 })
 
@@ -131,14 +131,14 @@ router.post('/buscar', async (req, res) => {
         .toArray();
     }
 
-    res.json({
+    return res.json({
       total_items: countCobranza,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countCobranza / nPerPage + 1),
       cobranzas: result,
     });
   } catch (error) {
-    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    return res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
   }
 })
 // router.post("/buscar", async (req, res) => {
@@ -174,7 +174,7 @@ router.post("/envio/:id", async (req, res) => {
     }
   );
 
-  res.json(result);
+  return res.json(result);
 });
 
 // router.get('/addisactive/sdsdsd', async (req, res) => {

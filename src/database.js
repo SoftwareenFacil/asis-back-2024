@@ -14,5 +14,6 @@ export async function connect(){
 
     } catch (error) {
         console.log(error)
+        return null;
     }
 }

@@ -13,7 +13,7 @@ import { ObjectID } from "mongodb";
 router.get("/", async (req, res) => {
   const db = await connect();
   const result = await db.collection("existencia").find({}).toArray();
-  res.json(result);
+  return res.json(result);
 });
 
 //SELECT ONE
@@ -23,7 +23,7 @@ router.get('/:id', async (req, res) => {
   
   const result = await db.collection('existencia').findOne({_id: ObjectID(id)});
 
-  res.json(result);
+  return res.json(result);
 })
 
 //SELECT WITH PAGINATION
@@ -41,14 +41,14 @@ router.post("/pagination", async (req, res) => {
       .limit(nPerPage)
       .toArray();
 
-    res.json({
+    return res.json({
       total_items: countExistencia,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countExistencia / nPerPage + 1),
       existencias: result,
     });
   } catch (error) {
-    res.status(501).json(error);
+    return res.status(501).json(error);
   }
 });
 
@@ -89,14 +89,14 @@ router.post("/buscar", async (req, res) => {
         .toArray();
     }
 
-    res.json({
+    return res.json({
       total_items: countExis,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countExis / nPerPage + 1),
       existencias: result,
     });
   } catch (error) {
-    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    return res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
   }
 });
 
@@ -110,7 +110,7 @@ router.post("/consultar", async (req, res) => {
     .collection("existencia")
     .findOne({ codigo_categoria_tres: code });
   if (result == null) {
-    res.json({
+    return res.json({
       message:
         "La Subcategoria 3 consultada no existe en la existencia del sistema",
       isOK: false,
@@ -124,7 +124,7 @@ router.post("/consultar", async (req, res) => {
       cupos_disponibles = result.existencia;
     }
 
-    res.json({
+    return res.json({
       isOK: true,
       cupos_disponibles: cupos_disponibles,
       costo_unitario_promedio: result.costo_unitario_promedio,

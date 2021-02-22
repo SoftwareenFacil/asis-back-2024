@@ -52,9 +52,9 @@ router.post('/selectone/:id', async (req, res) => {
 
   try {
     const result = await db.collection("evaluaciones").findOne({ _id: ObjectID(id) });
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 
 });
@@ -293,16 +293,15 @@ router.post('/evaluacionpsico', async (req, res) => {
         }
       );
 
-      res.status(201).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
+      return res.status(201).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
     }
     else {
-      res.json({ msg: 'Cliente secundario no encontrado' });
+      return res.json({ msg: 'Cliente secundario no encontrado' });
     }
 
   } catch (error) {
     console.log(error)
-    res.json({ msg: 'error al crear el pdf', error: error });
-
+    return res.json({ msg: 'error al crear el pdf', error: error });
   }
 });
 
@@ -472,14 +471,14 @@ router.post('/evaluacionaversion', async (req, res) => {
         TOTAL_MC
       );
 
-      res.status(200).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
+      return res.status(200).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
     } catch (error) {
       console.log(error)
-      res.json({ msg: 'error al crear el pdf', error: error })
+      return res.json({ msg: 'error al crear el pdf', error: error })
     }
   }
   else {
-    res.json({ msg: 'Cliente secundario no encontrado' });
+    return res.json({ msg: 'Cliente secundario no encontrado' });
   }
 })
 
@@ -634,95 +633,16 @@ router.post("/buscar", async (req, res) => {
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
-    }
+    };
 
-    // if (dataToken.rol === 'Clientes') {
-    //   if (identificador === 1) {
-    //     countEva = await db
-    //       .collection("evaluaciones")
-    //       .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
-    //       .count();
-
-    //     result = await db
-    //       .collection("evaluaciones")
-    //       .find({ rut_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   } else {
-    //     countEva = await db
-    //       .collection("evaluaciones")
-    //       .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
-    //       .count();
-    //     result = await db
-    //       .collection("evaluaciones")
-    //       .find({ razon_social_cp: rexExpresionFiltro, rut_cp: dataToken.rut })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // }
-    // else if (dataToken.rol === 'Colaboradores') {
-    //   if (identificador === 1) {
-    //     countEva = await db
-    //       .collection("evaluaciones")
-    //       .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .count();
-
-    //     result = await db
-    //       .collection("evaluaciones")
-    //       .find({ id_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   } else {
-    //     countEva = await db
-    //       .collection("evaluaciones")
-    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .count();
-    //     result = await db
-    //       .collection("evaluaciones")
-    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // }
-    // else {
-    //   if (identificador === 1) {
-    //     countEva = await db
-    //       .collection("evaluaciones")
-    //       .find({ rut_cp: rexExpresionFiltro })
-    //       .count();
-
-    //     result = await db
-    //       .collection("evaluaciones")
-    //       .find({ rut_cp: rexExpresionFiltro })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   } else {
-    //     countEva = await db
-    //       .collection("evaluaciones")
-    //       .find({ razon_social_cp: rexExpresionFiltro })
-    //       .count();
-    //     result = await db
-    //       .collection("evaluaciones")
-    //       .find({ razon_social_cp: rexExpresionFiltro })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // }
-
-    res.status(200).json({
+    return res.status(200).json({
       total_items: countEva,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countEva / nPerPage + 1),
       evaluaciones: result,
     });
   } catch (error) {
-    res.status(500).json({ mgs: ERROR, error });
+    return res.status(500).json({ mgs: ERROR, error });
   }
 });
 
@@ -758,9 +678,9 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
         $set: {},
       }
     );
-    res.status(201).json({ message: "Evaluacion modificada correctamente" });
+    return res.status(201).json({ message: "Evaluacion modificada correctamente" });
   } catch (error) {
-    res.status(501).json({ message: "ha ocurrido un error", error });
+    return res.status(501).json({ message: "ha ocurrido un error", error });
   }
 });
 
@@ -813,9 +733,9 @@ router.post("/evaluar/:id", multer.single("archivo"), async (req, res) => {
       }
     );
 
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error })
+    return res.status(500).json({ msg: ERROR, error })
   }
 });
 
@@ -901,9 +821,9 @@ router.post("/evaluado/:id", async (req, res) => {
       result = resultinsert;
     }
 
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 
 
@@ -944,7 +864,7 @@ router.delete('/:id', async (req, res) => {
     return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'ok' });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
+    return res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
   }
 });
 

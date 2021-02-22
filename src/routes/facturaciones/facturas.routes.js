@@ -19,7 +19,7 @@ router.get("/", async (req, res) => {
   const db = await connect();
   const result = await db.collection("facturaciones").find({ isActive: true }).toArray();
   const empresa = await db.collection("empresa").findOne({});
-  res.json({
+  return res.json({
     datos: result,
     empresa: empresa,
   });
@@ -42,12 +42,12 @@ router.get('/:id', async (req, res) => {
     const result = await db.collection('facturaciones').findOne({ _id: ObjectID(id) });
     const empresa = await db.collection('empresa').findOne();
 
-    res.status(200).json({
+    return res.status(200).json({
       facturaciones: result,
       empresa: empresa
     });
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 })
 
@@ -74,7 +74,7 @@ router.post("/pagination", async (req, res) => {
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
-    res.json({
+    return res.json({
       auth: AUTHORIZED,
       total_items: countFac,
       pagina_actual: pageNumber,
@@ -83,7 +83,7 @@ router.post("/pagination", async (req, res) => {
       facturaciones: result,
     });
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -168,14 +168,14 @@ router.post("/buscar", async (req, res) => {
       }
     }
 
-    res.json({
+    return res.json({
       total_items: countFac,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countFac / nPerPage + 1),
       facturaciones: result,
     });
   } catch (error) {
-    res.status(500).json({ mgs: ERROR, error });
+    return res.status(500).json({ mgs: ERROR, error });
   }
 });
 
@@ -220,12 +220,12 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
       }
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       message: SUCCESSFULL_UPDATE,
       result,
     });
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -280,7 +280,7 @@ router.post("/:id", multer.single("archivo"), async (req, res) => {
     }
   );
 
-  res.json(result);
+  return res.json(result);
 });
 
 //INSERTAR FACTURA MASIVO
@@ -339,7 +339,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     }
   );
 
-  res.json(result);
+  return res.json(result);
 });
 
 //SUBIR OC
@@ -388,7 +388,7 @@ router.post("/subiroc/:id", multer.single("archivo"), async (req, res) => {
     }
   );
 
-  res.json(result);
+  return res.json(result);
 });
 
 //SUBIR OC MASIVO
@@ -440,7 +440,7 @@ router.post("/oc/subiroc/many", multer.single("archivo"), async (req, res) => {
     }
   );
 
-  res.json(result);
+  return res.json(result);
 });
 
 //CONFIRMAR OC
@@ -477,7 +477,7 @@ router.post("/confirmaroc/:id", async (req, res) => {
     }
   );
 
-  res.json(result);
+  return res.json(result);
 });
 
 //CONFIRMAR OC MASIVO
@@ -521,7 +521,7 @@ router.post("/oc/confirmaroc/many", async (req, res) => {
     }
   );
 
-  res.json(result);
+  return res.json(result);
 });
 
 // VALIDAR FACTURA
@@ -634,7 +634,7 @@ router.post("/validar/:id", async (req, res) => {
     }
   }
 
-  res.json(result);
+  return res.json(result);
 });
 
 //VALIDAR FACTURA MASIVO
@@ -805,9 +805,9 @@ router.post("/validar/factura/asis/many", async (req, res) => {
         .collection("cobranza")
         .insertMany(arrayFacturaciones);
 
-      res.json(resultCobranza);
+      return res.json(resultCobranza);
     } else {
-      res.json(resultPagos);
+      return res.json(resultPagos);
     }
   }
 });

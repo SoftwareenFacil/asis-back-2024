@@ -70,7 +70,7 @@ router.post("/pagination", async (req, res) => {
       .sort({ codigo: -1 })
       .toArray();
 
-    res.json({
+    return res.json({
       auth: AUTHORIZED,
       total_items: countRes,
       pagina_actual: pageNumber,
@@ -78,7 +78,7 @@ router.post("/pagination", async (req, res) => {
       reservas: result,
     });
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -96,9 +96,9 @@ router.get("/:id", async (req, res) => {
 
   try {
     const result = await db.collection("reservas").findOne({ _id: ObjectID(id) });
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -170,98 +170,16 @@ router.post('/buscar', async (req, res) => {
         .skip(skip_page)
         .limit(nPerPage)
         .toArray();
-    }
+    };
 
-    // if (dataToken.rol === 'Clientes') {
-    //   if (identificador === 1) {
-    //     countRes = await db
-    //       .collection("reservas")
-    //       .find({ rut_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .count();
-
-    //     result = await db
-    //       .collection("reservas")
-    //       .find({ rut_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else {
-    //     countRes = await db
-    //       .collection("reservas")
-    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .count();
-    //     result = await db
-    //       .collection("reservas")
-    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_Principal: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // }
-    // else if (dataToken.rol === 'Colaboradores') {
-    //   if (identificador === 1) {
-    //     countRes = await db
-    //       .collection("reservas")
-    //       .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .count();
-
-    //     result = await db
-    //       .collection("reservas")
-    //       .find({ rut_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else {
-    //     countRes = await db
-    //       .collection("reservas")
-    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .count();
-    //     result = await db
-    //       .collection("reservas")
-    //       .find({ razon_social_cp: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // }
-    // else {
-    //   if (identificador === 1) {
-    //     countRes = await db
-    //       .collection("reservas")
-    //       .find({ rut_cp: rexExpresionFiltro })
-    //       .count();
-
-    //     result = await db
-    //       .collection("reservas")
-    //       .find({ rut_cp: rexExpresionFiltro })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else {
-    //     countRes = await db
-    //       .collection("reservas")
-    //       .find({ razon_social_cp: rexExpresionFiltro })
-    //       .count();
-    //     result = await db
-    //       .collection("reservas")
-    //       .find({ razon_social_cp: rexExpresionFiltro })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // }
-
-    res.status(200).json({
+    return res.status(200).json({
       total_items: countRes,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countRes / nPerPage + 1),
       reservas: result,
     });
   } catch (error) {
-    res.status(500).json({ mgs: ERROR, error });
+    return res.status(500).json({ mgs: ERROR, error });
   }
 })
 
@@ -318,9 +236,9 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
         },
       }
     );
-    res.status(200).json({ msg: SUCCESSFULL_UPDATE });
+    return res.status(200).json({ msg: SUCCESSFULL_UPDATE });
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 
 });
@@ -343,9 +261,6 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
     return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
-  // let obs = {};
-  // obs.obs = datos.observacion;
-  // obs.fecha = getDate(new Date());
   const obs = {
     obs: datos.observacion,
     fecha: getDate(new Date())
@@ -487,46 +402,11 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       .collection("gi")
       .findOne({ _id: ObjectID(reserva.id_GI_Secundario) });
 
-    // sendinblue(
-    //   {
-    //     RAZON_SOCIAL_CP: reserva.razon_social_cp,
-    //     CODIGO_SOL: reserva.codigo,
-    //     FECHA_INICIO_RESERVA: reserva.fecha_reserva,
-    //     HORA_INICIO_RESERVA: reserva.hora_reserva,
-    //     FECHA_FIN_RESERVA: reserva.fecha_reserva_fin,
-    //     HORA_FIN_RESERVA: reserva.hora_reserva_fin,
-    //     NOMBRE_SERVICIO: reserva.nombre_servicio,
-    //     SUCURSAL_SERVICIO: reserva.sucursal,
-    //     JORNADA_RESERVA: reserva.jornada,
-    //     REQUIERE_EVALUACION: reserva.reqEvaluacion,
-    //     OBSERVACION_RESERVA: datos.observacion,
-    //     RUT_PROFESIONAL_ASIGNADO: profesionalAsignado.rut,
-    //     PROFESIONAL_ASIGNADO: profesionalAsignado.razon_social,
-    //     RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut,
-    //     NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social,
-    //   },
-    //   [
-    //     {
-    //       email: clientePrincipal.email_central,
-    //       nombre: clientePrincipal.razon_social,
-    //     },
-    //     {
-    //       email: profesionalAsignado.email_central,
-    //       nombre: profesionalAsignado.razon_social,
-    //     },
-    //     {
-    //       email: clienteSecundario.email_central,
-    //       nombre: clienteSecundario.razon_social,
-    //     },
-    //   ],
-    //   6
-    // );
-
-    res.status(200).json({
+    return res.status(200).json({
       msg: CONFIRM_SUCCESSFULL,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       msg: ERROR,
       error
     });
@@ -554,11 +434,7 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
   const obs = {
     obs: datosJson[0].observacion,
     fecha: getDate(new Date())
-  }
-
-  // let obs = {};
-  // obs.obs = datosJson[0].observacion;
-  // obs.fecha = getDate(new Date());
+  };
 
   //verificar si hay archivo o no
   if (req.file) archivo = {
@@ -636,7 +512,7 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
       .collection("evaluaciones")
       .insertMany(arrayReservas);
 
-    res.json(resultEva);
+    return res.json(resultEva);
   } else {
     let arrayIDsCP = [];
     let isOC = "";
@@ -713,7 +589,7 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
       .collection("facturaciones")
       .insertMany(arrayReservas);
 
-    res.json(resultFac);
+    return res.json(resultFac);
   }
 });
 
@@ -744,7 +620,7 @@ router.delete('/:id', async (req, res) => {
     return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'ok' });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
+    return res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
   }
 });
 

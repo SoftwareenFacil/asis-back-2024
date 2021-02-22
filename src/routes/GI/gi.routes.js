@@ -71,13 +71,14 @@ router.post("/pagination", async (req, res) => {
       .sort({ codigo: -1 })
       .toArray();
 
-    res.json({
+    return res.json({
       total_items: countGIs,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countGIs / nPerPage + 1),
       gis: result,
     });
   } catch (error) {
+    db.close();
     res.status(500).json(error);
   }
 });
@@ -89,7 +90,8 @@ router.get("/empresas", async (req, res) => {
     .collection("gi")
     .find({ categoria: "Empresa/Organizacion", activo_inactivo: true })
     .toArray();
-  res.json(result);
+  db.close();
+  return res.json(result);
 });
 
 //BUSCAR GIS POR NOMBRE O RUT
@@ -144,7 +146,9 @@ router.post("/buscar", async (req, res) => {
       .toArray();
   }
 
-  res.json({
+  db.close();
+
+  return res.json({
     total_items: countGIs,
     pagina_actual: pageNumber,
     nro_paginas: parseInt(countGIs / nPerPage + 1),
@@ -177,7 +181,8 @@ router.post("/:rut", async (req, res) => {
       .findOne({ rut: rutFiltrado, categoria: "Persona Natural", activo_inactivo: true });
   }
 
-  res.json(result);
+  db.close();
+  return res.json(result);
 });
 
 //SELECT BY ID
@@ -185,7 +190,7 @@ router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const result = await db.collection("gi").findOne({ _id: ObjectID(id), activo_inactivo: true });
-  res.json(result);
+  return res.json(result);
 });
 
 //UPDATE GI
@@ -426,13 +431,13 @@ router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
         renegados: [],
       });
     } else {
-      res.json({
+      return res.json({
         message: "EL archivo ingresado no es un archivo excel válido",
       });
     }
   } catch (err) {
     console.log(err);
-    res.json({
+    return res.json({
       message: "Algo ha salido mal",
       isOK: false,
       error: err,
@@ -508,10 +513,10 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
     await db.collection("gi").insertOne(newGi);
 
-    res.status(200).json({ msg: 'GI creado satisfactoriamente' });
+    return res.status(200).json({ msg: 'GI creado satisfactoriamente' });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ msg: `Se ha generado el siguiente error : ${String(error)}` })
+    return res.status(500).json({ msg: `Se ha generado el siguiente error : ${String(error)}` })
   }
 });
 
@@ -532,7 +537,7 @@ router.delete("/:id", async (req, res) => {
     return res.status(200).json(result);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ msg: `Se ha generado el siguiente error : ${String(error)}` })
+    return res.status(500).json({ msg: `Se ha generado el siguiente error : ${String(error)}` })
   }
 });
 

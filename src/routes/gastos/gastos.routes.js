@@ -17,7 +17,7 @@ import { v4 } from "uuid";
 router.get("/", async (req, res) => {
   const db = await connect();
   const result = await db.collection("gastos").find({}).toArray();
-  res.json(result);
+  return res.json(result);
 });
 
 //SELECT ONE
@@ -27,7 +27,7 @@ router.get("/:id", async (req, res) => {
 
   const result = await db.collection("gastos").findOne({ _id: ObjectID(id) });
 
-  res.json(result);
+  return res.json(result);
 });
 
 //SELECT WITH PAGINATION
@@ -45,14 +45,14 @@ router.post("/pagination", async (req, res) => {
       .limit(nPerPage)
       .toArray();
 
-    res.json({
+    return res.json({
       total_items: countGastos,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countGastos / nPerPage + 1),
       gastos: result,
     });
   } catch (error) {
-    res.status(501).json(error);
+    return res.status(501).json(error);
   }
 });
 
@@ -102,14 +102,14 @@ router.post("/buscar", async (req, res) => {
         .toArray();
     }
 
-    res.json({
+    return res.json({
       total_items: countGastos,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countGastos / nPerPage + 1),
       gastos: result,
     });
   } catch (error) {
-    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    return res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
   }
 });
 
@@ -195,7 +195,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     );
   }
 
-  res.json(result);
+  return res.json(result);
 });
 
 //INSERT ENTRADA AND EDIT PREXISTENCIA
@@ -269,9 +269,9 @@ router.post("/entrada/:id", async (req, res) => {
     //insertar cada objeto como document en collection existencia
     result = await db.collection("existencia").insertMany(result);
 
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error) {
-    res.status(400).json({ msg: "ha ocurrido un error", error });
+    return res.status(400).json({ msg: "ha ocurrido un error", error });
   }
 });
 
@@ -324,124 +324,11 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
       }
     );
 
-    res.status(201).json({ message: "Gasto modificado correctamente", result });
+    return res.status(201).json({ message: "Gasto modificado correctamente", result });
   } catch (error) {
-    res.status(500).json({ message: "ha ocurrido un error", error });
+    return res.status(500).json({ message: "ha ocurrido un error", error });
   }
 });
-
-//EDIT ENTRADA AND EDIT PREXISTENCIA
-// router.put("/entrada/:id", multer.single("archivo"), async (req, res) => {
-//   const { id } = req.params;
-//   const entrada = JSON.parse(req.body.data);
-//   const db = await connect();
-//   let result = "";
-
-//   if (req.file) {
-//     entrada.archivo = {
-//       name: req.file.originalname,
-//       size: req.file.size,
-//       path: req.file.path,
-//       type: req.file.mimetype,
-//     };
-//   }
-
-//   try {
-//     const gasto = await db.collection("gastos").findOne({ _id: ObjectID(id) });
-//     const arrayEntradas = gasto.entradas;
-//     const entradas = arrayEntradas.map(function (e) {
-//       if (e.id === entrada.id) {
-//         e.nombre_proveedor = entrada.nombre_proveedor;
-//         e.categoria_general = entrada.categoria_general;
-//         e.subcategoria_uno = entrada.subcategoria_uno;
-//         e.subcategoria_dos = entrada.subcategoria_dos;
-//         e.subcategoria_tres = entrada.subcategoria_tres;
-//         e.codigo_categoria_tres = entrada.codigo_categoria_tres;
-//         e.cant_maxima_categoria_tres = entrada.cant_maxima_categoria_tres;
-//         e.detalle = entrada.detalle;
-//         e.cantidad = entrada.cantidad;
-//         e.porcentaje_impuesto = entrada.porcentaje_impuesto;
-//         e.valor_impuesto = entrada.valor_impuesto;
-//         e.costo_unitario = entrada.costo_unitario;
-//         e.costo_total = entrada.costo_total;
-//         e.archivo_adjunto = entrada.archivo;
-//       }
-
-//       return e;
-//     });
-
-//     result = await db.collection("gastos").findOneAndUpdate(
-//       { _id: ObjectID(id) },
-//       {
-//         $set: {
-//           entradas: entradas,
-//         },
-//       }
-//     );
-
-//     result = await db.collection("prexistencia").find({ id: id }).toArray();
-
-//     if (result.length > 0) {
-//       if (entrada) {
-//         result = await db.collection("prexistencia").findOne({ id: id });
-//         if (result) {
-//           let datos = result.datos;
-//           datos.map(function (e) {
-//             if (e.id === entrada.id) {
-//               e.nombre_proveedor = entrada.nombre_proveedor;
-//               e.categoria_general = entrada.categoria_general;
-//               e.subcategoria_uno = entrada.subcategoria_uno;
-//               e.subcategoria_dos = entrada.subcategoria_dos;
-//               e.subcategoria_tres = entrada.subcategoria_tres;
-//               e.codigo_categoria_tres = entrada.codigo_categoria_tres;
-//               e.cant_maxima_categoria_tres = entrada.cant_maxima_categoria_tres;
-//               e.detalle = entrada.detalle;
-//               e.cantidad = entrada.cantidad;
-//               e.porcentaje_impuesto = entrada.porcentaje_impuesto;
-//               e.valor_impuesto = entrada.valor_impuesto;
-//               e.costo_unitario = entrada.costo_unitario;
-//               e.costo_total = entrada.costo_total;
-//             }
-//           });
-//           result = await db.collection("prexistencia").updateOne(
-//             { id: id },
-//             {
-//               $set: {
-//                 datos: datos,
-//               },
-//             }
-//           );
-//         }
-//       } else {
-//         result = await db.collection("prexistencia").deleteOne({ id: id });
-//       }
-//     }
-//     // else {
-//     //   if (entrada.length > 0) {
-//     //     let objInsert = {
-//     //       id: id,
-//     //       tipo: "entrada",
-//     //       datos: entrada.entradas,
-//     //     };
-//     //     result = await db.collection("prexistencia").insertOne(objInsert);
-//     //   }
-//     // }
-
-//     result = await db.collection("prexistencia").find({}).toArray();
-
-//     result = calculateExistencia(result);
-
-//     result = getFinalExistencia(result);
-//     //limpiar existencia a 0 para recargarla con los nuevos datos
-//     await db.collection("existencia").deleteMany({});
-//     //insertar cada objeto como document en collection existencia
-//     result = await db.collection("existencia").insertMany(result);
-
-//     res.status(201).json(result);
-//   } catch (error) {
-//     res.status(501).json({ msg: "Ha ocurrido un error", error });
-//   }
-// });
 
 //DELETE GASTO
 router.delete("/:id", async (req, res) => {
@@ -473,9 +360,9 @@ router.delete("/:id", async (req, res) => {
     //insertar cada objeto como document en collection existencia
     result = await db.collection("existencia").insertMany(result);
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
-    res.status(401).json({msg: "ha ocurrido un error", error})
+    return res.status(401).json({msg: "ha ocurrido un error", error})
   }
 });
 
@@ -548,9 +435,9 @@ router.delete("/entrada/:id", async (req, res) => {
     //insertar cada objeto como document en collection existencia
     result = await db.collection("existencia").insertMany(result);
 
-    res.json(result);
+    return res.json(result);
   } catch (error) {
-    res.status(400).json(error);
+    return res.status(400).json(error);
   }
 });
 

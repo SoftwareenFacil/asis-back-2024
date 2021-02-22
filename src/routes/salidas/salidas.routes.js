@@ -17,7 +17,7 @@ import { ObjectID } from "mongodb";
 router.get("/", async (req, res) => {
   const db = await connect();
   const result = await db.collection("salidas").find({}).toArray();
-  res.json(result);
+  return res.json(result);
 });
 
 //SELECT ONE
@@ -27,7 +27,7 @@ router.get("/:id", async (req, res) => {
 
   const result = await db.collection("salidas").findOne({ _id: ObjectID(id) });
 
-  res.json(result);
+  return res.json(result);
 });
 
 //SELECT WITH PAGINATION
@@ -45,14 +45,14 @@ router.post("/pagination", async (req, res) => {
       .limit(nPerPage)
       .toArray();
 
-    res.json({
+    return res.json({
       total_items: countSalidas,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countSalidas / nPerPage + 1),
       salidas: result,
     });
   } catch (error) {
-    res.status(501).json(error);
+    return res.status(501).json(error);
   }
 });
 
@@ -93,14 +93,14 @@ router.post("/buscar", async (req, res) => {
         .toArray();
     }
 
-    res.json({
+    return res.json({
       total_items: countSalidas,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countSalidas / nPerPage + 1),
       salidas: result,
     });
   } catch (error) {
-    res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    return res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
   }
 });
 
@@ -185,10 +185,11 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       //insertar cada objeto como document en collection existencia
       result = await db.collection("existencia").insertMany(result);
 
-      res.json(result);
+      return res.json(result);
     }
+    return res.json([])
   } catch (error) {
-    res.json(error);
+    return res.json(error);
   }
 });
 
@@ -274,9 +275,9 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     //insertar cada objeto como document en collection existencia
     result = await db.collection("existencia").insertMany(result);
 
-    res.status(201).json(result);
+    return res.status(201).json(result);
   } catch (error) {
-    res.status(400).json({ msg: "ha ocurrido un error ", error });
+    return res.status(400).json({ msg: "ha ocurrido un error ", error });
   }
 });
 
@@ -303,9 +304,9 @@ router.delete("/:id", async (req, res) => {
     //insertar cada objeto como document en collection existencia
     result = await db.collection("existencia").insertMany(result);
 
-    res.status(201).json(result);
+    return res.status(201).json(result);
   } catch (error) {
-    res.status(400).json({ msg: "ha ocurrido un error ", error });
+    return res.status(400).json({ msg: "ha ocurrido un error ", error });
   }
 });
 

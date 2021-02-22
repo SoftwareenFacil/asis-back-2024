@@ -42,9 +42,9 @@ router.get("/", async (req, res) => {
       .find(dataToken.rol === 'Clientes' ? { id_GI_Principal: dataToken.id, isActive: true } : { isActive: true })
       .sort({ codigo: -1 })
       .toArray();
-    res.status(200).json(result);
+    return res.status(200).json(result);
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error })
+    return res.status(500).json({ msg: ERROR, error })
   }
 });
 
@@ -62,7 +62,7 @@ router.get('/:id', async (req, res) => {
 
   const result = await db.collection('resultados').findOne({ _id: ObjectID(id) });
 
-  res.json(result);
+  return res.json(result);
 })
 
 //SELECT WITH PAGINATION
@@ -88,14 +88,14 @@ router.post("/pagination", async (req, res) => {
       .sort({ codigo: -1 })
       .toArray();
 
-    res.json({
+    return res.json({
       total_items: countRes,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countRes / nPerPage + 1),
       resultados: result,
     });
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 });
 
@@ -170,90 +170,7 @@ router.post('/buscar', async (req, res) => {
         .toArray();
     }
 
-
-    // if (dataToken.rol === 'Clientes') {
-    //   if (identificador === 1) {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
-    //       .count();
-
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ rut_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
-    //       .count();
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ razon_social_cs: rexExpresionFiltro, rut_cp: dataToken.rut })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // }
-    // else if (dataToken.rol === 'Colaboradores') {
-    //   if (identificador === 1) {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ rut_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .count();
-
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ id_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else {
-    //     countSol = await db
-    //       .collection("solicitudes")
-    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .count();
-    //     result = await db
-    //       .collection("solicitudes")
-    //       .find({ razon_social_cs: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // }
-    // else {
-    //   if (identificador === 1) {
-    //     countRes = await db
-    //       .collection("resultados")
-    //       .find({ rut_cp: rexExpresionFiltro })
-    //       .count();
-
-    //     result = await db
-    //       .collection("resultados")
-    //       .find({ rut_cp: rexExpresionFiltro })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    //   else {
-    //     countRes = await db
-    //       .collection("resultados")
-    //       .find({ razon_social_cp: rexExpresionFiltro })
-    //       .count();
-    //     result = await db
-    //       .collection("resultados")
-    //       .find({ razon_social_cp: rexExpresionFiltro })
-    //       .skip(skip_page)
-    //       .limit(nPerPage)
-    //       .toArray();
-    //   }
-    // };
-
-    res.json({
+    return res.json({
       total_items: countRes,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countRes / nPerPage + 1),
@@ -261,7 +178,7 @@ router.post('/buscar', async (req, res) => {
     });
 
   } catch (error) {
-    res.status(501).json({ mgs: ERROR, error });
+    return res.status(501).json({ mgs: ERROR, error });
   }
 
 })
@@ -315,10 +232,10 @@ router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
       }
     );
 
-    res.status(200).json(result);
+    return res.status(200).json(result);
 
   } catch (error) {
-    res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ msg: ERROR, error });
   }
 
 });
@@ -468,7 +385,7 @@ router.post("/confirmar/:id", async (req, res) => {
     return res.status(200).json(result);
   } catch (error) {
     console.log(error)
-    res.status(500).json({ msg: 'error al confirmar resultado', err: String(error) });
+    return res.status(500).json({ msg: 'error al confirmar resultado', err: String(error) });
   }
 });
 
@@ -516,7 +433,7 @@ router.delete('/:id', async (req, res) => {
     return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'ok' });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
+    return res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
   }
 });
 
