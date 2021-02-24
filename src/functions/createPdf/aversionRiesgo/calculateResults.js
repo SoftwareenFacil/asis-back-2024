@@ -24,16 +24,16 @@ export const calculateIndicators = results => {
 
 export const getResultsTest = results => {
     return results.length > 0 && results.map(e => {
-        if (e.result >= 2 && e.result <= 3.1) return 'bajo';
-        if (e.result > 3.1 && e.result <= 4.367) return 'promedio';
+        if (e.result >= 2 && e.result <= 3.233) return 'bajo';
+        if (e.result > 3.233 && e.result <= 4.367) return 'promedio';
         if (e.result > 4.367) return 'alto';
         return 'sin definicion';
     })
 };
 
 export const getResultTest = number => {
-    if (number >= 2 && number <= 3.1) return 'Bajo';
-    if (number > 3.1 && number <= 4.367) return 'Promedio';
+    if (number >= 2 && number <= 3.233) return 'Bajo';
+    if (number > 3.233 && number <= 4.367) return 'Promedio';
     if (number >= 4.367) return 'Alto';
     return 'sin definicion';
 }
@@ -45,8 +45,8 @@ export const finalResponseTest = (results, word) => {
 };
 
 export const testResult = number => {
-    if (number >= 2 && number <= 3.1) return 1;
-    if (number > 3.1 && number <= 4.367) return 2;
+    if (number >= 2 && number <= 3.233) return 1;
+    if (number > 3.233 && number <= 4.367) return 2;
     if (number >= 4.367) return 3;
     return 0;
 };
