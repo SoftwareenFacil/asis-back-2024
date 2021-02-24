@@ -24,10 +24,9 @@ export const calculateIndicators = results => {
 
 export const getResultsTest = results => {
     return results.length > 0 && results.map(e => {
-        if (e.result >= 0 && e.result <= 3.99) return 'bajo';
-        if (e.result > 3.99 && e.result <= 5.99) return 'promedio';
-        // if (e.result > 2.49 && e.result <= 3) return 'alto';
-        if (e.result >= 6) return 'alto';
+        if (e.result >= 2 && e.result <= 3.33) return 'bajo';
+        if (e.result > 3.33 && e.result <= 4.53) return 'promedio';
+        if (e.result > 4.53) return 'alto';
         return 'sin definicion';
     })
 };
