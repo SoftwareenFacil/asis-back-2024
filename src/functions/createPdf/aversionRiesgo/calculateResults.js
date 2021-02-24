@@ -32,10 +32,9 @@ export const getResultsTest = results => {
 };
 
 export const getResultTest = number => {
-    if (number >= 0 && number <= 3.99) return 'Bajo';
-    if (number > 3.99 && number <= 5.99) return 'Promedio';
-    // if (number > 5.99 && number <= 6) return 'Alto';
-    if (number >= 6) return 'Alto';
+    if (number >= 2 && number <= 3.33) return 'Bajo';
+    if (number > 3.33 && number <= 4.53) return 'Promedio';
+    if (number >= 4.53) return 'Alto';
     return 'sin definicion';
 }
 
@@ -46,9 +45,9 @@ export const finalResponseTest = (results, word) => {
 };
 
 export const testResult = number => {
-    if (number >= 0 && number <= 3.99) return 1;
-    if (number > 3.99 && number <= 5.99) return 2;
-    if (number >= 6) return 3;
+    if (number >= 2 && number <= 3.33) return 1;
+    if (number > 3.33 && number <= 4.53) return 2;
+    if (number >= 4.53) return 3;
     return 0;
 };
 
