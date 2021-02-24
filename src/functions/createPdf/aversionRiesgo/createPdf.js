@@ -1143,7 +1143,27 @@ export default function createPdf(
   const result_EE = TOTAL_EE.reduce((acc, el) => acc + el) / TOTAL_EE.length;
   const result_APR = TOTAL_APR.reduce((acc, el) => acc + el) / TOTAL_APR.length;
   const result_MC = TOTAL_MC.reduce((acc, el) => acc + el) / TOTAL_MC.length;
+
+  console.log('I', TOTAL_I.reduce((acc, el) => acc + el))
+  console.log('AN', TOTAL_AN.reduce((acc, el) => acc + el))
+  console.log('EE', TOTAL_EE.reduce((acc, el) => acc + el))
+  console.log('APR', TOTAL_APR.reduce((acc, el) => acc + el))
+  console.log('MC', TOTAL_MC.reduce((acc, el) => acc + el))
+
+  console.log('I LENGTH', TOTAL_I.length)
+  console.log('AN LENGTH', TOTAL_AN.length)
+  console.log('EE LENGTH', TOTAL_EE.length)
+  console.log('APR LENGTH', TOTAL_APR.length)
+  console.log('MC LENGTH', TOTAL_MC.length)
+
+  console.log('I SUB TOTAL', TOTAL_I.reduce((acc, el) => acc + el) / TOTAL_I.length)
+  console.log('AN SUB TOTAL', TOTAL_AN.reduce((acc, el) => acc + el) / TOTAL_AN.length)
+  console.log('EE SUB TOTAL', TOTAL_EE.reduce((acc, el) => acc + el) / TOTAL_EE.length)
+  console.log('APR SUB TOTAL', TOTAL_APR.reduce((acc, el) => acc + el) / TOTAL_APR.length)
+  console.log('MC SUB TOTAL', TOTAL_MC.reduce((acc, el) => acc + el) / TOTAL_MC.length)
+
   console.log('result', [(result_I + result_AN + result_EE + result_APR + result_MC) / 5])
+
   const finalDecision = testResult((result_I + result_AN + result_EE + result_APR + result_MC) / 5);
   //------------------------------------------------------------------------------------------ PAGE 3
   doc.addPage();
