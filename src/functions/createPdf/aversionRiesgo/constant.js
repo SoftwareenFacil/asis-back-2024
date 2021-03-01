@@ -11,7 +11,7 @@ export const generalInformation = [
     'Educación Formal',
     'Cargo',
     'Maquinarias a Conducir',
-    'Ciudad de referencia',
+    'Ciudad de residencia',
     'Evaluador',
     'Fecha de Evaluación',
     'Fecha de Vencimiento'

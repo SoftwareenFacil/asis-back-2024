@@ -847,12 +847,22 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     //------------------------------------------------------------ FIRMA -----------------------------------------------
 
-    const signSelected = signByAssigmentProfessional.find(el => el.rut === rut_evaluador);
+    // const signSelected = signByAssigmentProfessional.find(el => el.rut === rut_evaluador);
+
+    // generalSpace += 65;
+    // moreSpace = 5
+    // if (signSelected && Object.entries(signSelected).length > 0) {
+    //     doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 250, generalSpace + 22, {
+    //         fit: [100, 100],
+    //         align: "center",
+    //         valign: "center",
+    //     });
+    // }
 
     generalSpace += 65;
     moreSpace = 5
     if (signSelected && Object.entries(signSelected).length > 0) {
-        doc.image(path.resolve("./") + `/src/assets/img/${(signSelected && Object.entries(signSelected).length > 0) ? signSelected.sign : 'firma.jpeg'}`, 250, generalSpace + 22, {
+        doc.image(path.resolve("./") + `/src/assets/img/firma_12398638-5.png`, 250, generalSpace + 22, {
             fit: [100, 100],
             align: "center",
             valign: "center",
