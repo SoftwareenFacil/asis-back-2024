@@ -861,13 +861,18 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     generalSpace += 65;
     moreSpace = 5
-    if (signSelected && Object.entries(signSelected).length > 0) {
-        doc.image(path.resolve("./") + `/src/assets/img/firma_12398638-5.png`, 250, generalSpace + 22, {
-            fit: [100, 100],
-            align: "center",
-            valign: "center",
-        });
-    }
+    doc.image(path.resolve("./") + `/src/assets/img/firma_12398638-5.png`, 250, generalSpace + 22, {
+        fit: [100, 100],
+        align: "center",
+        valign: "center",
+    });
+    // if (signSelected && Object.entries(signSelected).length > 0) {
+    //     doc.image(path.resolve("./") + `/src/assets/img/firma_12398638-5.png`, 250, generalSpace + 22, {
+    //         fit: [100, 100],
+    //         align: "center",
+    //         valign: "center",
+    //     });
+    // }
 
     generalSpace += 110;
     doc
