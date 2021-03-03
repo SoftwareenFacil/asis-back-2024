@@ -887,13 +887,13 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
     doc
         .font("Helvetica-Bold")
-        .text(signPerson !== null ? signPerson.razon_social.toUpperCase() : '', 45, generalSpace + moreSpace, { align: "center" });
+        .text((signPerson !== null && signPerson.razon_social && signPerson.razon_social !== '') ? signPerson.razon_social.toUpperCase() : '', 45, generalSpace + moreSpace, { align: "center" });
 
     moreSpace += 8;
 
     doc
         .font("Helvetica-Bold")
-        .text(signPerson !== null ? signPerson.cargo.toUpperCase() : '', 45, generalSpace + moreSpace, { align: "center" });
+        .text((signPerson !== null && signPerson.cargo && signPerson.cargo !== '') ? signPerson.cargo.toUpperCase() : '', 45, generalSpace + moreSpace, { align: "center" });
 
     moreSpace += 8;
 

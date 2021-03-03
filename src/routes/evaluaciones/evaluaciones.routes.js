@@ -26,6 +26,7 @@ const router = Router();
 //database connection
 import { connect } from "../../database";
 import { ObjectID, ObjectId } from "mongodb";
+import { upperRutWithLetter } from "../../functions/uppercaseRutWithLetter";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -231,9 +232,12 @@ router.post('/evaluacionpsico', async (req, res) => {
   try {
     let objFile = {};
 
-    const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
-    const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
+    const cp = await db.collection('gi').findOne({ rut: upperRutWithLetter(rutClientePrincipal), categoria: 'Empresa/Organizacion' });
+    const cs = await db.collection('gi').findOne({ rut: upperRutWithLetter(rutClienteSecundario), categoria: 'Persona Natural' });
     const pa = await db.collection('gi').findOne({ _id: ObjectId(idProfesionalAsignado) });
+
+    console.log('cp', rutClientePrincipal)
+    console.log('variables', [cp, cs, pa])
 
     if (cp && cs) {
       const informacionPersonal = {
@@ -258,6 +262,8 @@ router.post('/evaluacionpsico', async (req, res) => {
       // console.log(informacionPersonal);
 
       const signPerson = await db.collection('gi').findOne({ rut: '12398638-5' });
+
+      console.log('sign person', signPerson)
 
       pdfPsicosensotecnico(informacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia,
         test_psicologico, test_espe_tol_monotonia, test_espe_reac_multiples,
