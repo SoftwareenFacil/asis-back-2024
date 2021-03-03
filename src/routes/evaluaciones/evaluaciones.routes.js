@@ -261,7 +261,7 @@ router.post('/evaluacionpsico', async (req, res) => {
 
       // console.log(informacionPersonal);
 
-      const signPerson = await db.collection('gi').findOne({ rut: '12398638-5' });
+      const signPerson = await db.collection('gi').findOne({ rut: '12398638-5', categoria: 'Persona Natural' });
 
       console.log('sign person', signPerson)
 
