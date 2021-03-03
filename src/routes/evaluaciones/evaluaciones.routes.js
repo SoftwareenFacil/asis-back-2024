@@ -257,9 +257,11 @@ router.post('/evaluacionpsico', async (req, res) => {
 
       // console.log(informacionPersonal);
 
+      const signPerson = await db.collection('gi').findOne({ rut: '12398638-5' });
+
       pdfPsicosensotecnico(informacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia,
         test_psicologico, test_espe_tol_monotonia, test_espe_reac_multiples,
-        test_conocimiento_ley_nacional, nombrePdf, nombreQR);
+        test_conocimiento_ley_nacional, nombrePdf, nombreQR, signPerson || null);
 
       objFile = {
         name: nombrePdf,

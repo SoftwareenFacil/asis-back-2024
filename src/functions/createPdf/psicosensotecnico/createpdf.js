@@ -19,7 +19,7 @@ import {
 } from "./constant";
 
 export default function createPdf(InformacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia, test_psicologico,
-    test_espe_tol_monotonia, test_espe_reac_multiples, test_conocimiento_ley_nacional, nombrePdf, nombreQR) {
+    test_espe_tol_monotonia, test_espe_reac_multiples, test_conocimiento_ley_nacional, nombrePdf, nombreQR, signPerson) {
     const doc = new PDF();
     let generalSpace = 30;
     let horizontalSpace = 0;
@@ -875,17 +875,29 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     // }
 
     generalSpace += 110;
+    // doc
+    //     .font("Helvetica-Bold")
+    //     .text(evaluador && evaluador.toUpperCase(), 45, generalSpace + moreSpace, { align: "center" });
+
+    // moreSpace += 8;
+
+    // doc
+    //     .font("Helvetica-Bold")
+    //     .text(cargo_evaluador && cargo_evaluador.toUpperCase(), 45, generalSpace + moreSpace, { align: "center" });
+
     doc
         .font("Helvetica-Bold")
-        .text(evaluador && evaluador.toUpperCase(), 45, generalSpace + moreSpace, { align: "center" });
+        .text(signPerson !== null ? signPerson.razon_social.toUpperCase() : '', 45, generalSpace + moreSpace, { align: "center" });
 
     moreSpace += 8;
 
     doc
         .font("Helvetica-Bold")
-        .text(cargo_evaluador && cargo_evaluador.toUpperCase(), 45, generalSpace + moreSpace, { align: "center" });
+        .text(signPerson !== null ? signPerson.cargo.toUpperCase() : '', 45, generalSpace + moreSpace, { align: "center" });
 
     moreSpace += 8;
+
+    console.log('****************** PERSON SIGN ******************', signPerson)
 
     nameFirma.forEach(function (elemento) {
         doc
