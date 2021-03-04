@@ -166,6 +166,8 @@ router.post("/:rut", async (req, res) => {
     rutFiltrado = rut;
   }
 
+  console.log('rut filtrado', [rutFiltrado, verificador])
+
   if (verificador == 1) {
     result = await db
       .collection("gi")
@@ -221,97 +223,6 @@ router.put('/:id', multer.single("archivo"), async (req, res) => {
   }
 });
 
-// router.put("/:id", multer.single("archivo"), async (req, res) => {
-//   const { id } = req.params;
-//   const updatedGI = JSON.parse(req.body.data);
-//   const db = await connect();
-//   // let result = await db.collection("gi").findOne({ _id: ObjectID(id) });
-//   updatedGI.url_file_adjunto = {
-//     name: req.file.originalname,
-//     size: req.file.size,
-//     path: req.file.path,
-//   };
-//   try {
-
-//     //agregar password encyptada
-//     // updatedGI.password = await encrypPassword(updatedGI.password);
-//     //agregar rol
-//     updatedGI.rol = updatedGI.rol || 'Clientes';
-
-//     // const result = await db
-//     //   .collection("gi")
-//     //   .replaceOne({ _id: ObjectID(id) }, updatedGI);
-
-//     const existEmpleado = await db
-//       .collection("empleados")
-//       .findOne({ rut: updatedGI.rut, categoria: updatedGI.categoria });
-
-//     if (updatedGI.grupo_interes === "Empleados") {
-//       if (existEmpleado) {
-//         await db.collection("empleados").updateOne(
-//           { rut: updatedGI.rut, categoria: updatedGI.categoria },
-//           {
-//             $set: {
-//               nombre: updatedGI.razon_social,
-//               rut: updatedGI.rut,
-//               categoria: updatedGI.categoria,
-//               cargo: updatedGI.cargo,
-//               activo_inactivo: true,
-//             },
-//           }
-//         );
-//       } else {
-//         //se crea tambien en empleados
-//         let obj = {};
-//         obj.nombre = updatedGI.razon_social;
-//         obj.rut = updatedGI.rut;
-//         obj.categoria = updatedGI.categoria;
-//         obj.cargo = updatedGI.cargo;
-//         obj.tipo_contrato = "";
-//         obj.estado_contrato = "";
-//         obj.fecha_inicio_contrato = "";
-//         obj.fecha_fin_contrato = "";
-//         obj.sueldo_bruto = 0;
-//         obj.afp = "";
-//         obj.isapre = "";
-//         obj.seguridad_laboral = "";
-//         obj.dias_vacaciones = 0;
-//         obj.comentarios = "";
-//         obj.activo_inactivo = true;
-//         obj.detalle_empleado = {
-//           dias_acumulados: 0,
-//           dias_recuperados: 0,
-//           dias_total_ausencias: 0,
-//           dias_pendientes: 0,
-//           enfermedad_cant: 0,
-//           maternidad_cant: 0,
-//           mediodia_cant: 0,
-//           tramites_cant: 0,
-//           vacaciones_cant: 0,
-//           recuperados_cant: 0,
-//           mediodia_recuperados_cant: 0,
-//         };
-
-//         await db.collection("empleados").insertOne(obj);
-//       }
-//     } else {
-//       if (existEmpleado) {
-//         await db.collection("empleados").updateOne(
-//           { rut: updatedGI.rut, categoria: updatedGI.categoria },
-//           {
-//             $set: {
-//               activo_inactivo: false,
-//             },
-//           }
-//         );
-//       }
-//     }
-//     res.status(201).json({ message: "GI modificado correctamente" });
-//   } catch (error) {
-//     res.status(500).json({ message: "ha ocurrido un error", error });
-//     console.log(error);
-//   }
-// });
 
 //UPDATE PASSWORD
 router.put('/editpassword/:id', async (req, res) => {
@@ -464,19 +375,15 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       newGi.url_file_adjunto = {};
     }
 
-    //agregar password encyptada
-    // newGi.password = await encrypPassword(newGi.password);
-    //agregar rol
+    if(newGi.rut.includes('k')){
+      newGi.rut.replace('k', 'K')
+    }
+
     newGi.rol = newGi.rol || 'Clientes';
     newGi.activo_inactivo = true;
 
     if (newGi.grupo_interes === "Empleados") {
       let obj = {};
-      //se crea en empleados
-      // obj.nombre = newGi.razon_social;
-      // obj.rut = newGi.rut;
-      // obj.categoria = newGi.categoria;
-      // obj.cargo = newGi.cargo;
       obj.tipo_contrato = "";
       obj.estado_contrato = "";
       obj.fecha_inicio_contrato = "";
