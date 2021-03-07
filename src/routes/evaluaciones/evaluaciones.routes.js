@@ -401,7 +401,13 @@ router.post('/evaluacionaversion', async (req, res) => {
   const fecha_vigencia = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
 
   let resultado = '';
-  if (conclusionRiesgos === 1) { resultado = 'No presenta conductas de riesgos' } else if (conclusionRiesgos === 2) { resultado = 'Presenta bajas conductas de riesgos' } else { resultado = 'Presenta altas conductas de riesgos' };
+  if (conclusionRiesgos === 1) { 
+    resultado = 'No presenta conductas de riesgos' 
+  } else if (conclusionRiesgos === 2) { 
+    resultado = 'Presenta bajas conductas de riesgos' 
+  } else { 
+    resultado = 'Presenta altas conductas de riesgos' 
+  };
 
   generateQR(nombreQR,
     `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Fecha vigencia: ${fecha_vigencia} Resultado: ${resultado}`
