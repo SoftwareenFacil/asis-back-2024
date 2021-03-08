@@ -1326,6 +1326,10 @@ export default function createPdf(
   doc.lineJoin("miter").rect(395, generalSpace + 2, 165, 15).stroke();
 
   // el original es finalDecision , pero por ahora esta estático con conclusionRiesgos
+
+  console.log('++++++++++++++++++++ FINAL DESCITION +++++++++++++++++++')
+  console.log(conclusionRiesgos)
+
   switch (conclusionRiesgos) {
     case 3:
       doc.fontSize(11);
