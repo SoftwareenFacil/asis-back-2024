@@ -1331,7 +1331,7 @@ export default function createPdf(
   console.log(conclusionRiesgos)
 
   switch (conclusionRiesgos) {
-    case 3:
+    case 1:
       doc.fontSize(11);
       doc
         .font("Helvetica-Bold")
@@ -1365,7 +1365,7 @@ export default function createPdf(
       // .text('desde el punto de vista psicológico');
       break;
 
-    case 1:
+    case 3:
       doc.fontSize(11);
       doc
         .font("Helvetica-Bold")
