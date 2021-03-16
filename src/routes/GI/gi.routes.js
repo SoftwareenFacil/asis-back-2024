@@ -193,7 +193,7 @@ router.get("/:id", async (req, res) => {
 //UPDATE GI
 router.put('/:id', multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const updatedGI = JSON.parse(req.body.data);
+  let updatedGI = JSON.parse(req.body.data);
   const db = await connect();
 
   updatedGI.url_file_adjunto = {
@@ -204,6 +204,10 @@ router.put('/:id', multer.single("archivo"), async (req, res) => {
 
   try {
     updatedGI.rol = updatedGI.rol || 'Clientes';
+
+    if (updatedGI.rut !== '' && updatedGI.rut.split('-')[1] === 'k') {
+      updatedGI.rut = `${updatedGI.rut.split('-')[0]}-K`;
+    }
 
     const exitstGI = await db.collection('gi').findOne({ _id: ObjectID(id) });
     if (!exitstGI) {
@@ -375,7 +379,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       newGi.url_file_adjunto = {};
     }
 
-   if(newGi.rut !== '' && newGi.rut.split('-')[1] === 'k'){
+    if (newGi.rut !== '' && newGi.rut.split('-')[1] === 'k') {
       newGi.rut = `${newGi.rut.split('-')[0]}-K`;
     }
 
@@ -488,7 +492,7 @@ router.get("/changerut/dv", async (req, res) => {
     const result = await db.collection('gi').find().toArray();
     //sacar solo los que tiene -k
     const reduceredGis = result.reduce((acc, current) => {
-      if(verifyDv(current.rut)){
+      if (verifyDv(current.rut)) {
         acc.push({ _id: current._id, rut: current.rut });
       }
       return acc;
@@ -496,7 +500,7 @@ router.get("/changerut/dv", async (req, res) => {
 
     //recorrer cada gi e ir editando su rut si es k
     reduceredGis.forEach(async (element) => {
-      if(element.rut.split('-')[1] === 'k'){
+      if (element.rut.split('-')[1] === 'k') {
         await db.collection('gi').updateOne({ _id: ObjectID(String(element._id)) }, {
           $set: {
             rut: changeDv(element.rut)
