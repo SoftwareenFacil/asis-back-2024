@@ -1,0 +1,737 @@
+[
+  {
+    "code": "REC-AACC-2021-000192",
+    "id": "604e8981a377030017f1bac2",
+    "claimStage": "Lecciones Aprendidas"
+  },
+  {
+    "code": "REC-AACC-2021-000191",
+    "id": "604922312dd54c0017195551",
+    "claimStage": "Comunicación y cierre"
+  },
+  {
+    "code": "REC-AACC-2021-000190",
+    "id": "60479fd2410bea001734a710",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000189",
+    "id": "603e9c74c0805b0017a4e234",
+    "claimStage": "Finalizado"
+  },
+  {
+    "code": "REC-AACC-2021-000188",
+    "id": "603d4ec67daaa00017032e50",
+    "claimStage": "Comunicación y cierre"
+  },
+  {
+    "code": "REC-AACC-2021-000185",
+    "id": "6034149ab239890017d8c67d",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000184",
+    "id": "6033bfbf9868a9001788de02",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000187",
+    "id": "603d4d877daaa00017032e4f",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000182",
+    "id": "602e69be4735260017081349",
+    "claimStage": "Finalizado"
+  },
+  {
+    "code": "REC-AACC-2021-000178",
+    "id": "602aaaa2199a80001738971c",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000179",
+    "id": "602aadf2199a80001738971d",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000181",
+    "id": "602c1beafc531500172dd55d",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000180",
+    "id": "602c1a33fc531500172dd55c",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000176",
+    "id": "602545c09fe8090017e61504",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000168",
+    "id": "6021956816549f00177e617e",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000169",
+    "id": "6021990716549f00177e617f",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000167",
+    "id": "60214faceaae01001777dac2",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000161",
+    "id": "601956e6e52b2c00170fa8ab",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000157",
+    "id": "601445450428880017cc8013",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000159",
+    "id": "60145a240428880017cc8016",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000160",
+    "id": "60145ea50428880017cc8017",
+    "claimStage": "Finalizado"
+  },
+  {
+    "code": "REC-AACC-2021-000154",
+    "id": "6012f92fa439820017c6ba5e",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000156",
+    "id": "60135b1d956d1d0017054b68",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000158",
+    "id": "601449ea0428880017cc8014",
+    "claimStage": "Finalizado"
+  },
+  {
+    "code": "REC-AACC-2021-000155",
+    "id": "60130d97e0cb8e0017bdabe6",
+    "claimStage": "Finalizado"
+  },
+  {
+    "code": "REC-AACC-2021-000162",
+    "id": "60195787e52b2c00170fa8ac",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000164",
+    "id": "60195833e52b2c00170fa8ae",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000165",
+    "id": "60195883e52b2c00170fa8af",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000140",
+    "id": "60072c1dea015d00170a4884",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000141",
+    "id": "60072d4dea015d00170a4885",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000133",
+    "id": "60003abc45f61f0017e628b5",
+    "claimStage": "Finalizado"
+  },
+  {
+    "code": "REC-AACC-2021-000142",
+    "id": "60088714168bf00017b7d5a7",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000130",
+    "id": "5ffdf8d5a4406400172786d5",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000163",
+    "id": "6019579be52b2c00170fa8ad",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000128",
+    "id": "5ff9b740e728d300176ed5cf",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000120",
+    "id": "5ff86190799c460017909b43",
+    "claimStage": "Comunicación y cierre"
+  },
+  {
+    "code": "REC-AACC-2021-000121",
+    "id": "5ff8655e799c460017909b45",
+    "claimStage": "Lecciones Aprendidas"
+  },
+  {
+    "code": "REC-AACC-2021-000119",
+    "id": "5ff526e2ac47490017414a62",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000118",
+    "id": "5ff37bf95d583a00173773ed",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000124",
+    "id": "5ff897d5799c460017909b49",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000123",
+    "id": "5ff89426799c460017909b48",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000126",
+    "id": "5ff89c6c799c460017909b4b",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000127",
+    "id": "5ff89e12799c460017909b4c",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000117",
+    "id": "5ff37af75d583a00173773ec",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000122",
+    "id": "5ff8909c799c460017909b47",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000115",
+    "id": "5ff379965d583a00173773ea",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000116",
+    "id": "5ff379fa5d583a00173773eb",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000114",
+    "id": "5ff378b95d583a00173773e9",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000113",
+    "id": "5ff377ca5d583a00173773e7",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000109",
+    "id": "5ff375ad5d583a00173773e2",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000110",
+    "id": "5ff376165d583a00173773e3",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000111",
+    "id": "5ff376765d583a00173773e4",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000112",
+    "id": "5ff3775a5d583a00173773e6",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000107",
+    "id": "5ff36d985d583a00173773df",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000108",
+    "id": "5ff375565d583a00173773e1",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000105",
+    "id": "5ff36c205d583a00173773dd",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000106",
+    "id": "5ff36d105d583a00173773de",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000104",
+    "id": "5ff2cca75d583a00173773dc",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000103",
+    "id": "5ff2cc235d583a00173773db",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000102",
+    "id": "5ff2cb505d583a00173773da",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000101",
+    "id": "5ff2cadf5d583a00173773d9",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000100",
+    "id": "5ff2ca5e5d583a00173773d8",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000099",
+    "id": "5ff2c9dd5d583a00173773d7",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000096",
+    "id": "5ff2c8955d583a00173773d4",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000097",
+    "id": "5ff2c9035d583a00173773d5",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000095",
+    "id": "5ff2c7fe5d583a00173773d3",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000094",
+    "id": "5ff2c77a5d583a00173773d2",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000092",
+    "id": "5ff2c6935d583a00173773d0",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000093",
+    "id": "5ff2c6fd5d583a00173773d1",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000091",
+    "id": "5ff2c5fb5d583a00173773ce",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000089",
+    "id": "5ff2c4b85d583a00173773cb",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000090",
+    "id": "5ff2c5305d583a00173773cc",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000085",
+    "id": "5ff2c29c5d583a00173773c5",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000086",
+    "id": "5ff2c3465d583a00173773c7",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000087",
+    "id": "5ff2c3d85d583a00173773c9",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000088",
+    "id": "5ff2c4395d583a00173773ca",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000084",
+    "id": "5ff2c1f85d583a00173773c3",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000082",
+    "id": "5ff2bfa15d583a00173773bf",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000083",
+    "id": "5ff2c0525d583a00173773c1",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000098",
+    "id": "5ff2c9745d583a00173773d6",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000081",
+    "id": "5ff2bef45d583a00173773bd",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000077",
+    "id": "5ff2ba435d583a00173773b8",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000078",
+    "id": "5ff2bb095d583a00173773b9",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000079",
+    "id": "5ff2bb825d583a00173773ba",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000080",
+    "id": "5ff2bced5d583a00173773bc",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000071",
+    "id": "5ff2b2dd5d583a00173773b1",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000072",
+    "id": "5ff2b37f5d583a00173773b2",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000073",
+    "id": "5ff2b3f45d583a00173773b3",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000074",
+    "id": "5ff2b47d5d583a00173773b4",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000076",
+    "id": "5ff2b9a75d583a00173773b7",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000070",
+    "id": "5ff2b2415d583a00173773b0",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000069",
+    "id": "5ff2b1c35d583a00173773af",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000068",
+    "id": "5ff2b1025d583a00173773ae",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000066",
+    "id": "5ff2affc5d583a00173773ac",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000067",
+    "id": "5ff2b06e5d583a00173773ad",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000064",
+    "id": "5ff29f9b5d583a00173773aa",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000065",
+    "id": "5ff2a00a5d583a00173773ab",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000062",
+    "id": "5ff29d370b636b00176aa16d",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000063",
+    "id": "5ff29ee80b636b00176aa16f",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000060",
+    "id": "5ff29b200b636b00176aa16a",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000061",
+    "id": "5ff29bf00b636b00176aa16c",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000075",
+    "id": "5ff2b57e5d583a00173773b5",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000058",
+    "id": "5ff29a2e0b636b00176aa168",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000059",
+    "id": "5ff29ab80b636b00176aa169",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000057",
+    "id": "5ff299670b636b00176aa167",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000056",
+    "id": "5ff298d40b636b00176aa166",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2021-000055",
+    "id": "5ff298000b636b00176aa165",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000053",
+    "id": "5fe11d78241ab90017cc8f14",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000052",
+    "id": "5fe11cfc241ab90017cc8f13",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000050",
+    "id": "5fe11b10241ab90017cc8f0f",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000051",
+    "id": "5fe11c01241ab90017cc8f11",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000049",
+    "id": "5fe119dd241ab90017cc8f0d",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000041",
+    "id": "5fe114e3241ab90017cc8f02",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000042",
+    "id": "5fe115ec241ab90017cc8f04",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000043",
+    "id": "5fe1168b241ab90017cc8f06",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000044",
+    "id": "5fe11707241ab90017cc8f07",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000045",
+    "id": "5fe11791241ab90017cc8f08",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000046",
+    "id": "5fe11817241ab90017cc8f09",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000047",
+    "id": "5fe11891241ab90017cc8f0a",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000048",
+    "id": "5fe1195f241ab90017cc8f0c",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000039",
+    "id": "5fe1129d241ab90017cc8f00",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000040",
+    "id": "5fe113fa241ab90017cc8f01",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000036",
+    "id": "5fdd12382c741c0017a2b6c2",
+    "claimStage": "Lecciones Aprendidas"
+  },
+  {
+    "code": "REC-AACC-2020-000037",
+    "id": "5fdd720414c6dc0017b0a2d4",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000038",
+    "id": "5fe01d3f241ab90017cc8efd",
+    "claimStage": "Finalizado"
+  },
+  {
+    "code": "REC-AACC-2020-000030",
+    "id": "5fd836f60b1af00017bc53ca",
+    "claimStage": "Lecciones Aprendidas"
+  },
+  {
+    "code": "REC-AACC-2020-000028",
+    "id": "5fd833fb0b1af00017bc53c7",
+    "claimStage": "Lecciones Aprendidas"
+  },
+  {
+    "code": "REC-AACC-2020-000029",
+    "id": "5fd834aa0b1af00017bc53c8",
+    "claimStage": "Lecciones Aprendidas"
+  },
+  {
+    "code": "REC-AACC-2020-000026",
+    "id": "5fd832760b1af00017bc53c4",
+    "claimStage": "Lecciones Aprendidas"
+  },
+  {
+    "code": "REC-AACC-2020-000027",
+    "id": "5fd8337b0b1af00017bc53c6",
+    "claimStage": "Lecciones Aprendidas"
+  },
+  {
+    "code": "REC-AACC-2020-000015",
+    "id": "5fcd7d027f819c0017fc934e",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000016",
+    "id": "5fcd7d737f819c0017fc934f",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000025",
+    "id": "5fd831420b1af00017bc53c3",
+    "claimStage": "Lecciones Aprendidas"
+  },
+  {
+    "code": "REC-AACC-2020-000013",
+    "id": "5fcd7a3d7f819c0017fc934b",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000014",
+    "id": "5fcd7b8d7f819c0017fc934c",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000007",
+    "id": "5fc6c057c0e8200017ba3053",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000008",
+    "id": "5fc6e6d0dc952f00178e889e",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000009",
+    "id": "5fcc018e2072a80017b4a372",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000010",
+    "id": "5fcd028f15793e0017170a12",
+    "claimStage": "Lecciones Aprendidas"
+  },
+  {
+    "code": "REC-AACC-2020-000011",
+    "id": "5fcd037d15793e0017170a13",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000012",
+    "id": "5fcd75b57f819c0017fc9349",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000005",
+    "id": "5fc67496d48a560017178328",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000006",
+    "id": "5fc6c017c0e8200017ba3052",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000001",
+    "id": "5fc56fac2b650600174cf35a",
+    "claimStage": "Finalizado"
+  },
+  {
+    "code": "REC-AACC-2020-000002",
+    "id": "5fc580127ffb76001792ee51",
+    "claimStage": "Lecciones Aprendidas"
+  },
+  {
+    "code": "REC-AACC-2020-000003",
+    "id": "5fc59bbe0a31980017b60e90",
+    "claimStage": "Respuesta"
+  },
+  {
+    "code": "REC-AACC-2020-000004",
+    "id": "5fc5c3c2241ca60017ce3d33",
+    "claimStage": "Respuesta"
+  }
+]

@@ -375,9 +375,13 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       newGi.url_file_adjunto = {};
     }
 
-    if(newGi.rut.includes('k')){
-      newGi.rut.replace('k', 'K')
+   if(newGi.rut !== '' && newGi.rut.split('-')[1] === 'k'){
+      newGi.rut = `${newGi.rut.split('-')[0]}-K`;
     }
+
+    // if (newGi.rut.includes('k')) {
+    //   newGi.rut.replace('k', 'K')
+    // }
 
     newGi.rol = newGi.rol || 'Clientes';
     newGi.activo_inactivo = true;
@@ -459,6 +463,53 @@ router.delete("/", async (req, res) => {
   // await db.collection("salidas").drop();
   // await db.collection("solicitudes").drop();
   res.json({ message: "listo" });
+});
+
+//change rut k
+router.get("/changerut/dv", async (req, res) => {
+  const db = await connect();
+
+  const changeDv = (rut) => {
+    const dv = rut.split('-')[1];
+    console.log(`${rut.split('-')[0]}-${dv.toUpperCase()}`)
+    return `${rut.split('-')[0]}-${dv.toUpperCase()}` || rut;
+  };
+
+  const verifyDv = (rut) => {
+    if (rut === '') return rut;
+    const dv = rut.split('-')[1];
+    if (dv === 'k' || dv === 'K') return true;
+    return false;
+  };
+
+  try {
+
+    //traer los gi
+    const result = await db.collection('gi').find().toArray();
+    //sacar solo los que tiene -k
+    const reduceredGis = result.reduce((acc, current) => {
+      if(verifyDv(current.rut)){
+        acc.push({ _id: current._id, rut: current.rut });
+      }
+      return acc;
+    }, []);
+
+    //recorrer cada gi e ir editando su rut si es k
+    reduceredGis.forEach(async (element) => {
+      if(element.rut.split('-')[1] === 'k'){
+        await db.collection('gi').updateOne({ _id: ObjectID(String(element._id)) }, {
+          $set: {
+            rut: changeDv(element.rut)
+          }
+        })
+      }
+    });
+
+    return res.json({ msg: 'Ok' });
+  } catch (error) {
+    return res.status(500).json({ msg: String(error) });
+  }
+
 });
 
 export default router;
