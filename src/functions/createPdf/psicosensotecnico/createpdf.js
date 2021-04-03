@@ -17,6 +17,9 @@ import {
     testConoTransitoNacional,
     nameFirma
 } from "./constant";
+import { uploadFileToS3 } from "../../../libs/aws";
+import { AWS_BUCKET_NAME } from "../../../constant/var";
+import { paraPhrases } from "../aversionRiesgo/calculateResults";
 
 export default function createPdf(InformacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia, test_psicologico,
     test_espe_tol_monotonia, test_espe_reac_multiples, test_conocimiento_ley_nacional, nombrePdf, nombreQR, signPerson) {
@@ -41,7 +44,10 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         resultado,
         restricciones,
         vencimiento,
-        evaluador } = InformacionPersonal;
+        evaluador,
+        codigo,
+        nameFile
+    } = InformacionPersonal;
 
     //--------------------------------------------------PDF----------------------------------------
 
@@ -919,4 +925,30 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         .text(piePageOne[2], 0.5 * (doc.page.width - 340), doc.page.height - 26, { align: "center", width: 340, lineBreak: false });
 
     doc.end();
+
+    //upload to s3
+    // var params = {
+    //     Bucket: AWS_BUCKET_NAME,
+    //     Body: doc,
+    //     Key: nameFile,
+    //     ContentType: 'application/pdf'
+    // };
+
+    // const response = uploadFileToS3(params);
+
+    // console.log('response file upload ********', response)
+
+    // const buffers = []
+    // doc.on("data", buffers.push.bind(buffers))
+    // doc.on("end", () => {
+    //     const pdfData = Buffer.concat(buffers)
+    //     console.log(pdfData)
+    //     var params = {
+    //         Bucket: AWS_BUCKET_NAME,
+    //         Body: pdfData.toString('base64'),
+    //         Key: nameFile,
+    //         ContentType: 'application/pdf'
+    //     };
+    //     uploadFileToS3(params)
+    // })
 }

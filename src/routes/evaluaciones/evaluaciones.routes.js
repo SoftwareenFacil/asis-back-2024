@@ -8,6 +8,7 @@ import { generateQR } from "../../functions/createPdf/aversionRiesgo/constant";
 import { isRolEvaluaciones } from "../../functions/isRol";
 
 import { verifyToken } from "../../libs/jwt";
+import { v4 as uuid } from "uuid";
 
 import {
   MESSAGE_UNAUTHORIZED_TOKEN,
@@ -20,6 +21,8 @@ import {
 } from "../../constant/text_messages";
 
 var path = require("path");
+var AWS = require('aws-sdk');
+var fs = require("fs");
 
 const router = Router();
 
@@ -27,6 +30,9 @@ const router = Router();
 import { connect } from "../../database";
 import { ObjectID, ObjectId } from "mongodb";
 import { upperRutWithLetter } from "../../functions/uppercaseRutWithLetter";
+import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY } from "../../constant/var";
+import { uploadFileToS3, getObjectFromS3 } from "../../libs/aws";
+import { pipe } from "pdfkit";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -86,8 +92,10 @@ router.post('/evaluacionpsico', async (req, res) => {
   // obs.fecha = getDate(new Date());
   // obs.estado = "Cargado";
 
-  const nombrePdf = `RESULTADO_${data.codigo}_PSICOSENSOTECNICO.pdf`;
+  // const nombrePdf = `RESULTADO_${data.codigo}_PSICOSENSOTECNICO.pdf`;
+  const nombrePdf = 'PSICOSENSOTECNICO.pdf';
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_psicosensotecnico.png`;
+  const nameFIle = `psico_${data.codigo}_${uuid()}`;
 
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
@@ -256,32 +264,42 @@ router.post('/evaluacionpsico', async (req, res) => {
         fecha_examen: moment().format('DD-MM-YYYY') || '',
         resultado: resultado || '',
         restricciones: restricciones || '',
-        vencimiento: vencimiento || ''
+        vencimiento: vencimiento || '',
+        codigo: data.codigo || '',
+        nameFile: nameFIle
       };
 
       // console.log(informacionPersonal);
 
       const signPerson = await db.collection('gi').findOne({ rut: '12398638-5', categoria: 'Persona Natural' });
 
-      console.log('sign person', signPerson)
+      // console.log('sign person', signPerson)
 
       pdfPsicosensotecnico(informacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia,
         test_psicologico, test_espe_tol_monotonia, test_espe_reac_multiples,
         test_conocimiento_ley_nacional, nombrePdf, nombreQR, signPerson || null);
 
+
       objFile = {
-        name: nombrePdf,
+        name: `psico_${data.codigo}`,
         size: 0,
-        path: "uploads/" + nombrePdf,
+        path: nameFIle,
         type: "application/pdf",
         option: "online"
       };
 
-      // await db.collection('evaluaciones').updateOne({ codigo: data.codigo }, {
-      //   $set: {
-      //     url_file_adjunto_EE: objFile
-      //   }
-      // });
+      setTimeout(() => {
+        const fileContent = fs.readFileSync(`uploads/${nombrePdf}`);
+
+        const params = {
+          Bucket: AWS_BUCKET_NAME,
+          Body: fileContent,
+          Key: nameFIle,
+          ContentType: 'application/pdf'
+        };
+
+        uploadFileToS3(params);
+      }, 2000);
 
       const result = await db.collection("evaluaciones").updateOne(
         { codigo: data.codigo, isActive: true },
@@ -325,60 +343,60 @@ router.post('/evaluacionaversion', async (req, res) => {
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  const I = { 
-    razonamiento_abstracto: data.razonamiento_abstracto, 
-    percepcion_concentracion: data.percepcion_concentracion, 
-    comprension_instrucciones: data.comprension_instrucciones 
+  const I = {
+    razonamiento_abstracto: data.razonamiento_abstracto,
+    percepcion_concentracion: data.percepcion_concentracion,
+    comprension_instrucciones: data.comprension_instrucciones
   };
 
-  const AN = { 
-    acato_autoridad: data.acato_autoridad, 
-    relacion_grupo_pares: data.relacion_grupo_pares, 
-    comportamiento_social: data.comportamiento_social 
+  const AN = {
+    acato_autoridad: data.acato_autoridad,
+    relacion_grupo_pares: data.relacion_grupo_pares,
+    comportamiento_social: data.comportamiento_social
   };
 
-  const EE = { 
-    locus_control_impulsividad: data.locus_control_impulsividad, 
-    manejo_frustracion: data.manejo_frustracion, 
-    empatia: data.empatia, 
-    grado_ansiedad: data.grado_ansiedad 
+  const EE = {
+    locus_control_impulsividad: data.locus_control_impulsividad,
+    manejo_frustracion: data.manejo_frustracion,
+    empatia: data.empatia,
+    grado_ansiedad: data.grado_ansiedad
   };
 
-  const APR = { 
-    actitud_prevencion_accidentes: data.actitud_prevencion_accidentes, 
-    confianza_acciones_realizadas: data.confianza_acciones_realizadas, 
-    capacidad_modificar_ambiente_seguridad: data.capacidad_modificar_ambiente_seguridad 
+  const APR = {
+    actitud_prevencion_accidentes: data.actitud_prevencion_accidentes,
+    confianza_acciones_realizadas: data.confianza_acciones_realizadas,
+    capacidad_modificar_ambiente_seguridad: data.capacidad_modificar_ambiente_seguridad
   };
 
   const MC = {
-    orientacion_tarea: data.orientacion_tarea, 
-    energia_vital: data.energia_vital 
+    orientacion_tarea: data.orientacion_tarea,
+    energia_vital: data.energia_vital
   };
 
   //-------
   const TOTAL_I = [
-    data.total_razonamiento_abstracto, 
-    data.total_percepcion_concentracion, 
-    data.total_comprension_instrucciones 
+    data.total_razonamiento_abstracto,
+    data.total_percepcion_concentracion,
+    data.total_comprension_instrucciones
   ];
   const TOTAL_AN = [
-    data.total_acato_autoridad, 
-    data.total_relacion_grupo_pares, 
+    data.total_acato_autoridad,
+    data.total_relacion_grupo_pares,
     data.total_comportamiento_social
   ];
   const TOTAL_EE = [
-    data.total_locus_control_impulsividad, 
-    data.total_manejo_frustracion, 
-    data.total_empatia, 
+    data.total_locus_control_impulsividad,
+    data.total_manejo_frustracion,
+    data.total_empatia,
     data.total_grado_ansiedad
   ];
   const TOTAL_APR = [
-    data.total_actitud_prevencion_accidentes, 
-    data.total_confianza_acciones_realizadas, 
+    data.total_actitud_prevencion_accidentes,
+    data.total_confianza_acciones_realizadas,
     data.total_capacidad_modificar_ambiente_seguridad
   ];
   const TOTAL_MC = [
-    data.total_orientacion_tarea, 
+    data.total_orientacion_tarea,
     data.total_energia_vital
   ];
 
@@ -401,12 +419,12 @@ router.post('/evaluacionaversion', async (req, res) => {
   const fecha_vigencia = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
 
   let resultado = '';
-  if (conclusionRiesgos === 1) { 
-    resultado = 'No presenta conductas de riesgos' 
-  } else if (conclusionRiesgos === 2) { 
-    resultado = 'Presenta bajas conductas de riesgos' 
-  } else { 
-    resultado = 'Presenta altas conductas de riesgos' 
+  if (conclusionRiesgos === 1) {
+    resultado = 'No presenta conductas de riesgos'
+  } else if (conclusionRiesgos === 2) {
+    resultado = 'Presenta bajas conductas de riesgos'
+  } else {
+    resultado = 'Presenta altas conductas de riesgos'
   };
 
   generateQR(nombreQR,
@@ -467,16 +485,16 @@ router.post('/evaluacionaversion', async (req, res) => {
       // console.log(data)
 
       pdfAversionRiesgo(
-        I, 
-        AN, 
-        EE, 
-        APR, 
-        MC, 
-        conclusionRiesgos, 
-        informacionPersonal, 
-        nombrePdf, 
-        nombreQR, 
-        fecha_vigencia, 
+        I,
+        AN,
+        EE,
+        APR,
+        MC,
+        conclusionRiesgos,
+        informacionPersonal,
+        nombrePdf,
+        nombreQR,
+        fecha_vigencia,
         observacionConclusion,
         TOTAL_I,
         TOTAL_AN,
@@ -495,6 +513,50 @@ router.post('/evaluacionaversion', async (req, res) => {
     return res.json({ msg: 'Cliente secundario no encontrado' });
   }
 })
+
+//GET FILE FROM AWS S3
+router.get('/downloadfile/:id', async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+
+  try {
+    const evaluacion = await db.collection('evaluaciones').findOne({ _id: ObjectID(id), isActive: true });
+    const { path: pathPdf, name } = evaluacion.url_file_adjunto_EE;
+
+    const s3 = new AWS.S3({
+      accessKeyId: AWS_ACCESS_KEY,
+      secretAccessKey: AWS_SECRET_KEY
+    });
+
+    // const fileContent = fs.readFileSync('uploads/PSICOSENSOTECNICO.pdf');
+
+    // const params = {
+    //   Bucket: AWS_BUCKET_NAME,
+    //   Body: fileContent,
+    //   Key: 'TEST_1',
+    //   ContentType: 'application/pdf'
+    // };
+
+    // uploadFileToS3(params);
+
+    s3.getObject({ Bucket: AWS_BUCKET_NAME, Key: pathPdf }, (error, data) => {
+      if (error) {
+        return res.json({ msg: 'error s3 get file', error: String(error) });
+      }
+      else {
+        console.log('data response', data.Body)
+        return res.status(200).json({
+          msg: 'archivo encontrado', 
+          res: data.Body,
+          filename: name
+        });
+      };
+    });
+
+  } catch (error) {
+    return res.json({ msg: 'error al obtener archivo pdf', error: String(error) });
+  }
+});
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
