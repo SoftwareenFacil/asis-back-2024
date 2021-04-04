@@ -299,7 +299,7 @@ router.post('/evaluacionpsico', async (req, res) => {
         };
 
         uploadFileToS3(params);
-      }, 2000);
+      }, 500);
 
       const result = await db.collection("evaluaciones").updateOne(
         { codigo: data.codigo, isActive: true },
@@ -414,8 +414,9 @@ router.post('/evaluacionaversion', async (req, res) => {
   const maquinariasConducir = data.maquinaria;
   const observacionConclusion = data.observaciones_conclusion;
   // const nombre_servicio = data.nombre_servicio;
-  const nombrePdf = `RESULTADO_${data.codigo}_AVERSION_RIESGO.pdf`;
+  const nombrePdf = `AVERSION_RIESGO.pdf`;
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_aversionriesgo.png`;
+  const nameFIle = `aversion_${data.codigo}_${uuid()}`;
   const fecha_vigencia = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
 
   let resultado = '';
@@ -456,33 +457,13 @@ router.post('/evaluacionaversion', async (req, res) => {
 
     try {
 
-      objFile = {
-        name: nombrePdf,
-        size: 0,
-        path: "uploads/" + nombrePdf,
-        type: "application/pdf",
-        option: "online"
-      }
-
-      const result = await db.collection("evaluaciones").updateOne(
-        { codigo: data.codigo, isActive: true },
-        {
-          $set: {
-            estado: "En Evaluacion",
-            estado_archivo: "Cargado",
-            archivo_examen: null,
-            fecha_carga_examen: moment().format('DD-MM-YYYY'),
-            hora_carga_examen: moment().format('HH:mm'),
-            meses_vigencia: data.meses_vigencia,
-            url_file_adjunto_EE: objFile,
-          },
-          $push: {
-            observaciones: obs,
-          },
-        }
-      );
-
-      // console.log(data)
+      // objFile = {
+      //   name: nombrePdf,
+      //   size: 0,
+      //   path: "uploads/" + nombrePdf,
+      //   type: "application/pdf",
+      //   option: "online"
+      // }
 
       pdfAversionRiesgo(
         I,
@@ -501,6 +482,45 @@ router.post('/evaluacionaversion', async (req, res) => {
         TOTAL_EE,
         TOTAL_APR,
         TOTAL_MC
+      );
+
+      objFile = {
+        name: `aversion_${data.codigo}`,
+        size: 0,
+        path: nameFIle,
+        type: "application/pdf",
+        option: "online"
+      };
+
+      setTimeout(() => {
+        const fileContent = fs.readFileSync(`uploads/${nombrePdf}`);
+
+        const params = {
+          Bucket: AWS_BUCKET_NAME,
+          Body: fileContent,
+          Key: nameFIle,
+          ContentType: 'application/pdf'
+        };
+
+        uploadFileToS3(params);
+      }, 500);
+
+      const result = await db.collection("evaluaciones").updateOne(
+        { codigo: data.codigo, isActive: true },
+        {
+          $set: {
+            estado: "En Evaluacion",
+            estado_archivo: "Cargado",
+            archivo_examen: null,
+            fecha_carga_examen: moment().format('DD-MM-YYYY'),
+            hora_carga_examen: moment().format('HH:mm'),
+            meses_vigencia: data.meses_vigencia,
+            url_file_adjunto_EE: objFile,
+          },
+          $push: {
+            observaciones: obs,
+          },
+        }
       );
 
       return res.status(200).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
