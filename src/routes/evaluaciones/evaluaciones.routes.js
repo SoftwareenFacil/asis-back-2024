@@ -299,7 +299,7 @@ router.post('/evaluacionpsico', async (req, res) => {
         };
 
         uploadFileToS3(params);
-      }, 1000);
+      }, 2000);
 
       const result = await db.collection("evaluaciones").updateOne(
         { codigo: data.codigo, isActive: true },
@@ -503,7 +503,7 @@ router.post('/evaluacionaversion', async (req, res) => {
         };
 
         uploadFileToS3(params);
-      }, 1000);
+      }, 2000);
 
       const result = await db.collection("evaluaciones").updateOne(
         { codigo: data.codigo, isActive: true },
