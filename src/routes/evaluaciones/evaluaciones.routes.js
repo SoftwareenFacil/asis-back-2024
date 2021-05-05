@@ -30,7 +30,7 @@ const router = Router();
 import { connect } from "../../database";
 import { ObjectID, ObjectId } from "mongodb";
 import { upperRutWithLetter } from "../../functions/uppercaseRutWithLetter";
-import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY } from "../../constant/var";
+import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, NOT_EXISTS, NAME_PSICO_PDF, NAME_AVERSION_PDF, ERROR_PDF, OTHER_NAME_PDF } from "../../constant/var";
 import { uploadFileToS3, getObjectFromS3 } from "../../libs/aws";
 import { pipe } from "pdfkit";
 
@@ -46,22 +46,26 @@ router.get("/", async (req, res) => {
 });
 
 //SELECT ONE 
-router.post('/selectone/:id', async (req, res) => {
+router.get('/:id', async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
     const result = await db.collection("evaluaciones").findOne({ _id: ObjectID(id) });
-    return res.status(200).json(result);
+    console.log(result)
+    if (!result) {
+      return res.status(400).json({ err: 98, msg: NOT_EXISTS, res: null })
+    }
+    return res.status(200).json({ err: null, msg: '', res: result });
   } catch (error) {
-    return res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 
 });
@@ -81,7 +85,7 @@ router.post('/evaluacionpsico', async (req, res) => {
   const resultado = data.resultado;
   const restricciones = data.restricciones || 'Sin Restricciones';
   const vencimiento = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
-  const licencia = data.licencia;
+  const licencia = data.licencia_a_acreditar;
 
   const obs = {
     obs: data.conclusion_recomendacion,
@@ -93,14 +97,15 @@ router.post('/evaluacionpsico', async (req, res) => {
   // obs.estado = "Cargado";
 
   // const nombrePdf = `RESULTADO_${data.codigo}_PSICOSENSOTECNICO.pdf`;
-  const nombrePdf = 'PSICOSENSOTECNICO.pdf';
+  // const nombrePdf = NAME_PSICO_PDF;
+  const nombrePdf = OTHER_NAME_PDF;
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_psicosensotecnico.png`;
   const nameFIle = `psico_${data.codigo}_${uuid()}`;
 
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
   const conclusion_recomendaciones = data.conclusion_recomendacion;
-  const idProfesionalAsignado = data.id_profesional_asignado;
+  const idProfesionalAsignado = data.id_GI_personalAsignado;
   const e_psicotecnicos = [
     {
       resultado: data.tiempo_reaccion,
@@ -115,6 +120,42 @@ router.post('/evaluacionpsico', async (req, res) => {
       promedio: data.promedio_precision_coordinacion_vis
     }
   ];
+  const e_sensometricos = [
+    {
+      resultado: data.monocular_derecha
+    },
+    {
+      resultado: data.monocular_izquierda
+    },
+    {
+      resultado: data.vision_binocular
+    },
+    {
+      resultado: data.perimetria
+    },
+    {
+      resultado: data.profundidad
+    },
+    {
+      resultado: data.discriminacion_colores
+    },
+    {
+      resultado: data.vision_nocturna
+    },
+    {
+      resultado: data.phoria_vertical
+    },
+    {
+      resultado: data.phoria_horizontal
+    },
+    {
+      resultado: data.recuperacion_encandilamiento
+    },
+    {
+      resultado: data.audiometria
+    }
+  ];
+
   const evaluaciones = [
     {
       active: true,
@@ -157,41 +198,6 @@ router.post('/evaluacionpsico', async (req, res) => {
       obs: data.obs_evaluacion_transito_nacional
     }
   ];
-  const e_sensometricos = [
-    {
-      resultado: data.monocular_derecha
-    },
-    {
-      resultado: data.monocular_izquierda
-    },
-    {
-      resultado: data.vision_binocular
-    },
-    {
-      resultado: data.perimetria
-    },
-    {
-      resultado: data.profundidad
-    },
-    {
-      resultado: data.discriminacion_colores
-    },
-    {
-      resultado: data.vision_nocturna
-    },
-    {
-      resultado: data.phoria_vertical
-    },
-    {
-      resultado: data.phoria_horizontal
-    },
-    {
-      resultado: data.recuperacion_encandilamiento
-    },
-    {
-      resultado: data.audiometria
-    }
-  ];
 
   const test_espe_vel_anticipacion = {
     active: data.is_anticipacion,
@@ -214,6 +220,8 @@ router.post('/evaluacionpsico', async (req, res) => {
     active: data.is_monotonia,
     resultado: data.test_tolerancia_monotonia,
     aciertos: data.test_aciertos_tolerancia,
+    errores: data.test_errores_tolerancia,
+    promedio_reaccion_monotonia: data.promedio_reaccion_monotonia,
     obs: data.obs_test_tolerancia_monotonia
   };
 
@@ -280,13 +288,13 @@ router.post('/evaluacionpsico', async (req, res) => {
         test_conocimiento_ley_nacional, nombrePdf, nombreQR, signPerson || null);
 
 
-      objFile = {
-        name: `psico_${data.codigo}`,
-        size: 0,
-        path: nameFIle,
-        type: "application/pdf",
-        option: "online"
-      };
+      // objFile = {
+      //   name: `psico_${data.codigo}`,
+      //   size: 0,
+      //   path: nameFIle,
+      //   type: "application/pdf",
+      //   option: "online"
+      // };
 
       setTimeout(() => {
         const fileContent = fs.readFileSync(`uploads/${nombrePdf}`);
@@ -311,7 +319,7 @@ router.post('/evaluacionpsico', async (req, res) => {
             fecha_carga_examen: moment().format('DD-MM-YYYY'),
             hora_carga_examen: moment().format('HH:mm'),
             meses_vigencia: data.meses_vigencia,
-            url_file_adjunto_EE: objFile,
+            url_file_adjunto_EE: nameFIle,
           },
           $push: {
             observaciones: obs,
@@ -319,15 +327,15 @@ router.post('/evaluacionpsico', async (req, res) => {
         }
       );
 
-      return res.status(201).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
+      return res.status(201).json({ err: null, msg: 'Examen creado satisfactoriamente', res: result });
     }
     else {
-      return res.json({ msg: 'Cliente secundario no encontrado' });
+      return res.json({ err: 98, msg: NOT_EXISTS, res: null });
     }
 
   } catch (error) {
     console.log(error)
-    return res.json({ msg: 'error al crear el pdf', error: error });
+    return res.json({ err: String(error), msg: 'Error al crear el examen', res: null });
   }
 });
 
@@ -375,29 +383,29 @@ router.post('/evaluacionaversion', async (req, res) => {
 
   //-------
   const TOTAL_I = [
-    data.total_razonamiento_abstracto,
-    data.total_percepcion_concentracion,
-    data.total_comprension_instrucciones
+    data.total_razonamiento_abstracto || 0,
+    data.total_percepcion_concentracion || 0,
+    data.total_comprension_instrucciones || 0
   ];
   const TOTAL_AN = [
-    data.total_acato_autoridad,
-    data.total_relacion_grupo_pares,
-    data.total_comportamiento_social
+    data.total_acato_autoridad || 0,
+    data.total_relacion_grupo_pares || 0,
+    data.total_comportamiento_social || 0
   ];
   const TOTAL_EE = [
-    data.total_locus_control_impulsividad,
-    data.total_manejo_frustracion,
-    data.total_empatia,
-    data.total_grado_ansiedad
+    data.total_locus_control_impulsividad || 0,
+    data.total_manejo_frustracion || 0,
+    data.total_empatia || 0,
+    data.total_grado_ansiedad || 0
   ];
   const TOTAL_APR = [
-    data.total_actitud_prevencion_accidentes,
-    data.total_confianza_acciones_realizadas,
-    data.total_capacidad_modificar_ambiente_seguridad
+    data.total_actitud_prevencion_accidentes || 0,
+    data.total_confianza_acciones_realizadas || 0,
+    data.total_capacidad_modificar_ambiente_seguridad || 0
   ];
   const TOTAL_MC = [
-    data.total_orientacion_tarea,
-    data.total_energia_vital
+    data.total_orientacion_tarea || 0,
+    data.total_energia_vital || 0
   ];
 
   const obs = {
@@ -414,7 +422,8 @@ router.post('/evaluacionaversion', async (req, res) => {
   const maquinariasConducir = data.maquinaria;
   const observacionConclusion = data.observaciones_conclusion;
   // const nombre_servicio = data.nombre_servicio;
-  const nombrePdf = `AVERSION_RIESGO.pdf`;
+  // const nombrePdf = NAME_AVERSION_PDF;
+  const nombrePdf = OTHER_NAME_PDF;
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_aversionriesgo.png`;
   const nameFIle = `aversion_${data.codigo}_${uuid()}`;
   const fecha_vigencia = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
@@ -432,11 +441,9 @@ router.post('/evaluacionaversion', async (req, res) => {
     `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Fecha vigencia: ${fecha_vigencia} Resultado: ${resultado}`
   );
 
-  let objFile = {};
-
   const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
   const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
-  const pa = await db.collection('gi').findOne({ _id: ObjectId(data.id_profesional_asignado) });
+  const pa = await db.collection('gi').findOne({ _id: ObjectId(data.id_GI_personalAsignado) });
 
 
   if (cp && cs && pa) {
@@ -484,13 +491,13 @@ router.post('/evaluacionaversion', async (req, res) => {
         TOTAL_MC
       );
 
-      objFile = {
-        name: `aversion_${data.codigo}`,
-        size: 0,
-        path: nameFIle,
-        type: "application/pdf",
-        option: "online"
-      };
+      // objFile = {
+      //   name: `aversion_${data.codigo}`,
+      //   size: 0,
+      //   path: nameFIle,
+      //   type: "application/pdf",
+      //   option: "online"
+      // };
 
       setTimeout(() => {
         const fileContent = fs.readFileSync(`uploads/${nombrePdf}`);
@@ -505,6 +512,8 @@ router.post('/evaluacionaversion', async (req, res) => {
         uploadFileToS3(params);
       }, 2000);
 
+      console.log('sdsdssdsdsds', data)
+
       const result = await db.collection("evaluaciones").updateOne(
         { codigo: data.codigo, isActive: true },
         {
@@ -515,7 +524,7 @@ router.post('/evaluacionaversion', async (req, res) => {
             fecha_carga_examen: moment().format('DD-MM-YYYY'),
             hora_carga_examen: moment().format('HH:mm'),
             meses_vigencia: data.meses_vigencia,
-            url_file_adjunto_EE: objFile,
+            url_file_adjunto_EE: nameFIle,
           },
           $push: {
             observaciones: obs,
@@ -523,14 +532,14 @@ router.post('/evaluacionaversion', async (req, res) => {
         }
       );
 
-      return res.status(200).json({ msg: 'pdf creado', resApi: result, archivo: objFile });
+      return res.status(200).json({ err: null, msg: 'Examen creado exitosamente', res: result });
     } catch (error) {
       console.log(error)
-      return res.json({ msg: 'error al crear el pdf', error: error })
+      return res.json({ err: 97, msg: ERROR_PDF, res: null })
     }
   }
   else {
-    return res.json({ msg: 'Cliente secundario no encontrado' });
+    return res.json({ err: 98, msg: 'Cliente secundario no encontrado', res: null });
   }
 })
 
@@ -541,40 +550,32 @@ router.get('/downloadfile/:id', async (req, res) => {
 
   try {
     const evaluacion = await db.collection('evaluaciones').findOne({ _id: ObjectID(id), isActive: true });
-    const { path: pathPdf, name } = evaluacion.url_file_adjunto_EE;
+    // const { path: pathPdf, name } = evaluacion.url_file_adjunto_EE;
+    const pathPdf = evaluacion.url_file_adjunto_EE;
+
+    console.log(pathPdf);
 
     const s3 = new AWS.S3({
       accessKeyId: AWS_ACCESS_KEY,
       secretAccessKey: AWS_SECRET_KEY
     });
 
-    // const fileContent = fs.readFileSync('uploads/PSICOSENSOTECNICO.pdf');
-
-    // const params = {
-    //   Bucket: AWS_BUCKET_NAME,
-    //   Body: fileContent,
-    //   Key: 'TEST_1',
-    //   ContentType: 'application/pdf'
-    // };
-
-    // uploadFileToS3(params);
-
     s3.getObject({ Bucket: AWS_BUCKET_NAME, Key: pathPdf }, (error, data) => {
       if (error) {
-        return res.json({ msg: 'error s3 get file', error: String(error) });
+        return res.json({ err: String(error), msg: 'error s3 get file', res: null });
       }
       else {
-        console.log('data response', data.Body)
         return res.status(200).json({
-          msg: 'archivo encontrado', 
+          err: null,
+          msg: 'Archivo descargado',
           res: data.Body,
-          filename: name
+          filename: pathPdf
         });
       };
     });
 
   } catch (error) {
-    return res.json({ msg: 'error al obtener archivo pdf', error: String(error) });
+    return res.json({ err: String(error), msg: 'Error al obtener archivo', res: null });
   }
 });
 
@@ -583,13 +584,13 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
 
@@ -631,24 +632,36 @@ router.post("/pagination", async (req, res) => {
         }
       },
       {
-        $match: { ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }
+        $match: { isActive: true }
       },
+      // {
+      //   $match: { ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }
+      // },
     ]
     ).toArray();
 
     console.log('agregate', mergedEvaluaciones);
 
-    const countEva = await db.collection("evaluaciones").find({ ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }).count();
+    // const countEva = await db.collection("evaluaciones").find({ ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }).count();
+    // const result = await db
+    //   .collection("evaluaciones")
+    //   .find({ ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true })
+    //   .skip(skip_page)
+    //   .limit(nPerPage)
+    //   .sort({ codigo: -1 })
+    //   .toArray();
+
+    const countEva = await db.collection("evaluaciones").find({ isActive: true }).count();
     const result = await db
       .collection("evaluaciones")
-      .find({ ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true })
+      .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
       .sort({ codigo: -1 })
       .toArray();
 
     return res.json({
-      auth: AUTHORIZED,
+      // auth: AUTHORIZED,
       total_items: countEva,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countEva / nPerPage + 1),
@@ -656,7 +669,13 @@ router.post("/pagination", async (req, res) => {
     });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      evaluaciones: null,
+      err: String(error)
+    });
   }
 });
 
@@ -665,13 +684,13 @@ router.post("/buscar", async (req, res) => {
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   let rutFiltrado;
 
@@ -691,45 +710,57 @@ router.post("/buscar", async (req, res) => {
 
   try {
 
-    if (dataToken.rol === 'Clientes') {
-      countEva = await db
-        .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
-        .count();
+    // if (dataToken.rol === 'Clientes') {
+    //   countEva = await db
+    //     .collection("evaluaciones")
+    //     .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
-    else if (dataToken.rol === 'Colaboradores') {
-      countEva = await db
-        .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
-        .count();
+    //   result = await db
+    //     .collection("evaluaciones")
+    //     .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
+    // else if (dataToken.rol === 'Colaboradores') {
+    //   countEva = await db
+    //     .collection("evaluaciones")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
-    else {
-      countEva = await db
-        .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-        .count();
+    //   result = await db
+    //     .collection("evaluaciones")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
+    // else {
+    //   countEva = await db
+    //     .collection("evaluaciones")
+    //     .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    };
+    //   result = await db
+    //     .collection("evaluaciones")
+    //     .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // };
+
+    countEva = await db
+      .collection("evaluaciones")
+      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .count();
+
+    result = await db
+      .collection("evaluaciones")
+      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
 
     return res.status(200).json({
       total_items: countEva,
@@ -738,7 +769,13 @@ router.post("/buscar", async (req, res) => {
       evaluaciones: result,
     });
   } catch (error) {
-    return res.status(500).json({ mgs: ERROR, error });
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      evaluaciones: null,
+      err: String(error)
+    });
   }
 });
 
@@ -785,40 +822,63 @@ router.post("/evaluar/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const datos = JSON.parse(req.body.data);
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  let archivo = {};
+  let archivo = '';
   let obs = {
     obs: datos.observaciones,
     fecha: getDate(new Date()),
     estado: "Cargado"
   };
-  // obs.obs = datos.observaciones;
-  // obs.fecha = getDate(new Date());
-  // obs.estado = "Cargado";
 
-  if (req.file) archivo = {
-    name: req.file.originalname,
-    size: req.file.size,
-    path: req.file.path,
-    type: req.file.mimetype,
-    option: "file"
-  };
+  // if (req.file) archivo = {
+  //   name: req.file.originalname,
+  //   size: req.file.size,
+  //   path: req.file.path,
+  //   type: req.file.mimetype,
+  //   option: "file"
+  // };
 
   try {
+    if (req.file) {
+      // const nombrePdf = datos.nombre_servicio === 'Psicosensotécnico Riguroso'
+      //   ? NAME_PSICO_PDF : datos.nombre_servicio === 'Aversión al Riesgo' ? NAME_AVERSION_PDF : OTHER_NAME_PDF;
+
+      const nombrePdf = OTHER_NAME_PDF;
+
+      // const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_psicosensotecnico.png`;
+      archivo = datos.nombre_servicio === 'Psicosensotécnico Riguroso'
+        ? `psico_${datos.codigo}_${uuid()}`
+        : datos.nombre_servicio === 'Aversión al Riesgo'
+          ? `aversion_${datos.codigo}_${uuid()}`
+          : `${datos.codigo}_${uuid()}`;
+
+      setTimeout(() => {
+        const fileContent = fs.readFileSync(`uploads/${nombrePdf}`);
+
+        const params = {
+          Bucket: AWS_BUCKET_NAME,
+          Body: fileContent,
+          Key: archivo,
+          ContentType: 'application/pdf'
+        };
+
+        uploadFileToS3(params);
+      }, 2000);
+    }
+
     const result = await db.collection("evaluaciones").updateOne(
       { _id: ObjectID(id) },
       {
         $set: {
           estado: "En Evaluacion",
           estado_archivo: "Cargado",
-          archivo_examen: datos.archivo_examen,
           fecha_carga_examen: datos.fecha_carga_examen,
           hora_carga_examen: datos.hora_carga_examen,
           url_file_adjunto_EE: archivo,
@@ -829,9 +889,9 @@ router.post("/evaluar/:id", multer.single("archivo"), async (req, res) => {
       }
     );
 
-    return res.status(200).json(result);
+    return res.status(200).json({ err: null, msg: 'Examen cargado', res: result });
   } catch (error) {
-    return res.status(500).json({ msg: ERROR, error })
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
   }
 });
 
@@ -840,13 +900,15 @@ router.post("/evaluado/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const datos = req.body;
-  const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  console.log(datos)
+  // const token = req.headers['x-access-token'];
 
-  const dataToken = await verifyToken(token);
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // const dataToken = await verifyToken(token);
+
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   let estadoEvaluacion = "";
   let obs = {
@@ -887,7 +949,8 @@ router.post("/evaluado/:id", async (req, res) => {
       (datos.estado_archivo == "Aprobado" ||
         datos.estado_archivo == "Aprobado con Obs")
     ) {
-      const isOnline = result.value.url_file_adjunto_EE.option = "online" ? true : false;
+      // const isOnline = result.value.url_file_adjunto_EE.option = "online" ? true : false;
+
       let codAsis = result.value.codigo;
       codAsis = codAsis.replace("EVA", "RES");
       const resultinsert = await db.collection("resultados").insertOne({
@@ -909,7 +972,9 @@ router.post("/evaluado/:id", async (req, res) => {
         hora_confirmacion_examen: datos.hora_confirmacion_examen,
         estado: "En Revisión",
         url_file_adjunto_res: result.value.url_file_adjunto_EE,
-        estado_archivo: isOnline ? "Cargado" : "Sin Documento",
+        // estado_archivo: isOnline ? "Cargado" : "Sin Documento",
+        // estado_archivo: 'Sin Documento',
+        estado_archivo: 'Cargado',
         estado_resultado: '',
         isActive: true
       });
@@ -917,12 +982,10 @@ router.post("/evaluado/:id", async (req, res) => {
       result = resultinsert;
     }
 
-    return res.status(200).json(result);
+    return res.status(200).json({ err: null, msg: 'Evaluacion realizada', res: result });
   } catch (error) {
-    return res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
-
-
 });
 
 //DELETE / ANULAR
@@ -957,10 +1020,10 @@ router.delete('/:id', async (req, res) => {
         isActive: false
       }
     });
-    return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'ok' });
+    return res.status(200).json({ err: null, msg: DELETE_SUCCESSFULL, res: [] });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
 

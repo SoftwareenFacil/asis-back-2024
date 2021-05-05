@@ -12,6 +12,7 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
+import { ERROR } from "../../constant/text_messages";
 
 // SELECT
 router.get("/", async (req, res) => {
@@ -58,56 +59,84 @@ router.post("/pagination", async (req, res) => {
 
 //BUSCAR POR CATEGORIA GENERAL Y SUBCATEGORIA 1
 router.post("/buscar", async (req, res) => {
-  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
 
-  const rexExpresionFiltro = new RegExp(filtro, "i");
+  // const rexExpresionFiltro = new RegExp(filtro, "i");
+
+  let rutFiltrado;
+
+  rutFiltrado = filtro;
+
+  if (identificador === 1 && filtro.includes("k")) {
+    rutFiltrado.replace("k", "K");
+  }
+
+  const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
 
   let result;
   let countSalidas;
 
   try {
-    if (identificador === 1) {
-      countSalidas = await db
-        .collection("salidas")
-        .find({ categoria_general: rexExpresionFiltro })
-        .count();
+    // if (identificador === 1) {
+    //   countSalidas = await db
+    //     .collection("salidas")
+    //     .find({ categoria_general: rexExpresionFiltro })
+    //     .count();
 
-      result = await db
-        .collection("salidas")
-        .find({ categoria_general: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    } else {
-      countSalidas = await db
-        .collection("salidas")
-        .find({ subcategoria_uno: rexExpresionFiltro })
-        .count();
-      result = await db
-        .collection("salidas")
-        .find({ subcategoria_uno: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
+    //   result = await db
+    //     .collection("salidas")
+    //     .find({ categoria_general: rexExpresionFiltro })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // } else {
+    //   countSalidas = await db
+    //     .collection("salidas")
+    //     .find({ subcategoria_uno: rexExpresionFiltro })
+    //     .count();
+    //   result = await db
+    //     .collection("salidas")
+    //     .find({ subcategoria_uno: rexExpresionFiltro })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
 
-    return res.json({
+    countSalidas = await db
+      .collection("salidas")
+      .find({ [headFilter]: rexExpresionFiltro })
+      .count();
+    result = await db
+      .collection("salidas")
+      .find({ [headFilter]: rexExpresionFiltro })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    return res.status(200).json({
       total_items: countSalidas,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countSalidas / nPerPage + 1),
       salidas: result,
     });
   } catch (error) {
-    return res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      salidas: null,
+      err: String(error)
+    });
   }
 });
 
 //INSERT SALIDA
-router.post("/", multer.single("archivo"), async (req, res) => {
+router.post("/", async (req, res) => {
   const db = await connect();
-  const datos = JSON.parse(req.body.data);
+  const datos = req.body;
+
   let newSalida = {};
   const items = await db.collection("salidas").find({}).toArray();
   let result = "";
@@ -118,17 +147,6 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     )}`;
   } else {
     newSalida.codigo = `ASIS-GTS-SAL-${YEAR}-00001`;
-  }
-
-  if (req.file) {
-    newSalida.archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  } else {
-    newSalida.archivo = {};
   }
 
   newSalida.fecha = datos.fecha;
@@ -184,12 +202,11 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       await db.collection("existencia").deleteMany({});
       //insertar cada objeto como document en collection existencia
       result = await db.collection("existencia").insertMany(result);
-
-      return res.json(result);
     }
-    return res.json([])
+    return res.status(200).json({ err: null, msg: 'Salida ingresada correctamente', res: [] })
   } catch (error) {
-    return res.json(error);
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
 
@@ -304,9 +321,9 @@ router.delete("/:id", async (req, res) => {
     //insertar cada objeto como document en collection existencia
     result = await db.collection("existencia").insertMany(result);
 
-    return res.status(201).json(result);
+    return res.status(200).json({ err: null, msg: 'Salida eliminada correctamente', res: result });
   } catch (error) {
-    return res.status(400).json({ msg: "ha ocurrido un error ", error });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
 

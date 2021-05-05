@@ -21,7 +21,7 @@ router.get('/:id', async (req, res) => {
   const { id } = req.params;
   const db = await connect();
 
-  const result = await db.collection('cobranza').findOne({_id: ObjectID(id)});
+  const result = await db.collection('cobranza').findOne({ _id: ObjectID(id) });
 
   return res.json(result);
 })
@@ -49,18 +49,18 @@ router.get("/pdf", async (req, res) => {
         }
       });
 
-      return res.status(201).json({
-        msg: 'Codigo creado satisfactoriamente',
-        code: codeQR
-      });
+    return res.status(201).json({
+      msg: 'Codigo creado satisfactoriamente',
+      code: codeQR
+    });
   } catch (error) {
-    return res.status(400).json({msg: error});
+    return res.status(400).json({ msg: error });
   }
 });
 
 
 //SELECT WITH PAGINATION
-router.post('/pagination', async (req, res) =>{
+router.post('/pagination', async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
@@ -74,71 +74,104 @@ router.post('/pagination', async (req, res) =>{
       .limit(nPerPage)
       .toArray();
 
-    return res.json({
+    return res.status(200).json({
       total_items: countCobranza,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countCobranza / nPerPage + 1),
       cobranzas: result,
     });
   } catch (error) {
-    return res.status(501).json(error);
+    return res.status(500).status(501).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 1,
+      cobranzas: null,
+      err: String(error)
+    });
   }
 })
 
 //SELECT POR RUT Y RAZONS SOCIAL
 router.post('/buscar', async (req, res) => {
-  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
 
+  // let rutFiltrado;
+
+  // if (identificador === 1 && filtro.includes("k")) {
+  //   rutFiltrado = filtro;
+  //   rutFiltrado.replace("k", "K");
+  // } else {
+  //   rutFiltrado = filtro;
+  // }
+
+  // const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+
   let rutFiltrado;
 
+  rutFiltrado = filtro;
+
   if (identificador === 1 && filtro.includes("k")) {
-    rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");
-  } else {
-    rutFiltrado = filtro;
-  }
+  };
 
   const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
 
   let result;
   let countCobranza;
-  
+
   try {
-    if (identificador === 1) {
-      countCobranza = await db
-        .collection("cobranza")
-        .find({ rut_cp: rexExpresionFiltro, isActive: true })
-        .count();
+    // if (identificador === 1) {
+    //   countCobranza = await db
+    //     .collection("cobranza")
+    //     .find({ rut_cp: rexExpresionFiltro, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("cobranza")
-        .find({ rut_cp: rexExpresionFiltro, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    } else {
-      countCobranza = await db
-        .collection("cobranza")
-        .find({ razon_social_cp: rexExpresionFiltro, isActive: true })
-        .count();
-      result = await db
-        .collection("cobranza")
-        .find({ razon_social_cp: rexExpresionFiltro, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
+    //   result = await db
+    //     .collection("cobranza")
+    //     .find({ rut_cp: rexExpresionFiltro, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // } else {
+    //   countCobranza = await db
+    //     .collection("cobranza")
+    //     .find({ razon_social_cp: rexExpresionFiltro, isActive: true })
+    //     .count();
+    //   result = await db
+    //     .collection("cobranza")
+    //     .find({ razon_social_cp: rexExpresionFiltro, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
 
-    return res.json({
+    countCobranza = await db
+      .collection("cobranza")
+      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .count();
+    result = await db
+      .collection("cobranza")
+      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    return res.status(200).json({
       total_items: countCobranza,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countCobranza / nPerPage + 1),
       cobranzas: result,
     });
   } catch (error) {
-    return res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      cobranzas: null,
+      err: String(error)
+    });
   }
 })
 // router.post("/buscar", async (req, res) => {

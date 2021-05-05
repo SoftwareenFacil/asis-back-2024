@@ -4,6 +4,11 @@ import { getYear } from "../../functions/getYearActual";
 import calculateExistencia from "../../functions/calculateExistencia";
 import getFinalExistencia from "../../functions/getFinalToExistencia";
 import multer from "../../libs/multer";
+import { v4 as uuid } from "uuid";
+import { uploadFileToS3 } from "../../libs/aws";
+
+import { ERROR } from "../../constant/text_messages";
+
 const router = Router();
 
 const YEAR = getYear();
@@ -11,7 +16,11 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { v4 } from "uuid";
+import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, NOT_EXISTS } from "../../constant/var";
+
+var path = require("path");
+var AWS = require('aws-sdk');
+var fs = require("fs");
 
 // SELECT
 router.get("/", async (req, res) => {
@@ -45,30 +54,102 @@ router.post("/pagination", async (req, res) => {
       .limit(nPerPage)
       .toArray();
 
-    return res.json({
+    return res.status(200).json({
       total_items: countGastos,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countGastos / nPerPage + 1),
       gastos: result,
     });
   } catch (error) {
-    return res.status(501).json(error);
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      gastos: null,
+      err: String(error)
+    });
+  }
+});
+
+//SEARCH BY cateogy, subcategory 1 and subcategiry 2
+router.post("/searchbycategory", async (req, res) => {
+  const db = await connect();
+  const { category, subcategoryone, subcategorytwo } = req.body;
+
+  try {
+    const gasto = await db.collection("gastos").findOne({
+      categoria_general: category, 
+      subcategoria_uno: subcategoryone, 
+      subcategoria_dos: subcategorytwo 
+    });
+    if(!gasto) return res.status(200).json({ err: 98, msg: 'Gasto no encontrado', res: [] });
+    console.log(gasto)
+    return res.status(200).json({ err: null, msg: 'Gasto gasto encontrado', res: gasto });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }
+});
+
+//GET FILE FROM AWS S3
+router.get('/downloadfile/:id/', async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+
+  try {
+    const gasto = await db.collection('gastos').findOne({ _id: ObjectID(id), isActive: true });
+    if (!gasto) return res.status(500).json({ err: 98, msg: NOT_EXISTS, res: null });
+
+    const pathPdf = gasto.archivo_adjunto;
+
+    const s3 = new AWS.S3({
+      accessKeyId: AWS_ACCESS_KEY,
+      secretAccessKey: AWS_SECRET_KEY
+    });
+
+    s3.getObject({ Bucket: AWS_BUCKET_NAME, Key: pathPdf }, (error, data) => {
+      if (error) {
+        return res.status(500).json({ err: String(error), msg: 'error s3 get file', res: null });
+      }
+      else {
+        return res.status(200).json({
+          err: null,
+          msg: 'Archivo descargado',
+          res: data.Body,
+          filename: pathPdf
+        });
+      };
+    });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: 'Error al obtener archivo', res: null });
   }
 });
 
 //BUSCAR POR RUT O NOMBRE
 router.post("/buscar", async (req, res) => {
-  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
 
+  // let rutFiltrado;
+
+  // if (identificador === 1 && filtro.includes("k")) {
+  //   rutFiltrado = filtro;
+  //   rutFiltrado.replace("k", "K");
+  // } else {
+  //   rutFiltrado = filtro;
+  // }
+
+  // const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+
   let rutFiltrado;
 
+  rutFiltrado = filtro;
+
   if (identificador === 1 && filtro.includes("k")) {
-    rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");
-  } else {
-    rutFiltrado = filtro;
   }
 
   const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
@@ -77,39 +158,56 @@ router.post("/buscar", async (req, res) => {
   let countGastos;
 
   try {
-    if (identificador === 1) {
-      countGastos = await db
-        .collection("gastos")
-        .find({ rut_proveedor: rexExpresionFiltro })
-        .count();
+    // if (identificador === 1) {
+    //   countGastos = await db
+    //     .collection("gastos")
+    //     .find({ rut_proveedor: rexExpresionFiltro })
+    //     .count();
 
-      result = await db
-        .collection("gastos")
-        .find({ rut_proveedor: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    } else {
-      countGastos = await db
-        .collection("gastos")
-        .find({ razon_social_proveedor: rexExpresionFiltro })
-        .count();
-      result = await db
-        .collection("gastos")
-        .find({ razon_social_proveedor: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
+    //   result = await db
+    //     .collection("gastos")
+    //     .find({ rut_proveedor: rexExpresionFiltro })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // } else {
+    //   countGastos = await db
+    //     .collection("gastos")
+    //     .find({ razon_social_proveedor: rexExpresionFiltro })
+    //     .count();
+    //   result = await db
+    //     .collection("gastos")
+    //     .find({ razon_social_proveedor: rexExpresionFiltro })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
 
-    return res.json({
+    countGastos = await db
+      .collection("gastos")
+      .find({ [headFilter]: rexExpresionFiltro })
+      .count();
+    result = await db
+      .collection("gastos")
+      .find({ [headFilter]: rexExpresionFiltro })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    return res.status(200).json({
       total_items: countGastos,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countGastos / nPerPage + 1),
       gastos: result,
     });
   } catch (error) {
-    return res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      gastos: null,
+      err: String(error)
+    });
   }
 });
 
@@ -117,93 +215,115 @@ router.post("/buscar", async (req, res) => {
 router.post("/", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   const datos = JSON.parse(req.body.data);
-  let newGasto = {};
-  let archivo = {};
-  const items = await db.collection("gastos").find({}).toArray();
 
-  if (items.length > 0) {
-    newGasto.codigo = `ASIS-GTS-${YEAR}-${calculate(items[items.length - 1])}`;
-  } else {
-    newGasto.codigo = `ASIS-GTS-${YEAR}-00001`;
-  }
+  try {
+    let newGasto = {};
+    let archivo = '';
+    const items = await db.collection("gastos").find({}).toArray();
 
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
+    if (items.length > 0) {
+      newGasto.codigo = `ASIS-GTS-${YEAR}-${calculate(items[items.length - 1])}`;
+    } else {
+      newGasto.codigo = `ASIS-GTS-${YEAR}-00001`;
     };
-  }
 
-  newGasto.fecha = datos.fecha;
-  newGasto.fecha_registro = datos.fecha_registro;
-  newGasto.categoria_general = datos.categoria_general;
-  newGasto.subcategoria_uno = datos.subcategoria_uno;
-  newGasto.subcategoria_dos = datos.subcategoria_dos;
-  newGasto.descripcion_gasto = datos.descripcion_gasto;
-  newGasto.id_proveedor = datos.id_proveedor;
-  newGasto.rut_proveedor = datos.rut_proveedor;
-  newGasto.categoria_proveedor = datos.categoria;
-  newGasto.razon_social_proveedor = datos.razon_social_proveedor;
-  newGasto.requiere_servicio = datos.requiere_servicio;
-  newGasto.id_servicio = datos.id_servicio;
-  newGasto.servicio = datos.servicio;
-  newGasto.tipo_registro = datos.tipo_registro;
-  newGasto.tipo_documento = datos.tipo_documento;
-  newGasto.nro_documento = datos.nro_documento;
-  newGasto.medio_pago = datos.medio_pago;
-  newGasto.institucion_bancaria = datos.institucion_bancaria;
-  newGasto.inventario = datos.inventario;
-  newGasto.cantidad_factor = datos.cantidad_factor;
-  newGasto.precio_unitario = datos.precio_unitario;
-  newGasto.monto_neto = datos.monto_neto;
-  newGasto.impuesto = datos.impuesto;
-  newGasto.monto_exento = datos.monto_exento;
-  newGasto.monto_total = datos.monto_total;
-  newGasto.observaciones = datos.observaciones;
-  newGasto.archivo_adjunto = archivo;
-  newGasto.entradas = [];
+    if (req.file) {
+      const nombrePdf = OTHER_NAME_PDF;
 
-  const result = await db.collection("gastos").insertOne(newGasto);
+      archivo = `GASTO_${newGasto.codigo}_${uuid()}`
 
-  //luego , si corresponde y existe el empleado
-  if (
-    (datos.categoria_general === "Mano de Obra Directa" ||
-      datos.categoria_general === "Gastos Generales") &&
-    (datos.subcategoria_uno === "Personal" ||
-      datos.subcategoria_uno === "Gastos Indirectos")
-  ) {
-    await db.collection("empleados").updateOne(
-      { rut: datos.rut_proveedor, categoria: datos.categoria },
-      {
-        $push: {
-          detalle_pagos: {
-            codigo: newGasto.codigo,
-            fecha: datos.fecha,
-            categoria_general: datos.categoria_general,
-            subcategoria_uno: datos.subcategoria_uno,
-            subcategoria_dos: datos.subcategoria_dos,
-            tipo_registro: datos.tipo_registro,
-            medio_pago: datos.medio_pago,
-            institucion_bancaria: datos.institucion_bancaria,
-            monto_total: datos.monto_total,
-            archivo_adjunto: archivo,
+      setTimeout(() => {
+        const fileContent = fs.readFileSync(`uploads/${nombrePdf}`);
+
+        const params = {
+          Bucket: AWS_BUCKET_NAME,
+          Body: fileContent,
+          Key: archivo,
+          ContentType: 'application/pdf'
+        };
+
+        uploadFileToS3(params);
+      }, 2000);
+    };
+
+    newGasto.fecha = datos.fecha;
+    newGasto.fecha_registro = datos.fecha_registro;
+    newGasto.categoria_general = datos.categoria_general;
+    newGasto.subcategoria_uno = datos.subcategoria_uno;
+    newGasto.subcategoria_dos = datos.subcategoria_dos;
+    newGasto.descripcion_gasto = datos.descripcion_gasto;
+    newGasto.id_proveedor = datos.id_proveedor;
+    newGasto.rut_proveedor = datos.rut_proveedor;
+    newGasto.categoria_proveedor = datos.categoria_proveedor;
+    newGasto.razon_social_proveedor = datos.razon_social_proveedor;
+    newGasto.requiere_servicio = datos.requiere_servicio;
+    newGasto.id_servicio = datos.id_servicio;
+    newGasto.servicio = datos.servicio;
+    newGasto.tipo_registro = datos.tipo_registro;
+    newGasto.tipo_documento = datos.tipo_documento;
+    newGasto.nro_documento = datos.nro_documento;
+    newGasto.medio_pago = datos.medio_pago;
+    newGasto.institucion_bancaria = datos.institucion_bancaria;
+    newGasto.inventario = datos.inventario;
+    newGasto.cantidad_factor = datos.cantidad_factor;
+    newGasto.precio_unitario = datos.precio_unitario;
+    newGasto.monto_neto = datos.monto_neto;
+    newGasto.impuesto = datos.impuesto;
+    newGasto.exento = datos.exento;
+    newGasto.total = datos.total;
+    newGasto.observaciones = datos.observaciones;
+    newGasto.archivo_adjunto = archivo;
+    newGasto.entradas = [];
+
+    const result = await db.collection("gastos").insertOne(newGasto);
+
+    //luego , si corresponde y existe el empleado
+    if (
+      (datos.categoria_general === "Mano de Obra Directa" ||
+        datos.categoria_general === "Gastos Generales") &&
+      (datos.subcategoria_uno === "Personal" ||
+        datos.subcategoria_uno === "Gastos Indirectos")
+    ) {
+      await db.collection("empleados").updateOne(
+        { rut: datos.rut_proveedor, categoria: datos.categoria },
+        {
+          $push: {
+            detalle_pagos: {
+              codigo: newGasto.codigo,
+              fecha: datos.fecha,
+              categoria_general: datos.categoria_general,
+              subcategoria_uno: datos.subcategoria_uno,
+              subcategoria_dos: datos.subcategoria_dos,
+              tipo_registro: datos.tipo_registro,
+              medio_pago: datos.medio_pago,
+              institucion_bancaria: datos.institucion_bancaria,
+              monto_total: datos.total,
+              archivo_adjunto: archivo,
+            },
           },
-        },
-      }
-    );
-  }
+        }
+      );
+    }
 
-  return res.json(result);
+    return res.status(200).json({
+      err: null,
+      msg: 'Gasto ingresado correctamente',
+      res: result
+    });
+  } catch (error) {
+    return res.status(500).json({
+      err: String(error),
+      msg: ERROR,
+      res: result
+    });
+  }
 });
 
 //INSERT ENTRADA AND EDIT PREXISTENCIA
 router.post("/entrada/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  let entrada = req.body;
-  // entrada.id = v4();
+  let data = req.body;
   let result = "";
 
   try {
@@ -211,23 +331,7 @@ router.post("/entrada/:id", async (req, res) => {
       { _id: ObjectID(id) },
       {
         $set: {
-          entradas: entrada.entradas
-          // entradas: {
-          //   id: entrada.id,
-          //   nombre_proveedor: entrada.nombre_proveedor,
-          //   categoria_general: entrada.categoria_general,
-          //   subcategoria_uno: entrada.subcategoria_uno,
-          //   subcategoria_dos: entrada.subcategoria_dos,
-          //   subcategoria_tres: entrada.subcategoria_tres,
-          //   codigo_categoria_tres: entrada.codigo_categoria_tres,
-          //   cant_maxima_categoria_tres: entrada.cant_maxima_categoria_tres,
-          //   detalle: entrada.detalle,
-          //   cantidad: entrada.cantidad,
-          //   porcentaje_impuesto: entrada.porcentaje_impuesto,
-          //   valor_impuesto: entrada.valor_impuesto,
-          //   costo_unitario: entrada.costo_unitario,
-          //   costo_total: entrada.costo_total
-          // },
+          entradas: data
         },
       }
     );
@@ -235,12 +339,12 @@ router.post("/entrada/:id", async (req, res) => {
     result = await db.collection("prexistencia").find({ id: id }).toArray();
 
     if (result.length > 0) {
-      if (entrada.entradas) {
+      if (data.length > 0) {
         result = await db.collection("prexistencia").updateOne(
           { id: id },
           {
             $set: {
-              datos: entrada.entradas,
+              datos: data,
             },
           }
         );
@@ -248,11 +352,11 @@ router.post("/entrada/:id", async (req, res) => {
         result = await db.collection("prexistencia").deleteOne({ id: id });
       }
     } else {
-      if (entrada.entradas) {
+      if (data.length > 0) {
         let objInsert = {
           id: id,
           tipo: "entrada",
-          datos: [entrada.entradas],
+          datos: data,
         };
         result = await db.collection("prexistencia").insertOne(objInsert);
       }
@@ -260,7 +364,6 @@ router.post("/entrada/:id", async (req, res) => {
 
     result = await db.collection("prexistencia").find({}).toArray();
 
-    console.log("resultado", result);
     result = calculateExistencia(result);
 
     result = getFinalExistencia(result);
@@ -269,9 +372,9 @@ router.post("/entrada/:id", async (req, res) => {
     //insertar cada objeto como document en collection existencia
     result = await db.collection("existencia").insertMany(result);
 
-    return res.status(200).json(result);
+    return res.status(200).json({ err: null, msg: 'Entrada ingresada correctamente', res: result });
   } catch (error) {
-    return res.status(400).json({ msg: "ha ocurrido un error", error });
+    return res.status(5001).json({ err: String(err), msg: ERROR, res: null });
   }
 });
 
@@ -362,7 +465,7 @@ router.delete("/:id", async (req, res) => {
 
     return res.json(result);
   } catch (error) {
-    return res.status(401).json({msg: "ha ocurrido un error", error})
+    return res.status(401).json({ msg: "ha ocurrido un error", error })
   }
 });
 

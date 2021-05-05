@@ -19,13 +19,13 @@ router.post('/', async (req, res) => {
   const db = await connect();
   const gi = await db.collection('gi').findOne({ rut: rut });
 
-  if (!gi) return res.json({ code: 'ASIS01', msg: 'Usuario no encontrado.' });
+  if (!gi) return res.json({ err: 'ASIS01', msg: 'Usuario no encontrado.', res: null });
 
-  if (!gi.password) return res.json({ code: 'ASIS02', msg: 'Este usuario no contiene una contraseña creada.' });
+  if (!gi.password) return res.json({ err: 'ASIS02', msg: 'Este usuario no contiene una contraseña creada.', res: null });
 
   const passwordIsValid = await comparePassword(password, gi.password);
 
-  if (!passwordIsValid) return res.json({ code: 'ASIS03', msg: 'Password incorrecta' });
+  if (!passwordIsValid) return res.json({ err: 'ASIS03', msg: 'Password incorrecta', res: null });
 
   const rol = (gi.rol) || '';
 
@@ -62,18 +62,21 @@ router.post('/', async (req, res) => {
 
     return res.status(200).json(
       {
-        code: 'ASIS99',
+        err: null,
         msg: 'Usuario logeado correctamente',
-        token,
-        rol,
-        gi,
-        permisos: Object.keys(clienteRoles).filter(el => clienteRoles[el] === 1) || []
+        res: {
+          token,
+          rol,
+          gi,
+          permisos: Object.keys(clienteRoles).filter(el => clienteRoles[el] === 1) || []
+        }
       }
     );
   } catch (error) {
     return res.status(500).json({
-      msg: 'ha ocurrido un error inesperado',
-      error
+      err: String(error),
+      msg: String(error),
+      res: null
     })
   }
 });

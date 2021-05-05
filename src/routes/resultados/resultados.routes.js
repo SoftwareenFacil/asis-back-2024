@@ -5,9 +5,10 @@ import { getFechaVencExam } from "../../functions/fechaVencExamen";
 import { getDate } from "../../functions/getDateNow";
 import { getDateEspecific } from "../../functions/getEspecificDate";
 import multer from "../../libs/multer";
-import { isRolResultados } from "../../functions/isRol";
+import { uploadFileToS3, getObjectFromS3 } from "../../libs/aws";
 
 import { verifyToken } from "../../libs/jwt";
+import { v4 as uuid } from "uuid";
 
 const router = Router();
 
@@ -22,9 +23,14 @@ import {
   DELETE_SUCCESSFULL
 } from "../../constant/text_messages";
 
+var path = require("path");
+var AWS = require('aws-sdk');
+var fs = require("fs");
+
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
+import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF } from "../../constant/var";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -52,17 +58,23 @@ router.get("/", async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  const result = await db.collection('resultados').findOne({ _id: ObjectID(id) });
+  try {
+    const result = await db.collection('resultados').findOne({ _id: ObjectID(id) });
+    if (!result) return res.status(400).json({ err: 98, msg: NOT_EXISTS, res: null })
 
-  return res.json(result);
+    return res.status(200).json({ err: null, msg: '', res: result })
+
+  } catch (error) {
+    return res.status(200).json({ err: String(error), msg: 'Ha ocurrido un error', res: null })
+  }
 })
 
 //SELECT WITH PAGINATION
@@ -70,19 +82,28 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countRes = await db.collection("resultados").find({ ...isRolResultados(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }).count();
+    // const countRes = await db.collection("resultados").find({ ...isRolResultados(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }).count();
+    // const result = await db
+    //   .collection("resultados")
+    //   .find({ ...isRolResultados(dataToken.rol, dataToken.rut, dataToken.id), isActive: true })
+    //   .skip(skip_page)
+    //   .limit(nPerPage)
+    //   .sort({ codigo: -1 })
+    //   .toArray();
+
+    const countRes = await db.collection("resultados").find({ isActive: true }).count();
     const result = await db
       .collection("resultados")
-      .find({ ...isRolResultados(dataToken.rol, dataToken.rut, dataToken.id), isActive: true })
+      .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
       .sort({ codigo: -1 })
@@ -95,7 +116,13 @@ router.post("/pagination", async (req, res) => {
       resultados: result,
     });
   } catch (error) {
-    return res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      resultados: null,
+      err: String(error)
+    });
   }
 });
 
@@ -104,13 +131,13 @@ router.post('/buscar', async (req, res) => {
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   let rutFiltrado;
 
@@ -130,47 +157,59 @@ router.post('/buscar', async (req, res) => {
 
   try {
 
-    if (dataToken.rol === 'Clientes') {
-      countSol = await db
-        .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
-        .count();
+    // if (dataToken.rol === 'Clientes') {
+    //   countSol = await db
+    //     .collection("solicitudes")
+    //     .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
-    else if (dataToken.rol === 'Colaboradores') {
-      countSol = await db
-        .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
-        .count();
+    //   result = await db
+    //     .collection("solicitudes")
+    //     .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
+    // else if (dataToken.rol === 'Colaboradores') {
+    //   countSol = await db
+    //     .collection("solicitudes")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
-    else {
-      countRes = await db
-        .collection("resultados")
-        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-        .count();
+    //   result = await db
+    //     .collection("solicitudes")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
+    // else {
+    //   countRes = await db
+    //     .collection("resultados")
+    //     .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("resultados")
-        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
+    //   result = await db
+    //     .collection("resultados")
+    //     .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
 
-    return res.json({
+    countRes = await db
+      .collection("resultados")
+      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .count();
+
+    result = await db
+      .collection("resultados")
+      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    return res.status(200).json({
       total_items: countRes,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countRes / nPerPage + 1),
@@ -178,7 +217,14 @@ router.post('/buscar', async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(501).json({ mgs: ERROR, error });
+    console.log(error)
+    return res.status(501).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      resultados: null,
+      err: String(error)
+    });
   }
 
 })
@@ -188,16 +234,16 @@ router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const datos = JSON.parse(req.body.data);
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  if (dataToken.rol === 'Clientes')
-    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+  // if (dataToken.rol === 'Clientes')
+  //   return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   let archivo = {};
   // let obs = {};
@@ -211,14 +257,40 @@ router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
     estado: "Cargado"
   }
 
-  if (req.file) archivo = {
-    name: req.file.originalname,
-    size: req.file.size,
-    path: req.file.path,
-    type: req.file.mimetype,
-  };
+  // if (req.file) archivo = {
+  //   name: req.file.originalname,
+  //   size: req.file.size,
+  //   path: req.file.path,
+  //   type: req.file.mimetype,
+  // };
 
   try {
+    if (req.file) {
+      // const nombrePdf = datos.nombre_servicio === 'Psicosensotécnico Riguroso'
+      //   ? NAME_PSICO_PDF : datos.nombre_servicio === 'Aversión al Riesgo' ? NAME_AVERSION_PDF : OTHER_NAME_PDF;
+      const nombrePdf = OTHER_NAME_PDF;
+
+      // const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_psicosensotecnico.png`;
+      archivo = datos.nombre_servicio === 'Psicosensotécnico Riguroso'
+        ? `psico_${datos.codigo}_${uuid()}`
+        : datos.nombre_servicio === 'Aversión al riesgo'
+          ? `aversion_${datos.codigo}_${uuid()}`
+          : `${datos.codigo}_${uuid()}`;
+
+      setTimeout(() => {
+        const fileContent = fs.readFileSync(`uploads/${nombrePdf}`);
+
+        const params = {
+          Bucket: AWS_BUCKET_NAME,
+          Body: fileContent,
+          Key: archivo,
+          ContentType: 'application/pdf'
+        };
+
+        uploadFileToS3(params);
+      }, 2000);
+    };
+
     const result = await db.collection("resultados").updateOne(
       { _id: ObjectID(id) },
       {
@@ -232,10 +304,11 @@ router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
       }
     );
 
-    return res.status(200).json(result);
+    return res.status(200).json({ err: null, msg: 'Archivo subido', res: result });
 
   } catch (error) {
-    return res.status(500).json({ msg: ERROR, error });
+    console.log(error)
+    return res.status(500).json({ err: null, msg: ERROR, res: null });
   }
 
 });
@@ -245,16 +318,16 @@ router.post("/confirmar/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
   const datos = req.body;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
-    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+  // if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
+  //   return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   let result = "";
   const obs = {
@@ -265,11 +338,13 @@ router.post("/confirmar/:id", async (req, res) => {
   // obs.obs = datos.observaciones;
   // obs.fecha = getDate(new Date());
 
+  console.log(datos);
+
   try {
     if (datos.estado_archivo == "Aprobado") {
       obs.estado = datos.estado_archivo;
       if (
-        datos.estado_resultado == "Aprobado con Obs" ||
+        datos.estado_resultado == "Aprobado con obs" ||
         datos.estado_resultado == "Aprobado"
       ) {
         result = await db.collection("resultados").findOneAndUpdate(
@@ -344,10 +419,10 @@ router.post("/confirmar/:id", async (req, res) => {
           razon_social_cs: result.value.razon_social_cs,
           lugar_servicio: result.value.lugar_servicio,
           sucursal: result.value.sucursal,
-          condicionantes: result.value.condicionantes,
-          vigencia_examen: result.value.vigencia_examen,
+          condicionantes: datos.condicionantes,
+          vigencia_examen: datos.vigencia_examen,
           oc: isOC,
-          archivo_oc: null,
+          archivo_oc: "",
           fecha_oc: "",
           hora_oc: "",
           nro_oc: "",
@@ -359,7 +434,7 @@ router.post("/confirmar/:id", async (req, res) => {
           nro_factura: "",
           archivo_factura: null,
           monto_neto: 0,
-          porcentaje_impuesto: "",
+          porcentaje_impuesto: 0,
           valor_impuesto: 0,
           sub_total: 0,
           exento: 0,
@@ -382,10 +457,46 @@ router.post("/confirmar/:id", async (req, res) => {
         }
       );
     }
-    return res.status(200).json(result);
+    return res.status(200).json({ err: null, msg: 'Resultado evaluado satisfactoriamente', res: result });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ msg: 'error al confirmar resultado', err: String(error) });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }
+});
+
+//GET FILE FROM AWS S3
+router.get('/downloadfile/:id', async (req, res) => {
+  const { id } = req.params;
+  const db = await connect();
+
+  try {
+    const evaluacion = await db.collection('resultados').findOne({ _id: ObjectID(id), isActive: true });
+    if (!evaluacion) return res.status(500).json({ err: 98, msg: NOT_EXISTS, res: null });
+
+    const pathPdf = evaluacion.url_file_adjunto_res;
+
+    const s3 = new AWS.S3({
+      accessKeyId: AWS_ACCESS_KEY,
+      secretAccessKey: AWS_SECRET_KEY
+    });
+
+    s3.getObject({ Bucket: AWS_BUCKET_NAME, Key: pathPdf }, (error, data) => {
+      if (error) {
+        return res.status(500).json({ err: String(error), msg: 'error s3 get file', res: null });
+      }
+      else {
+        return res.status(200).json({
+          err: null,
+          msg: 'Archivo descargado',
+          res: data.Body,
+          filename: pathPdf
+        });
+      };
+    });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: 'Error al obtener archivo', res: null });
   }
 });
 
@@ -430,10 +541,10 @@ router.delete('/:id', async (req, res) => {
         isActive: false
       }
     });
-    return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'ok' });
+    return res.status(200).json({ err: null, msg: DELETE_SUCCESSFULL, res: null });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
 

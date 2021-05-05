@@ -2,8 +2,9 @@ import MongoClient from "mongodb";
 
 export async function connect(){
     try {
-        
-        const client = await MongoClient.connect('mongodb+srv://admin:asis2020@cluster0-ftqrl.mongodb.net/test?retryWrites=true&w=majority', {
+        const local = 'mongodb://localhost/local-db-asis';
+        // const atlasMongo = 'mongodb+srv://admin:asis2020@cluster0-ftqrl.mongodb.net/test?retryWrites=true&w=majority';
+        const client = await MongoClient.connect(local, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         })

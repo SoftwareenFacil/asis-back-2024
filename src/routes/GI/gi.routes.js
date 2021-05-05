@@ -32,6 +32,7 @@ const YEAR = getYear();
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 import verificateTipoCliente from "../../functions/insertManyGis/verificateTipoCliente";
+import { ALREADY_EXISTS, NOT_EXISTS } from "../../constant/var";
 
 // SELECT
 router.get("/", async (req, res) => {
@@ -71,6 +72,12 @@ router.post("/pagination", async (req, res) => {
       .sort({ codigo: -1 })
       .toArray();
 
+    console.log({
+      total_items: countGIs,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countGIs / nPerPage + 1),
+      // gis: result,
+    })
     return res.json({
       total_items: countGIs,
       pagina_actual: pageNumber,
@@ -78,18 +85,55 @@ router.post("/pagination", async (req, res) => {
       gis: result,
     });
   } catch (error) {
-    return res.status(500).json(error);
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: pageNumber,
+      nro_paginas: 0,
+      gis: []
+    });
   }
 });
 
 //SELECT ONLY EMPRESAS
 router.get("/empresas", async (req, res) => {
   const db = await connect();
-  const result = await db
-    .collection("gi")
-    .find({ categoria: "Empresa/Organizacion", activo_inactivo: true })
-    .toArray();
-  return res.json(result);
+  try {
+    const result = await db
+      .collection("gi")
+      .find({ categoria: "Empresa/Organizacion", activo_inactivo: true })
+      .toArray();
+    return res.status(200).json({ err: null, res: result });
+  } catch (error) {
+    return res.status(400).json({ err: String(error), res: [] })
+  }
+});
+
+//SELECT ONLY PERSONS
+router.get("/personal", async (req, res) => {
+  const db = await connect();
+  try {
+    const result = await db
+      .collection("gi")
+      .find({ categoria: "Persona Natural", activo_inactivo: true })
+      .toArray();
+    return res.status(200).json({ err: null, res: result });
+  } catch (error) {
+    return res.status(400).json({ err: String(error), res: [] })
+  }
+});
+
+//get only workers and natural person
+router.get('/workers', async (req, res) => {
+  const db = await connect();
+  try {
+    const result = await db
+      .collection("gi")
+      .find({ categoria: "Persona Natural", grupo_interes: 'Empleados', activo_inactivo: true })
+      .toArray();
+    return res.status(200).json({ err: null, res: result });
+  } catch (error) {
+    return res.status(400).json({ err: String(error), res: [] })
+  }
 });
 
 //BUSCAR GIS POR NOMBRE O RUT
@@ -97,65 +141,90 @@ router.post("/buscar", async (req, res) => {
   const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
-  let rutFiltrado;
-  if (identificador === 1 && filtro.includes("k")) {
-    rutFiltrado = filtro;
-    rutFiltrado.replace("k", "K");
-  } else {
-    rutFiltrado = filtro;
-  };
 
-  const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
-  let result;
-  let countGIs;
-  if (identificador === 1) {
-    countGIs = await db
-      .collection("gi")
-      .find({ rut: rexExpresionFiltro, activo_inactivo: true })
-      .count();
-    result = await db
-      .collection("gi")
-      .find({ rut: rexExpresionFiltro, activo_inactivo: true })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
-  } else if (identificador === 2) {
-    countGIs = await db
-      .collection("gi")
-      .find({ razon_social: rexExpresionFiltro, activo_inactivo: true })
-      .count();
-    result = await db
-      .collection("gi")
-      .find({ razon_social: rexExpresionFiltro, activo_inactivo: true })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
-  }
-  else {
-    countGIs = await db
-      .collection("gi")
-      .find({ grupo_interes: rexExpresionFiltro, activo_inactivo: true })
-      .count();
-    result = await db
-      .collection("gi")
-      .find({ grupo_interes: rexExpresionFiltro, activo_inactivo: true })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
-  }
+  console.log('error', [identificador, filtro, pageNumber, nPerPage])
 
-  return res.json({
-    total_items: countGIs,
-    pagina_actual: pageNumber,
-    nro_paginas: parseInt(countGIs / nPerPage + 1),
-    gis: result,
-  });
+  try {
+    let rutFiltrado;
+    if (identificador === 1 && filtro.includes("k")) {
+      rutFiltrado = filtro;
+      rutFiltrado.replace("k", "K");
+    } else {
+      rutFiltrado = filtro;
+    };
+
+    const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+    let result;
+    let countGIs;
+    if (identificador === 1) {
+      countGIs = await db
+        .collection("gi")
+        .find({ rut: rexExpresionFiltro, activo_inactivo: true })
+        .count();
+      result = await db
+        .collection("gi")
+        .find({ rut: rexExpresionFiltro, activo_inactivo: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    } else if (identificador === 2) {
+
+      countGIs = await db
+        .collection("gi")
+        .find({ razon_social: rexExpresionFiltro, activo_inactivo: true })
+        .count();
+      result = await db
+        .collection("gi")
+        .find({ razon_social: rexExpresionFiltro, activo_inactivo: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+
+      // countGIs = await db
+      //   .collection("gi")
+      //   .find({ $text: { $search: String(rexExpresionFiltro), $diacriticSensitive: false, $caseSensitive: false } , activo_inactivo: true })
+      //   .count();
+      // result = await db
+      //   .collection("gi")
+      //   .find({ $text: { $search: String(rexExpresionFiltro), $diacriticSensitive: false, $caseSensitive: false }, activo_inactivo: true })
+      //   .skip(skip_page)
+      //   .limit(nPerPage)
+      //   .toArray();
+    }
+    else {
+      countGIs = await db
+        .collection("gi")
+        .find({ grupo_interes: rexExpresionFiltro, activo_inactivo: true })
+        .count();
+      result = await db
+        .collection("gi")
+        .find({ grupo_interes: rexExpresionFiltro, activo_inactivo: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+
+    return res.status(200).json({
+      total_items: countGIs,
+      pagina_actual: pageNumber,
+      nro_paginas: parseInt(countGIs / nPerPage + 1),
+      gis: result,
+    });
+  } catch (error) {
+    console.log(error)
+    return res.status(400).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      gis: [],
+      err: String(error)
+    });
+  }
 });
 
 //SELECT BY RUT
-router.post("/:rut", async (req, res) => {
-  const { rut } = req.params;
-  const verificador = req.body.verificador;
+router.post("/client", async (req, res) => {
+  const { rut, selector } = req.body;
   const db = await connect();
   let rutFiltrado;
   let result = "";
@@ -166,28 +235,40 @@ router.post("/:rut", async (req, res) => {
     rutFiltrado = rut;
   }
 
-  console.log('rut filtrado', [rutFiltrado, verificador])
+  console.log('rut filtrado', [rutFiltrado, selector])
 
-  if (verificador == 1) {
-    result = await db
-      .collection("gi")
-      .findOne({ rut: rutFiltrado, categoria: "Empresa/Organizacion", activo_inactivo: true });
-    console.log(result);
-  } else if (verificador == 2) {
-    result = await db
-      .collection("gi")
-      .findOne({ rut: rutFiltrado, categoria: "Persona Natural", activo_inactivo: true });
+  try {
+    if (selector == 1) {
+      result = await db
+        .collection("gi")
+        .findOne({ rut: rutFiltrado, categoria: "Empresa/Organizacion", activo_inactivo: true });
+    } else if (selector == 2) {
+      result = await db
+        .collection("gi")
+        .findOne({ rut: rutFiltrado, categoria: "Persona Natural", activo_inactivo: true });
+    }
+
+    if (!result) {
+      return res.status(200).json({ err: 98, res: result });
+    }
+
+    return res.status(200).json({ err: null, res: result });
+  } catch (error) {
+    return res.status(500).json({ err: String(err), res: null });
   }
-
-  return res.json(result);
 });
 
 //SELECT BY ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const result = await db.collection("gi").findOne({ _id: ObjectID(id), activo_inactivo: true });
-  return res.json(result);
+  try {
+    const result = await db.collection("gi").findOne({ _id: ObjectID(id), activo_inactivo: true });
+    return res.status(200).json({ err: null, res: result });
+  } catch (error) {
+    console.log(error)
+    return res.status(400).json({ err: String(error), res: null });
+  }
 });
 
 //UPDATE GI
@@ -196,11 +277,13 @@ router.put('/:id', multer.single("archivo"), async (req, res) => {
   let updatedGI = JSON.parse(req.body.data);
   const db = await connect();
 
-  updatedGI.url_file_adjunto = {
-    name: req.file.originalname,
-    size: req.file.size,
-    path: req.file.path,
-  };
+  if (req.file) {
+    updatedGI.url_file_adjunto = {
+      name: req.file.originalname,
+      size: req.file.size,
+      path: req.file.path,
+    };
+  }
 
   try {
     updatedGI.rol = updatedGI.rol || 'Clientes';
@@ -211,7 +294,7 @@ router.put('/:id', multer.single("archivo"), async (req, res) => {
 
     const exitstGI = await db.collection('gi').findOne({ _id: ObjectID(id) });
     if (!exitstGI) {
-      return res.status(400).json({ message: "GI no existe" });
+      return res.status(400).json({ err: 98, res: NOT_EXISTS });
     };
 
     await db.collection('gi').updateOne({ _id: ObjectID(id) }, {
@@ -220,13 +303,12 @@ router.put('/:id', multer.single("archivo"), async (req, res) => {
         ...updatedGI
       }
     });
-    return res.status(200).json({ message: "GI modificado correctamente" });
+    return res.status(200).json({ err: null, res: "GI modificado correctamente" });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ message: "ha ocurrido un error", error: String(error) });
+    return res.status(500).json({ err: String(error), res: null });
   }
 });
-
 
 //UPDATE PASSWORD
 router.put('/editpassword/:id', async (req, res) => {
@@ -239,7 +321,8 @@ router.put('/editpassword/:id', async (req, res) => {
 
   try {
 
-    if (!data.new_password && !data.rol) return res.status(400).json({ msg: "no se ha enviado informacion para editar" });
+    // if (!data.new_password && !data.rol) 
+    //   return res.status(400).json({ err:  msg: "no se ha enviado informacion para editar" });
 
     if (data.isEditPassword) {
       await db.collection('gi').updateOne({ _id: ObjectID(id) }, {
@@ -249,7 +332,7 @@ router.put('/editpassword/:id', async (req, res) => {
         }
       });
 
-      return res.status(200).json({ msg: "password y rol modificados correctamente" });
+      return res.status(200).json({ err: null, msg: "Configuración realizada exitosamente", res: null });
     }
 
     await db.collection('gi').updateOne({ _id: ObjectID(id) }, {
@@ -258,11 +341,11 @@ router.put('/editpassword/:id', async (req, res) => {
       }
     });
 
-    return res.status(200).json({ msg: "rol modificado correctamente" });
+    return res.status(200).json({ err: null, msg: "Configuración realizada exitosamente", res: null });
 
   } catch (error) {
 
-    return res.status(500).json({ msg: "ha ocurrido un error", error });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null  });
 
   }
 });
@@ -330,12 +413,14 @@ router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
       const empleados = arrayGIs.filter((el) => el.GrupoInteres === 'Empleados');
       const othersWorkers = arrayGIs.filter((el) => el.GrupoInteres !== 'Empleados');
 
+      console.log('insert many', othersWorkers[0])
+
       await db.collection('gi').insertMany(othersWorkers || []);
       await db.collection('empleados').insertMany(empleados || []);
 
       // const result = await db.collection("gi").insertMany(arrayGIs);
 
-      res.json({
+      return res.json({
         message: "Ha finalizado la inserción masiva",
         isOK: true,
         renegados: [],
@@ -350,7 +435,7 @@ router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
     return res.json({
       message: "Algo ha salido mal",
       isOK: false,
-      error: err,
+      error: String(err),
     });
   }
 });
@@ -362,6 +447,12 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   const items = await db.collection("gi").find({}).toArray();
 
   try {
+
+    if (items.length > 0) {
+      const olgid = items.find((gi) => gi.categoria === newGi.categoria && gi.rut === newGi.rut);
+      if (olgid) return res.status(400).json({ err: 99, res: ALREADY_EXISTS });
+    }
+
     if (items.length > 0) {
       newGi.codigo = `ASIS-GI-${YEAR}-${calculate(items[items.length - 1])}`;
     } else {
@@ -382,10 +473,6 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     if (newGi.rut !== '' && newGi.rut.split('-')[1] === 'k') {
       newGi.rut = `${newGi.rut.split('-')[0]}-K`;
     }
-
-    // if (newGi.rut.includes('k')) {
-    //   newGi.rut.replace('k', 'K')
-    // }
 
     newGi.rol = newGi.rol || 'Clientes';
     newGi.activo_inactivo = true;
@@ -417,16 +504,14 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       };
 
       newGi = { ...newGi, ...obj }
-
-      // await db.collection("empleados").insertOne(obj);
     };
 
     await db.collection("gi").insertOne(newGi);
 
-    return res.status(200).json({ msg: 'GI creado satisfactoriamente' });
+    return res.status(200).json({ err: null, res: 'GI creado satisfactoriamente' });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ msg: `Se ha generado el siguiente error : ${String(error)}` })
+    return res.status(500).json({ err: `Se ha generado el siguiente error : ${String(error)}`, res: null })
   }
 });
 
@@ -444,10 +529,10 @@ router.delete("/:id", async (req, res) => {
         },
       }
     );
-    return res.status(200).json(result);
+    return res.status(200).json({ err: null, res: 'GI eliminado correctamente' });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ msg: `Se ha generado el siguiente error : ${String(error)}` })
+    return res.status(500).json({ err: String(error), res: null })
   }
 });
 

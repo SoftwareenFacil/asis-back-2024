@@ -1,7 +1,14 @@
 import { Router, json } from "express";
 import multer from "../../libs/multer";
+import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR, SUCCESSFULL_INSERT, SUCCESSFULL_UPDATE } from "../../constant/text_messages";
+import { uploadFileToS3 } from "../../libs/aws";
+import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF } from "../../constant/var";
+import { v4 as uuid } from "uuid";
 
 const router = Router();
+var path = require("path");
+var AWS = require('aws-sdk');
+var fs = require("fs");
 
 //database connection
 import { connect } from "../../database";
@@ -44,16 +51,20 @@ router.post("/show/:id/:mes/:anio", async (req, res) => {
   const { id, mes, anio } = req.params;
   const db = await connect();
 
-  const result = await db
-    .collection("empleados_ausencias")
-    .find({
-      id_empleado: id,
-      mes_ausencia: mes,
-      anio_ausencia: anio,
-    })
-    .toArray();
+  try {
+    const result = await db
+      .collection("empleados_ausencias")
+      .find({
+        id_empleado: id,
+        mes_ausencia: mes,
+        anio_ausencia: anio,
+      })
+      .toArray();
 
-  res.json(result);
+    return res.status(200).json({ err: null, msg: '', res: result });
+  } catch (error) {
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }
 });
 
 //INSERT AUSENCIA BY EMPLEADO
@@ -62,25 +73,38 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   const data = JSON.parse(req.body.data);
   let r = null;
 
-  if (req.file) {
-    data.archivo_adjunto = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
+  try {
+    console.log(data)
+
+    const empleado = await db.collection("gi").findOne({ _id: ObjectID(data.id_empleado) });
+
+    if (!empleado) return res.status(200).json({ err: 98, msg: 'Empleado no existe en el sistema', res: null });
+
+    let archivo;
+
+    if (req.file) {
+      const nombrePdf = OTHER_NAME_PDF;
+      archivo = `AUSENCIA_${empleado.razon_social}_${uuid()}`;
+
+      setTimeout(() => {
+        const fileContent = fs.readFileSync(`uploads/${nombrePdf}`);
+
+        const params = {
+          Bucket: AWS_BUCKET_NAME,
+          Body: fileContent,
+          Key: archivo,
+          ContentType: 'application/pdf'
+        };
+
+        uploadFileToS3(params);
+      }, 2000);
     };
-  } else {
-    data.archivo_adjunto = {};
-  }
 
-  await db.collection("empleados_ausencias").insertOne(data);
+    const { _id, ...restOfData } = data;
 
-  const empleado = await db
-    .collection("empleados")
-    .findOne({ _id: ObjectID(data.id_empleado) });
+    await db.collection("empleados_ausencias").insertOne({ ...restOfData, archivo_adjunto: archivo });
 
-  if (empleado) {
-    const result = await db.collection("empleados").updateOne(
+    const result = await db.collection("gi").updateOne(
       { _id: ObjectID(data.id_empleado) },
       {
         $set: {
@@ -94,9 +118,20 @@ router.post("/", multer.single("archivo"), async (req, res) => {
         },
       }
     );
-    res.json(result);
-  } else {
-    res.status(500).json({ msg: "No se ha encontrado el empleado" });
+
+    console.log(calculateDesgloseEmpleados(
+      empleado.detalle_empleado,
+      data.abrev_ausencia,
+      data.cantidad_dias,
+      empleado.dias_vacaciones,
+      "inc"
+    ))
+
+    return res.status(200).json({ err: null, msg: 'Ausencia creada satisfactoriamente', res: result });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
   }
 });
 

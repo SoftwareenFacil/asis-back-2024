@@ -9,14 +9,15 @@ import { isRolReservas } from "../../functions/isRol";
 
 import { verifyToken } from "../../libs/jwt";
 
-import { 
-  MESSAGE_UNAUTHORIZED_TOKEN, 
-  UNAUTHOTIZED, 
-  ERROR_MESSAGE_TOKEN, 
-  AUTHORIZED, ERROR, 
-  SUCCESSFULL_UPDATE, 
+import {
+  MESSAGE_UNAUTHORIZED_TOKEN,
+  UNAUTHOTIZED,
+  ERROR_MESSAGE_TOKEN,
+  AUTHORIZED, ERROR,
+  SUCCESSFULL_UPDATE,
   CONFIRM_SUCCESSFULL,
-  DELETE_SUCCESSFULL } from "../../constant/text_messages";
+  DELETE_SUCCESSFULL
+} from "../../constant/text_messages";
 
 
 const router = Router();
@@ -26,6 +27,7 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
+import { NOT_EXISTS } from "../../constant/var";
 
 //SELECT
 router.get('/', async (req, res) => {
@@ -52,33 +54,47 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED, ERROR });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED, ERROR });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countRes = await db.collection("reservas").find({...isRolReservas(dataToken.rol, dataToken.id), isActive: true}).count();
+    // const countRes = await db.collection("reservas").find({...isRolReservas(dataToken.rol, dataToken.id), isActive: true}).count();
+    const countRes = await db.collection("reservas").find({ isActive: true }).count();
+    // const result = await db
+    //   .collection("reservas")
+    //   .find({...isRolReservas(dataToken.rol, dataToken.id), isActive: true})
+    //   .skip(skip_page)
+    //   .limit(nPerPage)
+    //   .sort({ codigo: -1 })
+    //   .toArray();
     const result = await db
       .collection("reservas")
-      .find({...isRolReservas(dataToken.rol, dataToken.id), isActive: true})
+      .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
       .sort({ codigo: -1 })
       .toArray();
 
-    return res.json({
-      auth: AUTHORIZED,
+    return res.status(200).json({
+      // auth: AUTHORIZED,
       total_items: countRes,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countRes / nPerPage + 1),
       reservas: result,
     });
   } catch (error) {
-    return res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      reservas: null,
+      err: String(error)
+    });
   }
 });
 
@@ -86,19 +102,19 @@ router.post("/pagination", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const result = await db.collection("reservas").findOne({ _id: ObjectID(id) });
-    return res.status(200).json(result);
+    const result = await db.collection("reservas").findOne({ _id: ObjectID(id), isActive: true });
+    return res.status(200).json({ err: null, msg: '', res: result });
   } catch (error) {
-    return res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null});
   }
 });
 
@@ -108,22 +124,19 @@ router.post('/buscar', async (req, res) => {
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
   let rutFiltrado;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   rutFiltrado = filtro;
 
   if (identificador === 1 && filtro.includes("k")) {
     rutFiltrado.replace("k", "K");
   }
-  // else {
-  //   rutFiltrado = filtro;
-  // }
 
   const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
 
@@ -132,45 +145,57 @@ router.post('/buscar', async (req, res) => {
 
   try {
 
-    if (dataToken.rol === 'Clientes') {
-      countRes = await db
-        .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
-        .count();
+    // if (dataToken.rol === 'Clientes') {
+    //   countRes = await db
+    //     .collection("reservas")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
-    else if (dataToken.rol === 'Colaboradores') {
-      countRes = await db
-        .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
-        .count();
+    //   result = await db
+    //     .collection("reservas")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
+    // else if (dataToken.rol === 'Colaboradores') {
+    //   countRes = await db
+    //     .collection("reservas")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
-    else {
-      countRes = await db
-        .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-        .count();
+    //   result = await db
+    //     .collection("reservas")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
+    // else {
+    //   countRes = await db
+    //     .collection("reservas")
+    //     .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("reservas")
-        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    };
+    //   result = await db
+    //     .collection("reservas")
+    //     .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // };
+
+    countRes = await db
+      .collection("reservas")
+      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .count();
+
+    result = await db
+      .collection("reservas")
+      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
 
     return res.status(200).json({
       total_items: countRes,
@@ -179,7 +204,13 @@ router.post('/buscar', async (req, res) => {
       reservas: result,
     });
   } catch (error) {
-    return res.status(500).json({ mgs: ERROR, error });
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      reservas: null,
+      err: String(error)
+    });
   }
 })
 
@@ -188,24 +219,22 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   const datos = JSON.parse(req.body.data);
   const { id } = req.params;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
-    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+  // if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+  //   return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   let archivo = {};
-  // let obs = {};
-  // obs.obs = datos.observacion;
-  // obs.fecha = getDate(new Date());
+
   const obs = {
     obs: datos.observacion,
-    fecha: datos.getDate(new Date())
+    fecha: getDate(new Date())
   }
 
   if (req.file) archivo = {
@@ -227,7 +256,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
           jornada: datos.jornada,
           mes: datos.mes,
           anio: datos.anio,
-          id_GI_personalAsignado: datos.id_GI_profesional_asignado,
+          id_GI_personalAsignado: datos.id_GI_personalAsignado,
           sucursal: datos.sucursal,
           url_file_adjunto: archivo,
         },
@@ -236,9 +265,9 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
         },
       }
     );
-    return res.status(200).json({ msg: SUCCESSFULL_UPDATE });
+    return res.status(200).json({ err: null, msg: SUCCESSFULL_UPDATE, res: [] });
   } catch (error) {
-    return res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 
 });
@@ -248,18 +277,18 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const datos = JSON.parse(req.body.data);
   const db = await connect();
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
   let archivo = {};
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
-    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+  // if (dataToken.rol === 'Clientes' || dataToken === 'Colaboradores')
+  //   return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   const obs = {
     obs: datos.observacion,
@@ -287,7 +316,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
           fecha_reserva_fin: datos.fecha_reserva_fin,
           hora_reserva: datos.hora_reserva,
           hora_reserva_fin: datos.hora_reserva_fin,
-          id_GI_personalAsignado: datos.id_GI_profesional_asignado,
+          id_GI_personalAsignado: datos.id_GI_personalAsignado,
           sucursal: datos.sucursal,
           url_file_adjunto_confirm: archivo,
           estado: "Reservado",
@@ -390,25 +419,28 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       });
     }
 
-    const profesionalAsignado = await db
-      .collection("gi")
-      .findOne({ _id: ObjectID(datos.id_GI_profesional_asignado) });
+    // const profesionalAsignado = await db
+    //   .collection("gi")
+    //   .findOne({ _id: ObjectID(datos.id_GI_profesional_asignado) });
 
-    const clientePrincipal = await db
-      .collection("gi")
-      .findOne({ _id: ObjectID(reserva.id_GI_Principal) });
+    // const clientePrincipal = await db
+    //   .collection("gi")
+    //   .findOne({ _id: ObjectID(reserva.id_GI_Principal) });
 
-    const clienteSecundario = await db
-      .collection("gi")
-      .findOne({ _id: ObjectID(reserva.id_GI_Secundario) });
+    // const clienteSecundario = await db
+    //   .collection("gi")
+    //   .findOne({ _id: ObjectID(reserva.id_GI_Secundario) });
 
     return res.status(200).json({
+      err: null,
       msg: CONFIRM_SUCCESSFULL,
+      res: []
     });
   } catch (error) {
     return res.status(500).json({
+      err: String(error),
       msg: ERROR,
-      error
+      res: null
     });
   }
 });
@@ -600,27 +632,27 @@ router.delete('/:id', async (req, res) => {
 
   try {
     const existReserva = await db.collection('reservas').findOne({ _id: ObjectID(id) });
-    if(!existReserva) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'reserva no existe' });
+    if (!existReserva) return res.status(200).json({ err: 98, msg: `${NOT_EXISTS}: reserva`, res: [] });
     // console.log(existReserva);
     const codeSolicitud = existReserva.codigo.replace('AGE', 'SOL');
     const existSolicitud = await db.collection('solicitudes').findOne({ codigo: codeSolicitud });
 
-    if(!existSolicitud) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'solicitud no existe no existe' });
+    if (!existSolicitud) return res.status(200).json({ err: 98, msg: `${NOT_EXISTS}: solicitud`, res: []  });
 
     await db.collection('reservas').updateOne({ _id: ObjectID(id) }, {
-      $set:{
+      $set: {
         isActive: false
       }
     });
     await db.collection('solicitudes').updateOne({ codigo: codeSolicitud }, {
-      $set:{
+      $set: {
         isActive: false
       }
     });
-    return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'ok' });
+    return res.status(200).json({ err: null, msg: DELETE_SUCCESSFULL, res: [] });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
 

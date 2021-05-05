@@ -1,12 +1,7 @@
 import e, { Router } from "express";
 import calculateVacationByDay from "../../functions/calculateDaysVacation";
 import calculateDesgloseEmpleados from "../../functions/calculateDesgloseEmpleados";
-import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR, SUCCESSFULL_INSERT, SUCCESSFULL_UPDATE } from "../../constant/text_messages";
-import { isRolEmpleados } from "../../functions/isRol";
-
-import multer from "../../libs/multer";
-
-import { verifyToken } from "../../libs/jwt";
+import { ERROR } from "../../constant/text_messages";
 
 const router = Router();
 
@@ -29,27 +24,37 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
+    // const countEmpleados = await db
+    //   .collection("gi")
+    //   .find({ ...isRolEmpleados(dataToken.rol, dataToken.rut, ""), grupo_interes: 'Empleados' }).count();
+    // const result = await db
+    //   .collection("gi")
+    //   .find({ ...isRolEmpleados(dataToken.rol, dataToken.rut, ""), grupo_interes: 'Empleados' })
+    //   .skip(skip_page)
+    //   .limit(nPerPage)
+    //   .toArray();
+
     const countEmpleados = await db
       .collection("gi")
-      .find({ ...isRolEmpleados(dataToken.rol, dataToken.rut, ""), grupo_interes: 'Empleados' }).count();
+      .find({ grupo_interes: 'Empleados', activo_inactivo: true }).count();
     const result = await db
       .collection("gi")
-      .find({ ...isRolEmpleados(dataToken.rol, dataToken.rut, ""), grupo_interes: 'Empleados' })
+      .find({ grupo_interes: 'Empleados', activo_inactivo: true })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
 
-    return res.json({
-      auth: AUTHORIZED,
+    return res.status(200).json({
+      // auth: AUTHORIZED,
       total_items: countEmpleados,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countEmpleados / nPerPage + 1),
@@ -57,30 +62,44 @@ router.post("/pagination", async (req, res) => {
     });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      empleados: null,
+      err: String(error)
+    });
   }
 });
 
 //BUSCAR POR NOMBRE O RUT
 router.post("/buscar", async (req, res) => {
   const db = await connect();
-  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  // let rutFiltrado;
+
+  // if (identificador === 1 && filtro.includes("k")) {
+  //   rutFiltrado = filtro;
+  //   rutFiltrado.replace("k", "K");
+  // } else {
+  //   rutFiltrado = filtro;
+  // }
 
   let rutFiltrado;
 
+  rutFiltrado = filtro;
+
   if (identificador === 1 && filtro.includes("k")) {
-    rutFiltrado = filtro;
     rutFiltrado.replace("k", "K");
-  } else {
-    rutFiltrado = filtro;
   }
 
   const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
@@ -89,67 +108,85 @@ router.post("/buscar", async (req, res) => {
   let countEmpleados;
 
   try {
-    if (dataToken.rol === 'Empleados') {
-      if (identificador === 1) {
-        countEmpleados = await db
-          .collection("empleados")
-          .find({ rut: rexExpresionFiltro, rut: dataToken.rut })
-          .count();
+    // if (dataToken.rol === 'Empleados') {
+    //   if (identificador === 1) {
+    //     countEmpleados = await db
+    //       .collection("empleados")
+    //       .find({ rut: rexExpresionFiltro, rut: dataToken.rut })
+    //       .count();
 
-        result = await db
-          .collection("empleados")
-          .find({ rut: rexExpresionFiltro, rut: dataToken.rut })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      } else {
-        countEmpleados = await db
-          .collection("empleados")
-          .find({ nombre: rexExpresionFiltro, rut: dataToken.rut })
-          .count();
-        result = await db
-          .collection("empleados")
-          .find({ nombre: rexExpresionFiltro, rut: dataToken.rut })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-    }
-    else {
-      if (identificador === 1) {
-        countEmpleados = await db
-          .collection("empleados")
-          .find({ rut: rexExpresionFiltro })
-          .count();
+    //     result = await db
+    //       .collection("empleados")
+    //       .find({ rut: rexExpresionFiltro, rut: dataToken.rut })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   } else {
+    //     countEmpleados = await db
+    //       .collection("empleados")
+    //       .find({ nombre: rexExpresionFiltro, rut: dataToken.rut })
+    //       .count();
+    //     result = await db
+    //       .collection("empleados")
+    //       .find({ nombre: rexExpresionFiltro, rut: dataToken.rut })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
+    // else {
+    //   if (identificador === 1) {
+    //     countEmpleados = await db
+    //       .collection("empleados")
+    //       .find({ rut: rexExpresionFiltro })
+    //       .count();
 
-        result = await db
-          .collection("empleados")
-          .find({ rut: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      } else {
-        countEmpleados = await db
-          .collection("empleados")
-          .find({ nombre: rexExpresionFiltro })
-          .count();
-        result = await db
-          .collection("empleados")
-          .find({ nombre: rexExpresionFiltro })
-          .skip(skip_page)
-          .limit(nPerPage)
-          .toArray();
-      }
-    }
+    //     result = await db
+    //       .collection("empleados")
+    //       .find({ rut: rexExpresionFiltro })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   } else {
+    //     countEmpleados = await db
+    //       .collection("empleados")
+    //       .find({ nombre: rexExpresionFiltro })
+    //       .count();
+    //     result = await db
+    //       .collection("empleados")
+    //       .find({ nombre: rexExpresionFiltro })
+    //       .skip(skip_page)
+    //       .limit(nPerPage)
+    //       .toArray();
+    //   }
+    // }
 
-    return res.json({
+    countEmpleados = await db
+      .collection("gi")
+      .find({ [headFilter]: rexExpresionFiltro, grupo_interes: 'Empleados', activo_inactivo: true })
+      .count();
+    result = await db
+      .collection("gi")
+      .find({ [headFilter]: rexExpresionFiltro, grupo_interes: 'Empleados', activo_inactivo: true })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    return res.status(200).json({
       total_items: countEmpleados,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countEmpleados / nPerPage + 1),
       empleados: result,
     });
   } catch (error) {
-    return res.status(500).json({ mgs: ERROR, error });
+    console.log(error)
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      empleados: null,
+      err: String(error)
+    });
   }
 });
 
@@ -165,20 +202,20 @@ router.get("/:id", async (req, res) => {
 });
 
 //EDITAR EMPLEADO
-router.put("/:id", multer.single("archivo"), async (req, res) => {
+router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  const data = JSON.parse(req.body.data);
+  const data = req.body;
   let diasVacaciones = 0;
 
-  if (req.file) {
-    data.archivo_adjunto = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
+  // if (req.file) {
+  //   data.archivo_adjunto = {
+  //     name: req.file.originalname,
+  //     size: req.file.size,
+  //     path: req.file.path,
+  //     type: req.file.mimetype,
+  //   };
+  // }
 
   if (data.fecha_inicio_contrato) {
     if (
@@ -208,7 +245,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
       {
         $set: {
           ...empleado,
-          cargo: data.cargo,
+          // cargo: data.cargo,
           tipo_contrato: data.tipo_contrato,
           estado_contrato: data.estado_contrato,
           fecha_inicio_contrato: data.fecha_inicio_contrato,
@@ -227,14 +264,13 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
             "none",
             diasVacaciones
           ),
-          archivo_adjunto: data.archivo_adjunto
         },
       }
     );
-    return res.status(200).json(result);
+    return res.status(200).json({ err: null, msg: 'Empleado editado correctamente', res: result });
   } else {
     console.log(error)
-    return res.status(500).json({ msg: "No se ha encontrado el empleado" });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
 
@@ -299,17 +335,22 @@ router.get("/traspaso/test", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   const db = await connect();
+  console.log(id)
 
-  const result = await db.collection("gi").updateOne(
-    { _id: ObjectID(id) },
-    {
-      $set: {
-        activo_inactivo: false,
-      },
-    }
-  );
+  try {
+    const result = await db.collection("gi").updateOne(
+      { _id: ObjectID(id) },
+      {
+        $set: {
+          activo_inactivo: false,
+        },
+      }
+    );
 
-  return res.json(result);
+    return res.status(200).json({ err: null, msg: 'Empleado eliminado correctamente', res: result });
+  } catch (error) {
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }
 });
 
 export default router;

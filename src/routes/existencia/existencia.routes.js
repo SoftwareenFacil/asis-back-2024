@@ -20,8 +20,8 @@ router.get("/", async (req, res) => {
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
   const db = await connect();
-  
-  const result = await db.collection('existencia').findOne({_id: ObjectID(id)});
+
+  const result = await db.collection('existencia').findOne({ _id: ObjectID(id) });
 
   return res.json(result);
 })
@@ -41,62 +41,93 @@ router.post("/pagination", async (req, res) => {
       .limit(nPerPage)
       .toArray();
 
-    return res.json({
+    return res.status(200).json({
       total_items: countExistencia,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countExistencia / nPerPage + 1),
       existencias: result,
     });
   } catch (error) {
-    return res.status(501).json(error);
+    return res.status(501).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      existencias: null,
+      err: String(err)
+    });
   }
 });
 
-//BUSCAR POR CATEGORIA GENERAL Y SUBCATEGORIA 1
+//BUSCAR
 router.post("/buscar", async (req, res) => {
-  const { identificador, filtro, pageNumber, nPerPage } = req.body;
+  const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
 
-  const rexExpresionFiltro = new RegExp(filtro, "i");
+  let rutFiltrado;
+
+  rutFiltrado = filtro;
+
+  if (identificador === 1 && filtro.includes("k")) {
+    rutFiltrado.replace("k", "K");
+  }
+
+  const rexExpresionFiltro = new RegExp(rutFiltrado, "i");
 
   let result;
   let countExis;
 
   try {
-    if (identificador === 1) {
-      countExis = await db
-        .collection("existencia")
-        .find({ categoria_general: rexExpresionFiltro })
-        .count();
+    // if (identificador === 1) {
+    //   countExis = await db
+    //     .collection("existencia")
+    //     .find({ categoria_general: rexExpresionFiltro })
+    //     .count();
 
-      result = await db
-        .collection("existencia")
-        .find({ categoria_general: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    } else {
-      countExis = await db
-        .collection("existencia")
-        .find({ subcategoria_uno: rexExpresionFiltro })
-        .count();
-      result = await db
-        .collection("existencia")
-        .find({ subcategoria_uno: rexExpresionFiltro })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
+    //   result = await db
+    //     .collection("existencia")
+    //     .find({ categoria_general: rexExpresionFiltro })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // } else {
+    //   countExis = await db
+    //     .collection("existencia")
+    //     .find({ subcategoria_uno: rexExpresionFiltro })
+    //     .count();
+    //   result = await db
+    //     .collection("existencia")
+    //     .find({ subcategoria_uno: rexExpresionFiltro })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
 
-    return res.json({
+    countExis = await db
+      .collection("existencia")
+      .find({ [headFilter]: rexExpresionFiltro })
+      .count();
+    result = await db
+      .collection("existencia")
+      .find({ [headFilter]: rexExpresionFiltro })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
+
+    return res.status(200).json({
       total_items: countExis,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countExis / nPerPage + 1),
       existencias: result,
     });
   } catch (error) {
-    return res.status(501).json({ mgs: `ha ocurrido un error ${error}` });
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      existencias: null,
+      err: String(error)
+    });
   }
 });
 
@@ -117,10 +148,10 @@ router.post("/consultar", async (req, res) => {
     });
   } else {
 
-    if(indicador === 2){
+    if (indicador === 2) {
       cupos_disponibles = result.existencia + cant;
     }
-    else{
+    else {
       cupos_disponibles = result.existencia;
     }
 

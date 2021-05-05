@@ -20,14 +20,15 @@ moment.locale('es', {
 
 import { verifyToken } from "../../libs/jwt";
 
-import { 
-  MESSAGE_UNAUTHORIZED_TOKEN, 
-  UNAUTHOTIZED, 
-  ERROR_MESSAGE_TOKEN, 
-  AUTHORIZED, ERROR, 
-  SUCCESSFULL_INSERT, 
+import {
+  MESSAGE_UNAUTHORIZED_TOKEN,
+  UNAUTHOTIZED,
+  ERROR_MESSAGE_TOKEN,
+  AUTHORIZED, ERROR,
+  SUCCESSFULL_INSERT,
   SUCCESSFULL_UPDATE,
-  DELETE_SUCCESSFULL } from "../../constant/text_messages";
+  DELETE_SUCCESSFULL
+} from "../../constant/text_messages";
 
 import multer from "../../libs/multer";
 
@@ -37,13 +38,25 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
+import { NOT_EXISTS } from "../../constant/var";
 
 //SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  const result = await db.collection("solicitudes").find({ isActive: true }).toArray();
-
-  return res.json(result);
+  try {
+    const result = await db.collection("solicitudes").find({ isActive: true }).toArray();
+    return res.status(200).json({
+      err: null,
+      msg: 'Solicitudes obtenidas',
+      res: result
+    });
+  } catch (error) {
+    return res.status(500).json({
+      err: String(error),
+      msg: ERROR,
+      res: null
+    });
+  }
 });
 
 //SELECT WITH PAGINATION
@@ -51,26 +64,34 @@ router.post("/pagination", async (req, res) => {
   const db = await connect();
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    const countSol = await db.collection("solicitudes").find({...isRolSolicitudes(dataToken.rol, dataToken.id), isActive: true}).count();
+    // const countSol = await db.collection("solicitudes").find({...isRolSolicitudes(dataToken.rol, dataToken.id), isActive: true}).count();
+    const countSol = await db.collection("solicitudes").find({ isActive: true }).count();
+    // const result = await db
+    //   .collection("solicitudes")
+    //   .find({...isRolSolicitudes(dataToken.rol, dataToken.id), isActive: true})
+    //   .skip(skip_page)
+    //   .limit(nPerPage)
+    //   .sort({ codigo: -1 })
+    //   .toArray();
     const result = await db
       .collection("solicitudes")
-      .find({...isRolSolicitudes(dataToken.rol, dataToken.id), isActive: true})
+      .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
       .sort({ codigo: -1 })
       .toArray();
 
-    return res.json({
-      auth: AUTHORIZED,
+    return res.status(200).json({
+      // auth: AUTHORIZED,
       total_items: countSol,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countSol / nPerPage + 1),
@@ -78,7 +99,14 @@ router.post("/pagination", async (req, res) => {
     });
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({
+      // auth: AUTHORIZED,
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      solicitudes: null,
+      err: String(error)
+    });
   }
 });
 
@@ -87,13 +115,15 @@ router.post("/buscar", async (req, res) => {
   const db = await connect();
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  console.log([identificador, filtro, headFilter, pageNumber, nPerPage])
+  // const token = req.headers['x-access-token'];
 
-  const dataToken = await verifyToken(token);
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // const dataToken = await verifyToken(token);
+
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   let rutFiltrado;
 
@@ -110,45 +140,57 @@ router.post("/buscar", async (req, res) => {
 
   try {
 
-    if (dataToken.rol === 'Clientes') {
-      countSol = await db
-        .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
-        .count();
+    // if (dataToken.rol === 'Clientes') {
+    //   countSol = await db
+    //     .collection("solicitudes")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
-    else if (dataToken.rol === 'Colaboradores') {
-      countSol = await db
-        .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id, isActive: true })
-        .count();
+    //   result = await db
+    //     .collection("solicitudes")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_Principal: dataToken.id, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
+    // else if (dataToken.rol === 'Colaboradores') {
+    //   countSol = await db
+    //     .collection("solicitudes")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
-    else {
-      countSol = await db
-        .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-        .count();
+    //   result = await db
+    //     .collection("solicitudes")
+    //     .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
+    // else {
+    //   countSol = await db
+    //     .collection("solicitudes")
+    //     .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+    //     .count();
 
-      result = await db
-        .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-        .skip(skip_page)
-        .limit(nPerPage)
-        .toArray();
-    }
+    //   result = await db
+    //     .collection("solicitudes")
+    //     .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+    //     .skip(skip_page)
+    //     .limit(nPerPage)
+    //     .toArray();
+    // }
+
+    countSol = await db
+      .collection("solicitudes")
+      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .count();
+
+    result = await db
+      .collection("solicitudes")
+      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .skip(skip_page)
+      .limit(nPerPage)
+      .toArray();
 
     return res.status(200).json({
       total_items: countSol,
@@ -158,7 +200,13 @@ router.post("/buscar", async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(500).json({ mgs: ERROR, error });
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      solicitudes: null,
+      err: String(error)
+    });
   }
 });
 
@@ -166,24 +214,44 @@ router.post("/buscar", async (req, res) => {
 router.get("/mostrar/:id", async (req, res) => {
   const db = await connect();
   const { id } = req.params;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  const resultSol = await db
-    .collection("solicitudes")
-    .findOne({ _id: ObjectID(id) });
-  const resultGI = await db
-    .collection("gi")
-    .findOne({ _id: ObjectID(resultSol.id_GI_Principal) });
+  try {
+    const resultSol = await db
+      .collection("solicitudes")
+      .findOne({ _id: ObjectID(id) });
+    const resultGI = await db
+      .collection("gi")
+      .findOne({ _id: ObjectID(resultSol.id_GI_Principal) });
 
-  resultSol.email_gi = resultGI.email_central !== null ? resultGI.email_central : '';
+    resultSol.email_gi = resultGI.email_central !== null ? resultGI.email_central : '';
 
-  return res.status(200).json(resultSol);
+    return res.status(200).json({ err: null, msg: '', res: resultSol });
+  } catch (error) {
+    return res.status(500).json({ err: String(error), msg: '', res: null });
+  }
+});
+
+//SELECT BY ID
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+  console.log(id)
+  const db = await connect();
+  try {
+    const result = await db.collection("solicitudes").findOne({ _id: ObjectID(id), isActive: true });
+    const { observacion_solicitud, ...restOfData } = result;
+    console.log(observacion_solicitud[0].obs)
+    return res.status(200).json({ err: null, msg: '', res: { ...restOfData, observacion_solicitud: observacion_solicitud[0].obs } });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: '', res: null });
+  }
 });
 
 //INSERT
@@ -193,15 +261,16 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   const nuevaObs = newSolicitud.observacion_solicitud;
   const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  const items = await db.collection("solicitudes").find({isActive: true}).toArray();
+  const items = await db.collection("solicitudes").find().toArray();
 
-  if (!items) return res.status(401).json({ msg: "No se ha podido encontrar la solicitud seleccionada" });
+  if (!items)
+    return res.status(401).json({ err: 98, msg: NOT_EXISTS, res: null });
 
   (items.length > 0)
     ? newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(items[items.length - 1])}`
@@ -222,8 +291,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     }
     : newSolicitud.url_file_adjunto = {};
 
-  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
-    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+  // if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
+  //   return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   try {
     newSolicitud.isActive = true;
@@ -236,11 +305,11 @@ router.post("/", multer.single("archivo"), async (req, res) => {
         .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
     };
 
-    return res.status(200).json({ msg: SUCCESSFULL_INSERT, result });
+    return res.status(200).json({ err: null, msg: SUCCESSFULL_INSERT, res: result });
 
   } catch (error) {
 
-    return res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
 
   }
 
@@ -298,16 +367,16 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   const solicitud = JSON.parse(req.body.data);
   const { id } = req.params;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
-    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+  // if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
+  //   return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   if (req.file)
     solicitud.url_file_adjunto = {
@@ -318,59 +387,41 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     };
 
   try {
+
+    const existsRequest = await db.collection('solicitudes').findOne({ _id: ObjectID(id) });
+    if (!existsRequest) {
+      return res.status(400).json({ err: 98, msg: NOT_EXISTS, res: [] });
+    };
+
+    const { observacion_solicitud, ...restOfSolcitud } = solicitud;
+
     await db.collection("solicitudes").updateOne(
       { _id: ObjectID(id), isActive: true },
       {
         $set: {
-          id_GI_Principal: solicitud.id_GI_Principal,
-          id_GI_Secundario: solicitud.id_GI_Secundario,
-          id_GI_PersonalAsignado: solicitud.id_GI_PersonalAsignado,
-          rut_CP: solicitud.rut_CP,
-          razon_social_CP: solicitud.razon_social_CP,
-          nro_contrato_seleccionado_cp: solicitud.nro_contrato_seleccionado_cp,
-          faena_seleccionada_cp: solicitud.faena_seleccionada_cp,
-          rut_cs: solicitud.rut_cs,
-          razon_social_cs: solicitud.razon_social_cs,
-          fecha_solicitud: solicitud.fecha_solicitud,
-          fecha_servicio_solicitado: solicitud.fecha_servicio_solicitado,
-          mes_solicitud: solicitud.mes_solicitud,
-          anio_solicitud: solicitud.anio_solicitud,
-          nombre_receptor: solicitud.nombre_receptor,
-          categoria1: solicitud.categoria1,
-          categoria2: solicitud.categoria2,
-          categoria3: solicitud.categoria3,
-          nombre_servicio: solicitud.nombre_servicio,
-          tipo_servicio: solicitud.tipo_servicio,
-          monto_neto: solicitud.monto_neto,
-          porcentaje_impuesto: solicitud.porcentaje_impuesto,
-          valor_impuesto: solicitud.valor_impuesto,
-          precio: solicitud.precio,
-          costo_estimado: solicitud.costo_estimado,
-          lugar_servicio: solicitud.lugar_servicio,
-          sucursal: solicitud.sucursal,
-          hora_servicio_solicitado: solicitud.hora_servicio_solicitado,
-          fecha_servicio_solicitado_termino:
-            solicitud.fecha_servicio_solicitado_termino,
-          hora_servicio_solicitado_termino:
-            solicitud.hora_servicio_solicitado_termino,
-          jornada: solicitud.jornada,
-          hora_solicitud: solicitud.hora_solicitud,
-          estado: solicitud.estado,
-          codigo: solicitud.codigo,
-          url_file_adjunto: solicitud.url_file_adjunto,
+          ...existsRequest,
+          ...restOfSolcitud,
+          observacion_solicitud: [
+            ...existsRequest.observacion_solicitud,
+            {
+              obs: observacion_solicitud,
+              fecha: getDate(new Date()),
+            }
+          ]
         },
-        $push: {
-          observacion_solicitud: {
-            obs: solicitud.observacion_solicitud,
-            fecha: getDate(new Date()),
-          },
-        },
+        // $push: {
+        //   observacion_solicitud: {
+        // obs: observacion_solicitud,
+        // fecha: getDate(new Date()),
+        //   },
+        // },
       }
     );
 
-    return res.status(200).json({ msg: SUCCESSFULL_UPDATE });
+    return res.status(200).json({ err: null, msg: SUCCESSFULL_UPDATE, res: [] });
   } catch (error) {
-    return res.status(500).json({ msg: ERROR, error });
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
 
@@ -382,16 +433,16 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
 
   let archivo = {};
 
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
-    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+  // if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
+  //   return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   const obs = {
     obs: solicitud.observacion_solicitud,
@@ -406,73 +457,77 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
     type: req.file.mimetype,
   };
 
-  //obtener mail del cliente principal
-  const resultSol = await db.collection("solicitudes").updateOne(
-    { _id: ObjectID(id) },
-    {
-      $set: {
-        fecha_confirmacion: solicitud.fecha_solicitud,
-        hora_confirmacion: solicitud.hora_solicitud,
-        medio_confirmacion: solicitud.medio_confirmacion,
-        url_file_adjunto_confirm: archivo,
-        estado: "Confirmado",
-      },
-      $push: {
-        observacion_solicitud: obs,
-      },
-    }
-  );
-
-  if (resultSol.result.ok) {
-    const resultGI = await db.collection("gi").updateOne(
-      { _id: ObjectID(solicitud.id_GI_Principal) },
+  try {
+    //obtener mail del cliente principal
+    const resultSol = await db.collection("solicitudes").updateOne(
+      { _id: ObjectID(id) },
       {
         $set: {
-          email_central: solicitud.email_central,
+          fecha_confirmacion: solicitud.fecha_solicitud,
+          hora_confirmacion: solicitud.hora_solicitud,
+          medio_confirmacion: solicitud.medio_confirmacion,
+          url_file_adjunto_confirm: archivo,
+          estado: "Confirmado",
+        },
+        $push: {
+          observacion_solicitud: obs,
         },
       }
     );
-    if (resultGI.result.ok) {
-      //-------------------------------------CREAR LA RESERVA-----------------------
-      const resp = await db
-        .collection("solicitudes")
-        .findOne({ _id: ObjectID(id) });
 
-      let codigoAsis = resp.codigo;
-      codigoAsis = codigoAsis.replace("SOL", "AGE");
-      const newReserva = {
-        codigo: codigoAsis,
-        id_GI_Principal: resp.id_GI_Principal,
-        id_GI_Secundario: resp.id_GI_Secundario,
-        id_GI_personalAsignado: resp.id_GI_PersonalAsignado,
-        faena_seleccionada_cp: resp.faena_seleccionada_cp,
-        valor_servicio: resp.monto_total,
-        rut_cp: resp.rut_CP,
-        razon_social_cp: resp.razon_social_CP,
-        rut_cs: resp.rut_cs,
-        razon_social_cs: resp.razon_social_cs,
-        fecha_reserva: resp.fecha_servicio_solicitado,
-        hora_reserva: resp.hora_servicio_solicitado,
-        fecha_reserva_fin: resp.fecha_servicio_solicitado_termino,
-        hora_reserva_fin: resp.hora_servicio_solicitado_termino,
-        jornada: resp.jornada,
-        mes: resp.mes_solicitud,
-        anio: resp.anio_solicitud,
-        nombre_servicio: resp.nombre_servicio,
-        lugar_servicio: resp.lugar_servicio,
-        sucursal: resp.sucursal,
-        url_file_adjunto: archivo,
-        observacion: [],
-        estado: "Ingresado",
-        isActive: true
-      };
+    if (resultSol.result.ok) {
+      const resultGI = await db.collection("gi").updateOne(
+        { _id: ObjectID(solicitud.id_GI_Principal) },
+        {
+          $set: {
+            email_central: solicitud.email_central,
+          },
+        }
+      );
+      if (resultGI.result.ok) {
+        //-------------------------------------CREAR LA RESERVA-----------------------
+        const resp = await db
+          .collection("solicitudes")
+          .findOne({ _id: ObjectID(id) });
 
-      const resulReserva = await db
-        .collection("reservas")
-        .insertOne(newReserva);
+        let codigoAsis = resp.codigo;
+        codigoAsis = codigoAsis.replace("SOL", "AGE");
+        const newReserva = {
+          codigo: codigoAsis,
+          id_GI_Principal: resp.id_GI_Principal,
+          id_GI_Secundario: resp.id_GI_Secundario,
+          id_GI_personalAsignado: resp.id_GI_PersonalAsignado,
+          faena_seleccionada_cp: resp.faena_seleccionada_cp,
+          valor_servicio: resp.monto_total,
+          rut_cp: resp.rut_CP,
+          razon_social_cp: resp.razon_social_CP,
+          rut_cs: resp.rut_cs,
+          razon_social_cs: resp.razon_social_cs,
+          fecha_reserva: resp.fecha_servicio_solicitado,
+          hora_reserva: resp.hora_servicio_solicitado,
+          fecha_reserva_fin: resp.fecha_servicio_solicitado_termino,
+          hora_reserva_fin: resp.hora_servicio_solicitado_termino,
+          jornada: resp.jornada,
+          mes: resp.mes_solicitud,
+          anio: resp.anio_solicitud,
+          nombre_servicio: resp.nombre_servicio,
+          lugar_servicio: resp.lugar_servicio,
+          sucursal: resp.sucursal,
+          url_file_adjunto: archivo,
+          observacion: [],
+          estado: "Ingresado",
+          isActive: true
+        };
 
-      return res.json(resulReserva);
+        const resulReserva = await db
+          .collection("reservas")
+          .insertOne(newReserva);
+
+        return res.status(200).json({ err: null, msg: 'Solicitud confirmada', res: resulReserva });
+      }
     }
+  } catch (error) {
+    return res.status(500).json({ err: String(error), msg: '', res: null })
   }
 });
 
@@ -593,27 +648,27 @@ router.delete('/:id', async (req, res) => {
 
   try {
     await db.collection('solicitudes').updateOne({ _id: ObjectID(id) }, {
-      $set:{
+      $set: {
         isActive: false
       }
     });
-    return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'ok' });
+    return res.status(200).json({ err: null, msg: DELETE_SUCCESSFULL, res: null });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ msg: ERROR, err: String(error), status: 'error' });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
 
 router.delete('/deletemany/many', async (req, res) => {
   const db = await connect();
   try {
-    
+
     let ids = [];
     let contador = 6210;
 
     for (let i = 0; i < 533; i++) {
       ids.push(`ASIS-SOL-2021-0${contador}`);
-      contador++;   
+      contador++;
     };
 
     await db.collection('solicitudes').deleteMany({ codigo: { $in: ids } });
