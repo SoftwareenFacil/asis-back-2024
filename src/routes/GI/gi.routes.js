@@ -344,7 +344,7 @@ router.put('/editpassword/:id', async (req, res) => {
     return res.status(200).json({ err: null, msg: "Configuración realizada exitosamente", res: null });
 
   } catch (error) {
-
+    console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null  });
 
   }
