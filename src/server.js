@@ -25,7 +25,7 @@ import RolesRoute from "./routes/roles/roles.routes";
 const app = express();
 
 //Settings
-app.set('port', process.env.PORT || 4000);
+app.set('port', 4000);
 
 //Middlewares
 app.use(cors())
