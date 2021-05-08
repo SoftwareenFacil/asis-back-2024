@@ -19,5 +19,5 @@ export function getFechaPago(fecha, dias){
     if (minutes.length < 2) 
         minutes = '0' + minutes;
 
-        return `${[year, month, day].join('-')}`;
+        return `${[day, month, year].join('-')}`;
 }

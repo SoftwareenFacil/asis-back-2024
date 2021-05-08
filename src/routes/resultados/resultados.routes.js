@@ -360,7 +360,7 @@ router.post("/confirmar/:id", async (req, res) => {
               condicionantes: datos.condicionantes,
               fecha_vencimiento_examen: getDateEspecific(
                 getFechaVencExam(datos.fecha_resultado, datos.vigencia_examen)
-              ).substr(0, 10),
+              ),
             },
             $push: {
               observaciones: obs,
