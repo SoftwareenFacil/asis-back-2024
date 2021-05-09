@@ -5,7 +5,7 @@ import { connect } from "./database";
 
 async function main(){
     await appserver.listen(appserver.get('port'))
-    await connect()
+    // await connect()
     console.log('Server on port ', appserver.get('port'));
 }
 
