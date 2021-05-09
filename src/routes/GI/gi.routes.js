@@ -50,7 +50,7 @@ router.get("/", async (req, res) => {
       .collection("gi").find({ activo_inactivo: true })
       .sort({ codigo: 1 })
       .toArray();
-      
+
     return res.status(200).json({
       total_items: 0,
       pagina_actual: 0,
@@ -62,7 +62,7 @@ router.get("/", async (req, res) => {
       total_items: 0,
       pagina_actual: pageNumber,
       nro_paginas: 0,
-      gis: []
+      gis: [],
     })
   }
 });
