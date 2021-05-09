@@ -37,22 +37,33 @@ import { ALREADY_EXISTS, NOT_EXISTS } from "../../constant/var";
 // SELECT
 router.get("/", async (req, res) => {
   const db = await connect();
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED, ERROR });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED, ERROR });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
     let result = await db
       .collection("gi").find({ activo_inactivo: true })
-      .sort({ codigo: -1 })
+      .sort({ codigo: 1 })
       .toArray();
-    return res.status(200).json(result);
+      
+    return res.status(200).json({
+      total_items: 0,
+      pagina_actual: 0,
+      nro_paginas: 0,
+      gis: result,
+    });
   } catch (error) {
-    return res.status(500).json({ msg: ERROR, error })
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: pageNumber,
+      nro_paginas: 0,
+      gis: []
+    })
   }
 });
 
@@ -345,7 +356,7 @@ router.put('/editpassword/:id', async (req, res) => {
 
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ err: String(error), msg: ERROR, res: null  });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
 
   }
 });

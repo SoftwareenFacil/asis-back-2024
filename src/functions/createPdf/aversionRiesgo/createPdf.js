@@ -325,15 +325,19 @@ export default function createPdf(
     .text("Intelectual ", 85, generalSpace + 28, { align: "left" });
   doc
     .font("Helvetica")
-    .text(`${getResultTest(TOTAL_I.reduce((acc, el) => acc + el) / TOTAL_I.length)} - ${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
-  generalSpace += 40;
+    .text(`    .text(`${getResultTest(TOTAL_I.reduce((acc, el) => acc + el) / TOTAL_I.length)} - ${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
+    ${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
+    // .text(`${getResultTest(TOTAL_I.reduce((acc, el) => acc + el) / TOTAL_I.length)} - ${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
+
+    generalSpace += 40;
   //.-------adecuacion a las normas
   doc
     .font("Helvetica-Bold")
     .text("Adecuacion a las normas ", 63, generalSpace + 25, { align: "left" });
   doc
     .font("Helvetica")
-    .text(`${getResultTest(TOTAL_AN.reduce((acc, el) => acc + el) / TOTAL_AN.length)} - ${paraPhrasesTitles(1, getAverageNumbers(getResultTest(getAverage(Object.values(AN)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
+    .text(`${paraPhrasesTitles(1, getAverageNumbers(getResultTest(getAverage(Object.values(AN)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
+    // .text(`${getResultTest(TOTAL_AN.reduce((acc, el) => acc + el) / TOTAL_AN.length)} - ${paraPhrasesTitles(1, getAverageNumbers(getResultTest(getAverage(Object.values(AN)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
 
   generalSpace += 30;
   //.-------estabilidad emocional
@@ -342,7 +346,8 @@ export default function createPdf(
     .text("Estabilidad Emocional ", 65, generalSpace + 30, { align: "left" });
   doc
     .font("Helvetica")
-    .text(`${getResultTest(TOTAL_EE.reduce((acc, el) => acc + el) / TOTAL_EE.length)} - ${paraPhrasesTitles(2, getAverageNumbers(getResultTest(getAverage(Object.values(EE)))))}`, 200, generalSpace + 23, { align: "left", width: 360 });
+    .text(`${paraPhrasesTitles(2, getAverageNumbers(getResultTest(getAverage(Object.values(EE)))))}`, 200, generalSpace + 23, { align: "left", width: 360 });
+    // .text(`${getResultTest(TOTAL_EE.reduce((acc, el) => acc + el) / TOTAL_EE.length)} - ${paraPhrasesTitles(2, getAverageNumbers(getResultTest(getAverage(Object.values(EE)))))}`, 200, generalSpace + 23, { align: "left", width: 360 });
 
   generalSpace += 30;
   //.-------Actitud a la Prevensión de los Riesgos
@@ -354,7 +359,8 @@ export default function createPdf(
     .text("de los Riesgos ", 65, generalSpace + 40, { align: "left" });
   doc
     .font("Helvetica")
-    .text(`${getResultTest(TOTAL_APR.reduce((acc, el) => acc + el) / TOTAL_APR.length)} - ${paraPhrasesTitles(3, getAverageNumbers(getResultTest(getAverage(Object.values(APR)))))}`, 200, generalSpace + 30, { align: "left", width: 360 });
+    .text(`${paraPhrasesTitles(3, getAverageNumbers(getResultTest(getAverage(Object.values(APR)))))}`, 200, generalSpace + 30, { align: "left", width: 360 });
+    // .text(`${getResultTest(TOTAL_APR.reduce((acc, el) => acc + el) / TOTAL_APR.length)} - ${paraPhrasesTitles(3, getAverageNumbers(getResultTest(getAverage(Object.values(APR)))))}`, 200, generalSpace + 30, { align: "left", width: 360 });
 
   generalSpace += 52;
   //.-------Motivación por el cargo
@@ -363,7 +369,8 @@ export default function createPdf(
     .text("Motivación por el cargo ", 65, generalSpace + 20, { align: "left" });
   doc
     .font("Helvetica")
-    .text(`${getResultTest(TOTAL_MC.reduce((acc, el) => acc + el) / TOTAL_MC.length)} - ${paraPhrasesTitles(4, getAverageNumbers(getResultTest(getAverage(Object.values(MC)))))}`, 200, generalSpace + 20, { align: "left" });
+    .text(`${paraPhrasesTitles(4, getAverageNumbers(getResultTest(getAverage(Object.values(MC)))))}`, 200, generalSpace + 20, { align: "left" });
+    // .text(`${getResultTest(TOTAL_MC.reduce((acc, el) => acc + el) / TOTAL_MC.length)} - ${paraPhrasesTitles(4, getAverageNumbers(getResultTest(getAverage(Object.values(MC)))))}`, 200, generalSpace + 20, { align: "left" });
 
 
   // doc.lineJoin("miter").rect(50, generalSpace, 510, 160).stroke();
