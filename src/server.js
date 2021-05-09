@@ -3,7 +3,7 @@ import morgan from "morgan";
 import cors from "cors";
 import path from "path";
 //---------------------IMPORTS ROUTES
-import IndexRoute from "./routes/index.routes";
+// import IndexRoute from "./routes/index.routes";
 import GIRoute from "./routes/GI/gi.routes";
 import SolicitudesRoute from "./routes/solicitudes/solicitudes.routes";
 import ReservasRoute from "./routes/Reservas/reservas.routes";
@@ -37,7 +37,7 @@ app.use(express.json())
 app.use('/uploads', express.static(path.resolve('uploads')))
 
 //Routes
-app.use(IndexRoute);
+// app.use(IndexRoute);
 app.use('/gi', GIRoute)
 app.use('/solicitudes', SolicitudesRoute)
 app.use('/reservas', ReservasRoute)
