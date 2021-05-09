@@ -1,4 +1,5 @@
 import { Router } from "express";
+import moment from "moment";
 import { calculate } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import excelToJson from "../../functions/insertManyGis/excelToJson";
@@ -6,7 +7,7 @@ import validateTipoCliente from "../../functions/insertManyGis/verificateTipoCli
 import getEmpresasGI from "../../functions/insertManyGis/getEmpresasGI";
 import getPersonasGI from "../../functions/insertManyGis/getPersonasGI";
 import eliminateDuplicated from "../../functions/insertManyGis/eliminateDuplicated";
-import verificateGrupoInteres from "../../functions/insertManyGis/verificateGrupoInteres";
+// import verificateGrupoInteres from "../../functions/insertManyGis/verificateGrupoInteres";
 import verificateCatEmpresa from "../../functions/insertManyGis/verificateCatEmpresa";
 import verificateCatPersona from "../../functions/insertManyGis/verificateCatPersona";
 import verificateCatCliente from "../../functions/insertManyGis/verificateCatCliente";
@@ -16,6 +17,14 @@ import verificateDiasCredito from "../../functions/insertManyGis/verificateDiasC
 import verificateOrdenCompra from "../../functions/insertManyGis/verificateOrdenCompra";
 import createJsonGIs from "../../functions/insertManyGis/createJsonGiForInsert";
 import addCodeGI from "../../functions/insertManyGis/addCodeGI";
+
+import { 
+  verificateGrupoInteres, 
+  eliminatedDuplicated, 
+  verificateClientType, 
+  isExistsRUT, 
+  mapDataToInsertManyGIs 
+} from '../../functions/companiesInsert';
 
 import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR } from "../../constant/text_messages";
 
@@ -31,7 +40,6 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import verificateTipoCliente from "../../functions/insertManyGis/verificateTipoCliente";
 import { ALREADY_EXISTS, NOT_EXISTS } from "../../constant/var";
 
 // SELECT
@@ -366,90 +374,137 @@ router.post("/test/gonzalo", multer.single("archivo"), async (req, res) => {
   console.log(req.file);
 });
 
-//TEST PARA RECIBIR EXCEL DE INGRESO DE GIS
-router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
-  const { nombre } = req.body;
-  const db = await connect();
+//ENDPOINT PARA INSERCION DE GI EMPRESAS
+router.post('/masivo/empresas', multer.single("archivo"), async (req, res) => {
   const data = excelToJson(req.file.path, "PLANTILLA GI_ASIS");
-  let array_general_empresas = [];
-  let array_general_personas = [];
-  let array_general = [];
-  let renegados = [];
+
+  // console.log(data[0])
 
   try {
-    if (data.length > 0) {
-      array_general = verificateTipoCliente(data);
-      array_general[1].renegados.forEach((element) => {
-        renegados.push(element);
-      });
 
-      array_general_empresas = getEmpresasGI(array_general[0].newdata);
-      let empresas = array_general_empresas[0].newdata;
+    if (!data && data.length === 0) return res.status(200).json({ err: null, msg: 'Excel no contiene información', res: null });
 
-      array_general_personas = getPersonasGI(array_general[0].newdata);
-      let personas = array_general_personas[0].newdata;
+    const { companies, noInserted } = verificateGrupoInteres(data);
+    if (companies.length === 0) return res.status(200).json({ err: null, msg: 'No se encontraron empresas en el excel', res: null });
 
-      // console.log(array_general_personas[0].newdata);
+    const db = await connect();
+    const gisInDB = await db.collection('gi').find().toArray();
+    const { uniqueCompanies, duplicatedGI } = eliminatedDuplicated(companies, gisInDB);
+    if (uniqueCompanies.length === 0) return res.status(200).json({ err: null, msg: 'Todos los gi ya se encuentran ingresados en la db', res: null });
 
-      empresas = eliminateDuplicated(empresas, "rut");
-      personas = eliminateDuplicated(personas, "rut");
+    const { clients, notInsertClient } = verificateClientType(uniqueCompanies, 'empresa/organizacion');
+    if (clients.length === 0) return res.status(200).json({ err: null, msg: 'No existen Empresa/Organizacion en los datos del excel', res: null });
 
-      empresas = verificateGrupoInteres(empresas);
-      personas = verificateGrupoInteres(personas);
+    const { gisWithRut, notInsertGIWithoutRut } = isExistsRUT(clients);
+    if (gisWithRut.length === 0) return res.status(200).json({ err: null, msg: 'Ningun gi ingresado contiene rut válido', res: null });
 
-      empresas = verificateCatEmpresa(empresas);
-      personas = verificateCatPersona(personas);
+    const gisIsReady = mapDataToInsertManyGIs(gisWithRut);
 
-      empresas = verificateCatCliente(empresas);
-      personas = verificateCatCliente(personas);
+    const lastGi = await db
+      .collection("gi")
+      .find({})
+      .sort({ codigo: -1 })
+      .limit(1)
+      .toArray();
 
-      empresas = verificateCredito(empresas);
-      empresas = verificateDiasCredito(empresas);
+    const gisWithCode = addCodeGI(gisIsReady, lastGi[0], moment().format('YYYY'));
 
-      empresas = verificateOrdenCompra(empresas);
+    await db.collection('gi').insertMany(gisWithCode);
 
-      const lastGi = await db
-        .collection("gi")
-        .find({})
-        .sort({ codigo: -1 })
-        .limit(1)
-        .toArray();
-      // console.log(lastGi);
+    return res.status(200).json({ err: null, msg: 'GIs insertados correctamente', res: {
+      cant_inserted: gisWithCode.length,
+      not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut]
+    } });
 
-      let arrayGIs = createJsonGIs(empresas, personas);
-
-      arrayGIs = addCodeGI(arrayGIs, lastGi[0], YEAR);
-
-      //sacamos los empleados
-      const empleados = arrayGIs.filter((el) => el.GrupoInteres === 'Empleados');
-      const othersWorkers = arrayGIs.filter((el) => el.GrupoInteres !== 'Empleados');
-
-      console.log('insert many', othersWorkers[0])
-
-      await db.collection('gi').insertMany(othersWorkers || []);
-      await db.collection('empleados').insertMany(empleados || []);
-
-      // const result = await db.collection("gi").insertMany(arrayGIs);
-
-      return res.json({
-        message: "Ha finalizado la inserción masiva",
-        isOK: true,
-        renegados: [],
-      });
-    } else {
-      return res.json({
-        message: "EL archivo ingresado no es un archivo excel válido",
-      });
-    }
-  } catch (err) {
-    console.log(err);
-    return res.json({
-      message: "Algo ha salido mal",
-      isOK: false,
-      error: String(err),
-    });
+  } catch (error) {
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
+
+//TEST PARA RECIBIR EXCEL DE INGRESO DE GIS
+// router.post("/masivo/file", multer.single("archivo"), async (req, res) => {
+//   const { nombre } = req.body;
+//   const db = await connect();
+//   const data = excelToJson(req.file.path, "PLANTILLA GI_ASIS");
+//   let array_general_empresas = [];
+//   let array_general_personas = [];
+//   let array_general = [];
+//   let renegados = [];
+
+//   try {
+//     if (data.length > 0) {
+//       array_general = verificateTipoCliente(data);
+//       array_general[1].renegados.forEach((element) => {
+//         renegados.push(element);
+//       });
+
+//       array_general_empresas = getEmpresasGI(array_general[0].newdata);
+//       let empresas = array_general_empresas[0].newdata;
+
+//       array_general_personas = getPersonasGI(array_general[0].newdata);
+//       let personas = array_general_personas[0].newdata;
+
+//       // console.log(array_general_personas[0].newdata);
+
+//       empresas = eliminateDuplicated(empresas, "rut");
+//       personas = eliminateDuplicated(personas, "rut");
+
+//       empresas = verificateGrupoInteres(empresas);
+//       personas = verificateGrupoInteres(personas);
+
+//       empresas = verificateCatEmpresa(empresas);
+//       personas = verificateCatPersona(personas);
+
+//       empresas = verificateCatCliente(empresas);
+//       personas = verificateCatCliente(personas);
+
+//       empresas = verificateCredito(empresas);
+//       empresas = verificateDiasCredito(empresas);
+
+//       empresas = verificateOrdenCompra(empresas);
+
+//       const lastGi = await db
+//         .collection("gi")
+//         .find({})
+//         .sort({ codigo: -1 })
+//         .limit(1)
+//         .toArray();
+//       // console.log(lastGi);
+
+//       let arrayGIs = createJsonGIs(empresas, personas);
+
+//       arrayGIs = addCodeGI(arrayGIs, lastGi[0], YEAR);
+
+//       //sacamos los empleados
+//       const empleados = arrayGIs.filter((el) => el.GrupoInteres === 'Empleados');
+//       const othersWorkers = arrayGIs.filter((el) => el.GrupoInteres !== 'Empleados');
+
+//       console.log('insert many', othersWorkers[0])
+
+//       await db.collection('gi').insertMany(othersWorkers || []);
+//       await db.collection('empleados').insertMany(empleados || []);
+
+//       // const result = await db.collection("gi").insertMany(arrayGIs);
+
+//       return res.json({
+//         message: "Ha finalizado la inserción masiva",
+//         isOK: true,
+//         renegados: [],
+//       });
+//     } else {
+//       return res.json({
+//         message: "EL archivo ingresado no es un archivo excel válido",
+//       });
+//     }
+//   } catch (err) {
+//     console.log(err);
+//     return res.json({
+//       message: "Algo ha salido mal",
+//       isOK: false,
+//       error: String(err),
+//     });
+//   }
+// });
 
 //INSERT
 router.post("/", multer.single("archivo"), async (req, res) => {
