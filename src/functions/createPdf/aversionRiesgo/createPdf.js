@@ -325,8 +325,7 @@ export default function createPdf(
     .text("Intelectual ", 85, generalSpace + 28, { align: "left" });
   doc
     .font("Helvetica")
-    .text(`    .text(`${getResultTest(TOTAL_I.reduce((acc, el) => acc + el) / TOTAL_I.length)} - ${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
-    ${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
+    .text(`${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
     // .text(`${getResultTest(TOTAL_I.reduce((acc, el) => acc + el) / TOTAL_I.length)} - ${paraPhrasesTitles(0, getAverageNumbers(getResultTest(getAverage(Object.values(I)))))}`, 200, generalSpace + 20, { align: "left", width: 360 });
 
     generalSpace += 40;
