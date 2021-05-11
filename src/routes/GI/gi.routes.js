@@ -41,6 +41,7 @@ const YEAR = getYear();
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 import { ALREADY_EXISTS, NOT_EXISTS } from "../../constant/var";
+import { mapDataToInsertManyNaturalPersons } from "../../functions/naturalPersonsInsert";
 
 // SELECT
 router.get("/", async (req, res) => {
@@ -378,17 +379,15 @@ router.post("/test/gonzalo", multer.single("archivo"), async (req, res) => {
 router.post('/masivo/empresas', multer.single("archivo"), async (req, res) => {
   const data = excelToJson(req.file.path, "PLANTILLA GI_ASIS");
 
-  // console.log(data[0])
-
   try {
 
     if (!data && data.length === 0) return res.status(200).json({ err: null, msg: 'Excel no contiene información', res: null });
 
     const { companies, noInserted } = verificateGrupoInteres(data);
-    if (companies.length === 0) return res.status(200).json({ err: null, msg: 'No se encontraron empresas en el excel', res: null });
+    if (companies.length === 0) return res.status(200).json({ err: null, msg: 'No se encontraron gi acorde al tipo en sistema en el excel', res: null });
 
     const db = await connect();
-    const gisInDB = await db.collection('gi').find().toArray();
+    const gisInDB = await db.collection('gi').find({ categoria: 'Empresa/Organizacion' }).toArray();
     const { uniqueCompanies, duplicatedGI } = eliminatedDuplicated(companies, gisInDB);
     if (uniqueCompanies.length === 0) return res.status(200).json({ err: null, msg: 'Todos los gi ya se encuentran ingresados en la db', res: null });
 
@@ -413,10 +412,57 @@ router.post('/masivo/empresas', multer.single("archivo"), async (req, res) => {
 
     return res.status(200).json({ err: null, msg: 'GIs insertados correctamente', res: {
       cant_inserted: gisWithCode.length,
+      cant_not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut].length,
       not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut]
     } });
 
   } catch (error) {
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }
+});
+
+//ENDPOINT PARA INSERCION DE GI PERSONA NATURAL
+router.post('/masivo/persona', multer.single("archivo"), async (req, res) => {
+  const data = excelToJson(req.file.path, "PLANTILLA GI_ASIS");
+
+  try {
+    if (!data && data.length === 0) return res.status(200).json({ err: null, msg: 'Excel no contiene información', res: null });
+
+    const { companies, noInserted } = verificateGrupoInteres(data);
+    if (companies.length === 0) return res.status(200).json({ err: null, msg: 'No se encontraron gi acorde al tipo en sistema en el excel', res: null });
+
+    const db = await connect();
+    const gisInDB = await db.collection('gi').find({ categoria: 'Persona Natural' }).toArray();
+    const { uniqueCompanies, duplicatedGI } = eliminatedDuplicated(companies, gisInDB);
+    if (!uniqueCompanies && uniqueCompanies.length === 0) return res.status(200).json({ err: null, msg: 'Todos los gi ya se encuentran ingresados en la db', res: null });
+
+    const { clients, notInsertClient } = verificateClientType(uniqueCompanies, 'persona natural');
+    if (clients.length === 0) return res.status(200).json({ err: null, msg: 'No existen Personas Naturales en los datos del excel', res: null });
+
+    const { gisWithRut, notInsertGIWithoutRut } = isExistsRUT(clients);
+    if (gisWithRut.length === 0) return res.status(200).json({ err: null, msg: 'Ningun gi ingresado contiene rut válido', res: null });
+
+    const gisIsReady = mapDataToInsertManyNaturalPersons(gisWithRut);
+
+    const lastGi = await db
+      .collection("gi")
+      .find({})
+      .sort({ codigo: -1 })
+      .limit(1)
+      .toArray();
+
+    const gisWithCode = addCodeGI(gisIsReady, lastGi[0], moment().format('YYYY'));
+
+    await db.collection('gi').insertMany(gisWithCode);
+
+    return res.status(200).json({ err: null, msg: 'GIs insertados correctamente', res: {
+      cant_inserted: gisWithCode.length,
+      cant_not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut].length,
+      not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut]
+    } });
+
+  } catch (error) {
+    console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
