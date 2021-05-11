@@ -30,7 +30,7 @@ const router = Router();
 import { connect } from "../../database";
 import { ObjectID, ObjectId } from "mongodb";
 import { upperRutWithLetter } from "../../functions/uppercaseRutWithLetter";
-import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, NOT_EXISTS, NAME_PSICO_PDF, NAME_AVERSION_PDF, ERROR_PDF, OTHER_NAME_PDF } from "../../constant/var";
+import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, NOT_EXISTS, NAME_PSICO_PDF, NAME_AVERSION_PDF, ERROR_PDF, OTHER_NAME_PDF, FORMAT_DATE } from "../../constant/var";
 import { uploadFileToS3, getObjectFromS3 } from "../../libs/aws";
 import { pipe } from "pdfkit";
 
@@ -263,13 +263,13 @@ router.post('/evaluacionpsico', async (req, res) => {
         cargo_evaluador: pa.cargo || '',
         nombre: cs.razon_social || '',
         rut: cs.rut || '',
-        fecha_nacimiento: cs.fecha_inic_nac ? moment(cs.fecha_inic_nac).format('DD-MM-YYYY') : '',
+        fecha_nacimiento: cs.fecha_inic_mac ? moment(cs.fecha_inic_mac, FORMAT_DATE) : '',
         cargo: cs.cargo || '',
         licencia_acreditar: licencia || '',
         ley: cs.ley_aplicable || '',
-        vencimiento_licencia: cs.fecha_venc_licencia ? moment(cs.fecha_venc_licencia).format('DD-MM-YYYY') : '',
+        vencimiento_licencia: cs.fecha_venc_licencia ? moment(cs.fecha_venc_licencia).format(FORMAT_DATE) : '',
         observaciones_licencia: cs.estado_licencia || '',
-        fecha_examen: moment().format('DD-MM-YYYY') || '',
+        fecha_examen: moment().format(FORMAT_DATE) || '',
         resultado: resultado || '',
         restricciones: restricciones || '',
         vencimiento: vencimiento || '',

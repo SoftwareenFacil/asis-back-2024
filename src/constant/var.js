@@ -17,6 +17,7 @@ export const API_KEY_SENDINBLUE = 'xkeysib-97d79e72933f506796cf322e32f1fc017ddd0
 export const MONGODB_CONNECTION_DEV = 'mongodb+srv://admin:Karla2021@cluster0.3pzmz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
 export const MONGODB_CLIENT_DEV = 'ASIS';
 
+export const FORMAT_DATE = 'DD-MM-YYYY';
 
 export const COMPANY_CATEGORY = [
   'Microempresa',
