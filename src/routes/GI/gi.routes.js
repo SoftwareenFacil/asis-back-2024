@@ -431,6 +431,8 @@ router.post('/masivo/persona', multer.single("archivo"), async (req, res) => {
     const { companies, noInserted } = verificateGrupoInteres(data);
     if (companies.length === 0) return res.status(200).json({ err: null, msg: 'No se encontraron gi acorde al tipo en sistema en el excel', res: null });
 
+    console.log(companies.length)
+
     const db = await connect();
     const gisInDB = await db.collection('gi').find({ categoria: 'Persona Natural' }).toArray();
     const { uniqueCompanies, duplicatedGI } = eliminatedDuplicated(companies, gisInDB);

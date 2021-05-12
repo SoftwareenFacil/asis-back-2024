@@ -25,6 +25,7 @@ const verificateGrupoInteres = (data) => {
       if(element.grupo_interes &&
           (element.grupo_interes.toLowerCase() === 'colaboradores'
           || element.grupo_interes.toLowerCase() === 'clientes'
+          || element.grupo_interes.toLowerCase() === 'empleados'
           || element.grupo_interes.toLowerCase() === 'admin')){
               companies.push(element)
       }
