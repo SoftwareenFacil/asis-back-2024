@@ -1,5 +1,25 @@
 import moment from 'moment';
 import { FORMAT_DATE } from '../constant/var';
+import { calculate } from './NewCode';
+
+const addCodeRequest = (data, lastrequest, year) => {
+  let code = {};
+  if (lastrequest) {
+    code = { codigo: lastrequest.codigo }
+  }
+  else {
+    code = { codigo: `ASIS-SOL-${year}-000000` }
+  }
+  let nextCode = ""
+  let result = data.map(function (obj) {
+    nextCode = `ASIS-SOL-${year}-${calculate(code)}`
+    obj.codigo = nextCode
+    code.codigo = nextCode
+    return obj
+  })
+
+  return result
+};
 
 const getMonth = (date) => {
   return moment(date, FORMAT_DATE).format('MMMM');
@@ -106,4 +126,4 @@ const mapRequestsToInsert = (data, companies, naturalPersons) => {
   return { requestsMapped, notInserted }
 };
 
-export { mapRequestsToInsert }
+export { mapRequestsToInsert, addCodeRequest }

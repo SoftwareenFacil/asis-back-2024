@@ -39,7 +39,7 @@ const YEAR = getYear();
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
 import { NOT_EXISTS } from "../../constant/var";
-import { mapRequestsToInsert } from "../../functions/requestInsertMassive";
+import { mapRequestsToInsert, addCodeRequest } from "../../functions/requestInsertMassive";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -322,7 +322,7 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
 
   try {
 
-    if(!data || data.length === 0) return res.status(200).json({ err: null, msg: 'No existe datos en el excel ingresado', res: null });
+    if (!data || data.length === 0) return res.status(200).json({ err: null, msg: 'No existe datos en el excel ingresado', res: null });
 
     const db = await connect();
     const companies = await db.collection('gi').find({ activo_inactivo: true, categoria: 'Empresa/Organizacion' }).toArray();
@@ -331,15 +331,26 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
     console.log(companies.length)
     console.log(naturalPersons.length)
     const { requestsMapped, notInserted } = mapRequestsToInsert(data, companies, naturalPersons);
-    if(requestsMapped.length == 0) return res.status(200).json({ err: null, msg: 'Ninguna solicitud cumple con los requisitos', res: notInserted });
+    if (requestsMapped.length == 0) return res.status(200).json({ err: null, msg: 'Ninguna solicitud cumple con los requisitos', res: notInserted });
 
-    await db.collection('solicitudes').insertMany(requestsMapped);
+    const lastRequest = await db
+      .collection("gi")
+      .find({})
+      .sort({ codigo: -1 })
+      .limit(1)
+      .toArray();
 
-    return res.status(200).json({ err: null, msg: 'Solicitudes ingresadas correctamente', res: {
-      cant_inserted: requestsMapped.length,
-      cant_notInserted: notInserted.length,
-      notInserted
-    }});
+    const requestsWithCode = addCodeRequest(gisIsReady, lastRequest[0], moment().format('YYYY'));
+
+    await db.collection('solicitudes').insertMany(requestsWithCode);
+
+    return res.status(200).json({
+      err: null, msg: 'Solicitudes ingresadas correctamente', res: {
+        cant_inserted: requestsMapped.length,
+        cant_notInserted: notInserted.length,
+        notInserted
+      }
+    });
 
   } catch (error) {
     console.log(error);
