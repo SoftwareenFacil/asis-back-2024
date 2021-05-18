@@ -1,4 +1,5 @@
 import moment from "moment";
+import { FORMAT_DATE } from "../constant/var";
 
 export function getFechaVencExam(fecha, vigencia){
     let d = new Date(fecha)
@@ -6,5 +7,5 @@ export function getFechaVencExam(fecha, vigencia){
     let nuevomes = d.getMonth() + v;
     d.setMonth(nuevomes)
     d.setDate(d.getDate() + 1)
-    return moment(d).format('DD-MM-YYYY')
+    return moment(d).format(FORMAT_DATE)
 }

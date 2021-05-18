@@ -1,16 +1,14 @@
 import { Router } from "express";
-// import { calculate } from "../../functions/NewCode";
-// import { getYear } from "../../functions/getYearActual";
 import { getFechaVencExam } from "../../functions/fechaVencExamen";
 import { getDate } from "../../functions/getDateNow";
 import { getDateEspecific } from "../../functions/getEspecificDate";
 import multer from "../../libs/multer";
 import { uploadFileToS3, getObjectFromS3 } from "../../libs/aws";
+import moment from 'moment'
 
 import { verifyToken } from "../../libs/jwt";
 import { v4 as uuid } from "uuid";
 
-const router = Router();
 
 import {
   MESSAGE_UNAUTHORIZED_TOKEN,
@@ -23,6 +21,8 @@ import {
   DELETE_SUCCESSFULL
 } from "../../constant/text_messages";
 
+const router = Router();
+
 var path = require("path");
 var AWS = require('aws-sdk');
 var fs = require("fs");
@@ -30,7 +30,7 @@ var fs = require("fs");
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF } from "../../constant/var";
+import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE } from "../../constant/var";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -358,9 +358,10 @@ router.post("/confirmar/:id", async (req, res) => {
               fecha_resultado: datos.fecha_resultado,
               hora_resultado: datos.hora_resultado,
               condicionantes: datos.condicionantes,
-              fecha_vencimiento_examen: getDateEspecific(
-                getFechaVencExam(datos.fecha_resultado, datos.vigencia_examen)
-              ),
+              fecha_vencimiento_examen: moment(datos.fecha_resultado, FORMAT_DATE).add(datos.vigencia_examen, 'M').format(FORMAT_DATE)
+              // fecha_vencimiento_examen: getDateEspecific(
+              //   getFechaVencExam(datos.fecha_resultado, datos.vigencia_examen)
+              // ),
             },
             $push: {
               observaciones: obs,

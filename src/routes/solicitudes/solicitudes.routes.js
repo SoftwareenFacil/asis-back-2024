@@ -211,6 +211,27 @@ router.post("/buscar", async (req, res) => {
   }
 });
 
+//SELECT REQUESTS TO CONFIRM
+router.get('/ingresadas', async (req, res) => {
+  try {
+    const db = await connect();
+    const result = await db.collection('solicitudes').find({ estado: 'Ingresado' }).toArray();
+
+    return res.status(200).json({
+      err: null,
+      msg: 'Solicitudes encontradas',
+      res: result
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      err: String(error),
+      msg: 'No se ha podido cargar las solicitudes',
+      res: null
+    });
+  }
+});
+
 //SELECT FIELDS TO CONFIRM SOLICITUD
 router.get("/mostrar/:id", async (req, res) => {
   const db = await connect();
@@ -340,13 +361,13 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
       .limit(1)
       .toArray();
 
-    const requestsWithCode = addCodeRequest(gisIsReady, lastRequest[0], moment().format('YYYY'));
+    const requestsWithCode = addCodeRequest(requestsMapped, lastRequest[0], moment().format('YYYY'));
 
     await db.collection('solicitudes').insertMany(requestsWithCode);
 
     return res.status(200).json({
       err: null, msg: 'Solicitudes ingresadas correctamente', res: {
-        cant_inserted: requestsMapped.length,
+        cant_inserted: requestsWithCode.length,
         cant_notInserted: notInserted.length,
         notInserted
       }
@@ -450,12 +471,12 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   }
 
   //verificar si hay archivo o no
-  if (req.file) archivo = {
-    name: req.file.originalname,
-    size: req.file.size,
-    path: req.file.path,
-    type: req.file.mimetype,
-  };
+  // if (req.file) archivo = {
+  //   name: req.file.originalname,
+  //   size: req.file.size,
+  //   path: req.file.path,
+  //   type: req.file.mimetype,
+  // };
 
   try {
     //obtener mail del cliente principal
@@ -466,7 +487,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
           fecha_confirmacion: solicitud.fecha_solicitud,
           hora_confirmacion: solicitud.hora_solicitud,
           medio_confirmacion: solicitud.medio_confirmacion,
-          url_file_adjunto_confirm: archivo,
+          url_file_adjunto_confirm: {},
           estado: "Confirmado",
         },
         $push: {
@@ -535,19 +556,18 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
 router.post("/many", multer.single("archivo"), async (req, res) => {
   const db = await connect();
   let dataJson = JSON.parse(req.body.data);
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
-    return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
+  // if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
+  //   return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   let new_array = [];
-  let archivo = {};
   const obs = {
     obs: dataJson[0].observacion_solicitud,
     fecha: getDate(new Date())
@@ -561,17 +581,17 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
   });
 
   //verificar si hay archivo o no
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
-  else {
-    archivo = {};
-  }
+  // if (req.file) {
+  //   archivo = {
+  //     name: req.file.originalname,
+  //     size: req.file.size,
+  //     path: req.file.path,
+  //     type: req.file.mimetype,
+  //   };
+  // }
+  // else {
+  //   archivo = {};
+  // }
 
   try {
     db.collection("solicitudes").updateMany(
@@ -581,7 +601,7 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
           fecha_confirmacion: dataJson[0].fecha_solicitud,
           hora_confirmacion: dataJson[0].hora_solicitud,
           medio_confirmacion: dataJson[0].medio_confirmacion,
-          url_file_adjunto_confirm: archivo,
+          url_file_adjunto_confirm: {},
           estado: "Confirmado",
         },
         $push: {
@@ -609,7 +629,7 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
         id_GI_Secundario: element.id_GI_Secundario,
         id_GI_personalAsignado: element.id_GI_PersonalAsignado,
         faena_seleccionada_cp: element.faena_seleccionada_cp,
-        valor_servicio: element.precio,
+        valor_servicio: element.monto_total,
         rut_cp: element.rut_CP,
         razon_social_cp: element.razon_social_CP,
         rut_cs: element.rut_cs,
@@ -634,10 +654,18 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
       .collection("reservas")
       .insertMany(arrayReservas);
 
-    return res.status(200).json({ msg: SUCCESSFULL_UPDATE, resultReserva });
+    return res.status(200).json({
+      err: null,
+      msg: 'Solicitudes confirmadas exitosamente',
+      res: resultReserva
+    });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ msg: ERROR, error });
+    return res.status(500).json({
+      err: String(error),
+      msg: ERROR,
+      res: null
+    });
   }
 });
 

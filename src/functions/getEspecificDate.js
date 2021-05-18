@@ -1,5 +1,5 @@
 export function getDateEspecific(fecha){
-    let d = fecha,
+    let d = new Date(fecha),
         month = '' + (d.getMonth() + 1),
         day = '' + d.getDate(),
         year = d.getFullYear(),
@@ -15,5 +15,5 @@ export function getDateEspecific(fecha){
         minutes = '0' + minutes;
     // let fecha = `${f.toISOString().slice(0, 10)} ${f.toISOString().slice(11, f.toString().length)}`
     // let fecha = f.toLocaleDateString('cl-CL').toISO
-    return `${[year, month, day].join('-')} ${[hour, minutes].join(':')}`;
+    return `${[day, month, year].join('-')} ${[hour, minutes].join(':')}`;
 }
