@@ -12,7 +12,7 @@ function getEmpresasGI(data) {
     renegados: []
   }];
   result[0].newdata = data.filter(function (e) {
-    if (e.TipoCliente === 'Empresa/Organizacion') {
+    if (e.categoria === 'Empresa/Organizacion') {
       return true;
     } else {
       result[1].renegados.push(e);

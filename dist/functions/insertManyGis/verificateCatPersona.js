@@ -7,7 +7,7 @@ exports["default"] = verificateCatPersona;
 
 function verificateCatPersona(data) {
   var result = data.filter(function (e) {
-    return e.CategoriaEmpresa === 'No Aplica';
+    return e.categoria_empresa === 'No Aplica';
   });
   return result;
 }

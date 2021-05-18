@@ -12,7 +12,7 @@ function getPersonasGI(data) {
     renegados: []
   }];
   result[0].newdata = data.filter(function (e) {
-    if (e.TipoCliente === 'Persona Natural') {
+    if (e.categoria === 'Persona Natural') {
       return true;
     } else {
       result[1].renegados.push(e);

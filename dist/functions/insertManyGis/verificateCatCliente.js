@@ -7,7 +7,7 @@ exports["default"] = verificateCatCliente;
 
 function verificateCatCliente(data) {
   var result = data.filter(function (e) {
-    return e.CategoriaCliente === 'Frecuente' || e.CategoriaCliente === 'Habitual' || e.CategoriaCliente === 'Ocasional';
+    return e.categoria_cliente === 'Frecuente' || e.categoria_cliente === 'Habitual' || e.categoria_cliente === 'Ocasional';
   });
   return result;
 }

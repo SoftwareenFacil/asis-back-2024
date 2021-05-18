@@ -21,7 +21,11 @@ var _database = require("../../database");
 
 var _mongodb = require("mongodb");
 
+var _text_messages = require("../../constant/text_messages");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -48,7 +52,7 @@ router.get("/", /*#__PURE__*/function () {
 
           case 5:
             result = _context.sent;
-            res.json(result);
+            return _context.abrupt("return", res.json(result));
 
           case 7:
           case "end":
@@ -83,7 +87,7 @@ router.get("/:id", /*#__PURE__*/function () {
 
           case 6:
             result = _context2.sent;
-            res.json(result);
+            return _context2.abrupt("return", res.json(result));
 
           case 8:
           case "end":
@@ -124,19 +128,17 @@ router.post("/pagination", /*#__PURE__*/function () {
 
           case 11:
             result = _context3.sent;
-            res.json({
+            return _context3.abrupt("return", res.json({
               total_items: countSalidas,
               pagina_actual: pageNumber,
               nro_paginas: parseInt(countSalidas / nPerPage + 1),
               salidas: result
-            });
-            _context3.next = 18;
-            break;
+            }));
 
           case 15:
             _context3.prev = 15;
             _context3.t0 = _context3["catch"](5);
-            res.status(501).json(_context3.t0);
+            return _context3.abrupt("return", res.status(501).json(_context3.t0));
 
           case 18:
           case "end":
@@ -153,83 +155,61 @@ router.post("/pagination", /*#__PURE__*/function () {
 
 router.post("/buscar", /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
-    var _req$body2, identificador, filtro, pageNumber, nPerPage, skip_page, db, rexExpresionFiltro, result, countSalidas;
+    var _req$body2, identificador, filtro, headFilter, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countSalidas;
 
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
           case 0:
-            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
+            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, headFilter = _req$body2.headFilter, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
             skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
             _context4.next = 4;
             return (0, _database.connect)();
 
           case 4:
             db = _context4.sent;
-            rexExpresionFiltro = new RegExp(filtro, "i");
-            _context4.prev = 6;
+            rutFiltrado = filtro;
 
-            if (!(identificador === 1)) {
-              _context4.next = 16;
-              break;
+            if (identificador === 1 && filtro.includes("k")) {
+              rutFiltrado.replace("k", "K");
             }
 
-            _context4.next = 10;
-            return db.collection("salidas").find({
-              categoria_general: rexExpresionFiltro
-            }).count();
+            rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+            _context4.prev = 8;
+            _context4.next = 11;
+            return db.collection("salidas").find(_defineProperty({}, headFilter, rexExpresionFiltro)).count();
 
-          case 10:
+          case 11:
             countSalidas = _context4.sent;
-            _context4.next = 13;
-            return db.collection("salidas").find({
-              categoria_general: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
+            _context4.next = 14;
+            return db.collection("salidas").find(_defineProperty({}, headFilter, rexExpresionFiltro)).skip(skip_page).limit(nPerPage).toArray();
 
-          case 13:
+          case 14:
             result = _context4.sent;
-            _context4.next = 22;
-            break;
-
-          case 16:
-            _context4.next = 18;
-            return db.collection("salidas").find({
-              subcategoria_uno: rexExpresionFiltro
-            }).count();
-
-          case 18:
-            countSalidas = _context4.sent;
-            _context4.next = 21;
-            return db.collection("salidas").find({
-              subcategoria_uno: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
-
-          case 21:
-            result = _context4.sent;
-
-          case 22:
-            res.json({
+            return _context4.abrupt("return", res.status(200).json({
               total_items: countSalidas,
               pagina_actual: pageNumber,
               nro_paginas: parseInt(countSalidas / nPerPage + 1),
               salidas: result
-            });
-            _context4.next = 28;
-            break;
+            }));
 
-          case 25:
-            _context4.prev = 25;
-            _context4.t0 = _context4["catch"](6);
-            res.status(501).json({
-              mgs: "ha ocurrido un error ".concat(_context4.t0)
-            });
+          case 18:
+            _context4.prev = 18;
+            _context4.t0 = _context4["catch"](8);
+            return _context4.abrupt("return", res.status(500).json({
+              total_items: 0,
+              pagina_actual: 1,
+              nro_paginas: 0,
+              salidas: null,
+              err: String(_context4.t0)
+            }));
 
-          case 28:
+          case 21:
           case "end":
             return _context4.stop();
         }
       }
-    }, _callee4, null, [[6, 25]]);
+    }, _callee4, null, [[8, 18]]);
   }));
 
   return function (_x7, _x8) {
@@ -237,7 +217,7 @@ router.post("/buscar", /*#__PURE__*/function () {
   };
 }()); //INSERT SALIDA
 
-router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+router.post("/", /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
     var db, datos, newSalida, items, result, objInsert;
     return regeneratorRuntime.wrap(function _callee5$(_context5) {
@@ -249,7 +229,7 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
 
           case 2:
             db = _context5.sent;
-            datos = JSON.parse(req.body.data);
+            datos = req.body;
             newSalida = {};
             _context5.next = 7;
             return db.collection("salidas").find({}).toArray();
@@ -262,17 +242,6 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
               newSalida.codigo = "ASIS-GTS-SAL-".concat(YEAR, "-").concat((0, _NewCode.calculate)(items[items.length - 1]));
             } else {
               newSalida.codigo = "ASIS-GTS-SAL-".concat(YEAR, "-00001");
-            }
-
-            if (req.file) {
-              newSalida.archivo = {
-                name: req.file.originalname,
-                size: req.file.size,
-                path: req.file.path,
-                type: req.file.mimetype
-              };
-            } else {
-              newSalida.archivo = {};
             }
 
             newSalida.fecha = datos.fecha;
@@ -291,15 +260,15 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
             newSalida.costo_total = datos.costo_total;
             newSalida.precio_venta_unitario = datos.precio_venta_unitario;
             newSalida.ingreso_total = datos.ingreso_total;
-            _context5.prev = 27;
-            _context5.next = 30;
+            _context5.prev = 26;
+            _context5.next = 29;
             return db.collection("salidas").insertOne(newSalida);
 
-          case 30:
+          case 29:
             result = _context5.sent;
 
             if (!result) {
-              _context5.next = 47;
+              _context5.next = 45;
               break;
             }
 
@@ -321,45 +290,52 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
                 ingreso_total: newSalida.ingreso_total
               }]
             };
-            _context5.next = 35;
+            _context5.next = 34;
             return db.collection("prexistencia").insertOne(objInsert);
 
-          case 35:
+          case 34:
             result = _context5.sent;
-            _context5.next = 38;
+            _context5.next = 37;
             return db.collection("prexistencia").find({}).toArray();
 
-          case 38:
+          case 37:
             result = _context5.sent;
             result = (0, _calculateExistencia["default"])(result);
             result = (0, _getFinalToExistencia["default"])(result); //limpiar existencia a 0 para recargarla con los nuevos datos
 
-            _context5.next = 43;
+            _context5.next = 42;
             return db.collection("existencia").deleteMany({});
 
-          case 43:
-            _context5.next = 45;
+          case 42:
+            _context5.next = 44;
             return db.collection("existencia").insertMany(result);
 
-          case 45:
+          case 44:
             result = _context5.sent;
-            res.json(result);
 
-          case 47:
-            _context5.next = 52;
-            break;
+          case 45:
+            return _context5.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Salida ingresada correctamente',
+              res: []
+            }));
 
-          case 49:
-            _context5.prev = 49;
-            _context5.t0 = _context5["catch"](27);
-            res.json(_context5.t0);
+          case 48:
+            _context5.prev = 48;
+            _context5.t0 = _context5["catch"](26);
+            console.log(_context5.t0);
+            return _context5.abrupt("return", res.status(500).json({
+              err: String(_context5.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
 
           case 52:
           case "end":
             return _context5.stop();
         }
       }
-    }, _callee5, null, [[27, 49]]);
+    }, _callee5, null, [[26, 48]]);
   }));
 
   return function (_x9, _x10) {
@@ -467,17 +443,15 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
 
           case 23:
             result = _context6.sent;
-            res.status(201).json(result);
-            _context6.next = 30;
-            break;
+            return _context6.abrupt("return", res.status(201).json(result));
 
           case 27:
             _context6.prev = 27;
             _context6.t0 = _context6["catch"](6);
-            res.status(400).json({
+            return _context6.abrupt("return", res.status(400).json({
               msg: "ha ocurrido un error ",
               error: _context6.t0
-            });
+            }));
 
           case 30:
           case "end":
@@ -537,17 +511,20 @@ router["delete"]("/:id", /*#__PURE__*/function () {
 
           case 20:
             result = _context7.sent;
-            res.status(201).json(result);
-            _context7.next = 27;
-            break;
+            return _context7.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Salida eliminada correctamente',
+              res: result
+            }));
 
           case 24:
             _context7.prev = 24;
             _context7.t0 = _context7["catch"](4);
-            res.status(400).json({
-              msg: "ha ocurrido un error ",
-              error: _context7.t0
-            });
+            return _context7.abrupt("return", res.status(500).json({
+              err: String(_context7.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
 
           case 27:
           case "end":

@@ -9,7 +9,11 @@ var _express = require("express");
 
 var router = (0, _express.Router)();
 router.get('/', function (req, res) {
-  res.send('Welcome to REST API ASIS System');
+  try {
+    return res.send('Welcome to REST API ASIS System');
+  } catch (error) {
+    return res.send('error al cargar la api');
+  }
 });
 var _default = router;
 exports["default"] = _default;

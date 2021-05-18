@@ -7,10 +7,6 @@ exports["default"] = void 0;
 
 var _express = require("express");
 
-var _NewCode = require("../../functions/NewCode");
-
-var _getYearActual = require("../../functions/getYearActual");
-
 var _changeToMiniscula = require("../../functions/changeToMiniscula");
 
 var _getDateNow = require("../../functions/getDateNow");
@@ -19,9 +15,19 @@ var _calculateFechaPago = require("../../functions/calculateFechaPago");
 
 var _multer = _interopRequireDefault(require("../../libs/multer"));
 
+var _uuid = require("uuid");
+
+var _aws = require("../../libs/aws");
+
+var _jwt = require("../../libs/jwt");
+
+var _text_messages = require("../../constant/text_messages");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
+
+var _var = require("../../constant/var");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -31,7 +37,14 @@ function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-var router = (0, _express.Router)(); //database connection
+var router = (0, _express.Router)();
+
+var path = require("path");
+
+var AWS = require('aws-sdk');
+
+var fs = require("fs"); //database connection
+
 
 //SELECT
 router.get("/", /*#__PURE__*/function () {
@@ -47,7 +60,9 @@ router.get("/", /*#__PURE__*/function () {
           case 2:
             db = _context.sent;
             _context.next = 5;
-            return db.collection("facturaciones").find({}).toArray();
+            return db.collection("facturaciones").find({
+              isActive: true
+            }).toArray();
 
           case 5:
             result = _context.sent;
@@ -56,10 +71,10 @@ router.get("/", /*#__PURE__*/function () {
 
           case 8:
             empresa = _context.sent;
-            res.json({
+            return _context.abrupt("return", res.json({
               datos: result,
               empresa: empresa
-            });
+            }));
 
           case 10:
           case "end":
@@ -72,230 +87,483 @@ router.get("/", /*#__PURE__*/function () {
   return function (_x, _x2) {
     return _ref.apply(this, arguments);
   };
-}()); //SELECT ONE 
-
-router.get('/:id', /*#__PURE__*/function () {
+}());
+router.get('/asis', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(req, res) {
-    var id, db, result, empresa;
+    var db, empresa;
     return regeneratorRuntime.wrap(function _callee2$(_context2) {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            id = req.params.id;
-            _context2.next = 3;
+            _context2.next = 2;
             return (0, _database.connect)();
 
-          case 3:
+          case 2:
             db = _context2.sent;
+            _context2.prev = 3;
             _context2.next = 6;
-            return db.collection('facturaciones').findOne({
-              _id: (0, _mongodb.ObjectID)(id)
-            });
+            return db.collection("empresa").findOne({});
 
           case 6:
-            result = _context2.sent;
-            _context2.next = 9;
-            return db.collection('empresa').findOne();
-
-          case 9:
             empresa = _context2.sent;
-            res.json({
-              facturaciones: result,
-              empresa: empresa
-            });
+            return _context2.abrupt("return", res.status(200).json({
+              empresa: empresa,
+              err: null
+            }));
 
-          case 11:
+          case 10:
+            _context2.prev = 10;
+            _context2.t0 = _context2["catch"](3);
+            return _context2.abrupt("return", res.status(500).json({
+              empresa: null,
+              err: String(_context2.t0)
+            }));
+
+          case 13:
           case "end":
             return _context2.stop();
         }
       }
-    }, _callee2);
+    }, _callee2, null, [[3, 10]]);
   }));
 
   return function (_x3, _x4) {
     return _ref2.apply(this, arguments);
   };
-}()); //SELECT WITH PAGINATION
+}()); //-------------------------------------------------------MASSIVE LOAD
 
-router.post("/pagination", /*#__PURE__*/function () {
+router.get("/getoc", /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var db, _req$body, pageNumber, nPerPage, skip_page, countFac, empresa, result;
-
+    var db, result;
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
-            _context3.next = 2;
+            _context3.prev = 0;
+            _context3.next = 3;
             return (0, _database.connect)();
 
-          case 2:
+          case 3:
             db = _context3.sent;
-            _req$body = req.body, pageNumber = _req$body.pageNumber, nPerPage = _req$body.nPerPage;
-            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-            _context3.prev = 5;
-            _context3.next = 8;
-            return db.collection("facturaciones").find().count();
+            _context3.next = 6;
+            return db.collection('facturaciones').find({
+              oc: 'Si',
+              estado: 'Ingresado'
+            }).toArray();
 
-          case 8:
-            countFac = _context3.sent;
-            _context3.next = 11;
-            return db.collection("empresa").findOne({});
+          case 6:
+            result = _context3.sent;
+            return _context3.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Facturaciones cargadas',
+              res: result
+            }));
 
-          case 11:
-            empresa = _context3.sent;
-            _context3.next = 14;
-            return db.collection("facturaciones").find().skip(skip_page).limit(nPerPage).toArray();
+          case 10:
+            _context3.prev = 10;
+            _context3.t0 = _context3["catch"](0);
+            console.log(_context3.t0);
+            return _context3.abrupt("return", res.status(500).json({
+              err: String(_context3.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
 
           case 14:
-            result = _context3.sent;
-            res.json({
-              total_items: countFac,
-              pagina_actual: pageNumber,
-              nro_paginas: parseInt(countFac / nPerPage + 1),
-              empresa: empresa,
-              facturaciones: result
-            });
-            _context3.next = 21;
-            break;
-
-          case 18:
-            _context3.prev = 18;
-            _context3.t0 = _context3["catch"](5);
-            res.status(501).json(_context3.t0);
-
-          case 21:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3, null, [[5, 18]]);
+    }, _callee3, null, [[0, 10]]);
   }));
 
   return function (_x5, _x6) {
     return _ref3.apply(this, arguments);
   };
-}()); //BUSCAR POR RUT O NOMBRE
-
-router.post("/buscar", /*#__PURE__*/function () {
+}());
+router.get("/getconfirmoc", /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
-    var _req$body2, identificador, filtro, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countFac;
-
+    var db, result;
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
           case 0:
-            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
-            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-            _context4.next = 4;
+            _context4.prev = 0;
+            _context4.next = 3;
             return (0, _database.connect)();
 
-          case 4:
+          case 3:
             db = _context4.sent;
+            _context4.next = 6;
+            return db.collection('facturaciones').find({
+              oc: 'Si',
+              estado: 'En Revisión'
+            }).toArray();
 
-            if (identificador === 1 && filtro.includes("k")) {
-              rutFiltrado = filtro;
-              rutFiltrado.replace("k", "K");
-            } else {
-              rutFiltrado = filtro;
-            }
+          case 6:
+            result = _context4.sent;
+            return _context4.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Facturaciones cargadas',
+              res: result
+            }));
 
-            rexExpresionFiltro = new RegExp(rutFiltrado, "i");
-            _context4.prev = 7;
-
-            if (!(identificador === 1)) {
-              _context4.next = 17;
-              break;
-            }
-
-            _context4.next = 11;
-            return db.collection("facturaciones").find({
-              rut_cp: rexExpresionFiltro
-            }).count();
-
-          case 11:
-            countFac = _context4.sent;
-            _context4.next = 14;
-            return db.collection("facturaciones").find({
-              rut_cp: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
+          case 10:
+            _context4.prev = 10;
+            _context4.t0 = _context4["catch"](0);
+            console.log(_context4.t0);
+            return _context4.abrupt("return", res.status(500).json({
+              err: String(_context4.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
 
           case 14:
-            result = _context4.sent;
-            _context4.next = 23;
-            break;
-
-          case 17:
-            _context4.next = 19;
-            return db.collection("facturaciones").find({
-              razon_social_cp: rexExpresionFiltro
-            }).count();
-
-          case 19:
-            countFac = _context4.sent;
-            _context4.next = 22;
-            return db.collection("facturaciones").find({
-              razon_social_cp: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
-
-          case 22:
-            result = _context4.sent;
-
-          case 23:
-            res.json({
-              total_items: countFac,
-              pagina_actual: pageNumber,
-              nro_paginas: parseInt(countFac / nPerPage + 1),
-              facturaciones: result
-            });
-            _context4.next = 29;
-            break;
-
-          case 26:
-            _context4.prev = 26;
-            _context4.t0 = _context4["catch"](7);
-            res.status(501).json({
-              mgs: "ha ocurrido un error ".concat(_context4.t0)
-            });
-
-          case 29:
           case "end":
             return _context4.stop();
         }
       }
-    }, _callee4, null, [[7, 26]]);
+    }, _callee4, null, [[0, 10]]);
   }));
 
   return function (_x7, _x8) {
     return _ref4.apply(this, arguments);
   };
-}()); //EDIT
-
-router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+}());
+router.get("/getinvoices", /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
-    var id, db, factura, result;
+    var db, result;
     return regeneratorRuntime.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
           case 0:
-            id = req.params.id;
+            _context5.prev = 0;
             _context5.next = 3;
             return (0, _database.connect)();
 
           case 3:
             db = _context5.sent;
-            factura = JSON.parse(req.body.data);
+            _context5.next = 6;
+            return db.collection('facturaciones').find({
+              estado: 'En Facturacion'
+            }).toArray();
 
-            if (req.file) {
-              factura.url_file_adjunto = {
-                name: req.file.originalname,
-                size: req.file.size,
-                path: req.file.path,
-                type: req.file.mimetype
-              };
+          case 6:
+            result = _context5.sent;
+            return _context5.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Facturaciones cargadas',
+              res: result
+            }));
+
+          case 10:
+            _context5.prev = 10;
+            _context5.t0 = _context5["catch"](0);
+            console.log(_context5.t0);
+            return _context5.abrupt("return", res.status(500).json({
+              err: String(_context5.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
+
+          case 14:
+          case "end":
+            return _context5.stop();
+        }
+      }
+    }, _callee5, null, [[0, 10]]);
+  }));
+
+  return function (_x9, _x10) {
+    return _ref5.apply(this, arguments);
+  };
+}()); //SELECT ONE 
+
+router.get('/:id', /*#__PURE__*/function () {
+  var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
+    var id, db, token, dataToken, result, empresa;
+    return regeneratorRuntime.wrap(function _callee6$(_context6) {
+      while (1) {
+        switch (_context6.prev = _context6.next) {
+          case 0:
+            id = req.params.id;
+            _context6.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context6.sent;
+            token = req.headers['x-access-token'];
+
+            if (token) {
+              _context6.next = 7;
+              break;
             }
 
-            _context5.prev = 6;
-            _context5.next = 9;
+            return _context6.abrupt("return", res.status(401).json({
+              msg: _text_messages.MESSAGE_UNAUTHORIZED_TOKEN,
+              auth: _text_messages.UNAUTHOTIZED
+            }));
+
+          case 7:
+            _context6.next = 9;
+            return (0, _jwt.verifyToken)(token);
+
+          case 9:
+            dataToken = _context6.sent;
+
+            if (!(Object.entries(dataToken).length === 0)) {
+              _context6.next = 12;
+              break;
+            }
+
+            return _context6.abrupt("return", res.status(400).json({
+              msg: _text_messages.ERROR_MESSAGE_TOKEN,
+              auth: _text_messages.UNAUTHOTIZED
+            }));
+
+          case 12:
+            _context6.prev = 12;
+            _context6.next = 15;
+            return db.collection('facturaciones').findOne({
+              _id: (0, _mongodb.ObjectID)(id)
+            });
+
+          case 15:
+            result = _context6.sent;
+            _context6.next = 18;
+            return db.collection('empresa').findOne();
+
+          case 18:
+            empresa = _context6.sent;
+            return _context6.abrupt("return", res.status(200).json({
+              facturaciones: result,
+              empresa: empresa
+            }));
+
+          case 22:
+            _context6.prev = 22;
+            _context6.t0 = _context6["catch"](12);
+            return _context6.abrupt("return", res.status(500).json({
+              msg: _text_messages.ERROR,
+              error: _context6.t0
+            }));
+
+          case 25:
+          case "end":
+            return _context6.stop();
+        }
+      }
+    }, _callee6, null, [[12, 22]]);
+  }));
+
+  return function (_x11, _x12) {
+    return _ref6.apply(this, arguments);
+  };
+}()); //SELECT WITH PAGINATION
+
+router.post("/pagination", /*#__PURE__*/function () {
+  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(req, res) {
+    var db, _req$body, pageNumber, nPerPage, skip_page, countFac, empresa, result;
+
+    return regeneratorRuntime.wrap(function _callee7$(_context7) {
+      while (1) {
+        switch (_context7.prev = _context7.next) {
+          case 0:
+            _context7.next = 2;
+            return (0, _database.connect)();
+
+          case 2:
+            db = _context7.sent;
+            _req$body = req.body, pageNumber = _req$body.pageNumber, nPerPage = _req$body.nPerPage;
+            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0; // const token = req.headers['x-access-token'];
+            // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+            // const dataToken = await verifyToken(token);
+            // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+            _context7.prev = 5;
+            _context7.next = 8;
+            return db.collection("facturaciones").find({
+              isActive: true
+            }).count();
+
+          case 8:
+            countFac = _context7.sent;
+            _context7.next = 11;
+            return db.collection("empresa").findOne({});
+
+          case 11:
+            empresa = _context7.sent;
+            _context7.next = 14;
+            return db.collection("facturaciones").find({
+              isActive: true
+            }).skip(skip_page).limit(nPerPage).toArray();
+
+          case 14:
+            result = _context7.sent;
+            return _context7.abrupt("return", res.status(200).json({
+              // auth: AUTHORIZED,
+              total_items: countFac,
+              pagina_actual: pageNumber,
+              nro_paginas: parseInt(countFac / nPerPage + 1),
+              empresa: empresa,
+              facturaciones: result
+            }));
+
+          case 18:
+            _context7.prev = 18;
+            _context7.t0 = _context7["catch"](5);
+            return _context7.abrupt("return", res.status(500).json({
+              total_items: 0,
+              pagina_actual: 1,
+              nro_paginas: 0,
+              facturaciones: null,
+              err: String(_context7.t0)
+            }));
+
+          case 21:
+          case "end":
+            return _context7.stop();
+        }
+      }
+    }, _callee7, null, [[5, 18]]);
+  }));
+
+  return function (_x13, _x14) {
+    return _ref7.apply(this, arguments);
+  };
+}()); //BUSCAR POR RUT O NOMBRE
+
+router.post("/buscar", /*#__PURE__*/function () {
+  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(req, res) {
+    var _req$body2, identificador, filtro, headFilter, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countFac, _db$collection$find, _db$collection$find2;
+
+    return regeneratorRuntime.wrap(function _callee8$(_context8) {
+      while (1) {
+        switch (_context8.prev = _context8.next) {
+          case 0:
+            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, headFilter = _req$body2.headFilter, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
+            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+            _context8.next = 4;
+            return (0, _database.connect)();
+
+          case 4:
+            db = _context8.sent;
+            rutFiltrado = filtro;
+
+            if (identificador === 1 && filtro.includes("k")) {
+              rutFiltrado.replace("k", "K");
+            } // if (identificador === 1 && filtro.includes("k")) {
+            //   rutFiltrado = filtro;
+            //   rutFiltrado.replace("k", "K");
+            // } else {
+            //   rutFiltrado = filtro;
+            // }
+
+
+            rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+            _context8.prev = 8;
+            _context8.next = 11;
+            return db.collection("facturaciones").find((_db$collection$find = {}, _defineProperty(_db$collection$find, headFilter, rexExpresionFiltro), _defineProperty(_db$collection$find, "isActive", true), _db$collection$find)).count();
+
+          case 11:
+            countFac = _context8.sent;
+            _context8.next = 14;
+            return db.collection("facturaciones").find((_db$collection$find2 = {}, _defineProperty(_db$collection$find2, headFilter, rexExpresionFiltro), _defineProperty(_db$collection$find2, "isActive", true), _db$collection$find2)).skip(skip_page).limit(nPerPage).toArray();
+
+          case 14:
+            result = _context8.sent;
+            return _context8.abrupt("return", res.status(200).json({
+              total_items: countFac,
+              pagina_actual: pageNumber,
+              nro_paginas: parseInt(countFac / nPerPage + 1),
+              facturaciones: result
+            }));
+
+          case 18:
+            _context8.prev = 18;
+            _context8.t0 = _context8["catch"](8);
+            return _context8.abrupt("return", res.status(500).json({
+              total_items: 0,
+              pagina_actual: 1,
+              nro_paginas: 0,
+              facturaciones: null
+            }));
+
+          case 21:
+          case "end":
+            return _context8.stop();
+        }
+      }
+    }, _callee8, null, [[8, 18]]);
+  }));
+
+  return function (_x15, _x16) {
+    return _ref8.apply(this, arguments);
+  };
+}()); //EDIT
+
+router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+  var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(req, res) {
+    var id, db, factura, token, dataToken, result;
+    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+      while (1) {
+        switch (_context9.prev = _context9.next) {
+          case 0:
+            id = req.params.id;
+            _context9.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context9.sent;
+            factura = JSON.parse(req.body.data);
+            token = req.headers['x-access-token'];
+
+            if (token) {
+              _context9.next = 8;
+              break;
+            }
+
+            return _context9.abrupt("return", res.status(401).json({
+              msg: _text_messages.MESSAGE_UNAUTHORIZED_TOKEN,
+              auth: _text_messages.UNAUTHOTIZED
+            }));
+
+          case 8:
+            _context9.next = 10;
+            return (0, _jwt.verifyToken)(token);
+
+          case 10:
+            dataToken = _context9.sent;
+
+            if (!(Object.entries(dataToken).length === 0)) {
+              _context9.next = 13;
+              break;
+            }
+
+            return _context9.abrupt("return", res.status(400).json({
+              msg: _text_messages.ERROR_MESSAGE_TOKEN,
+              auth: _text_messages.UNAUTHOTIZED
+            }));
+
+          case 13:
+            if (!(dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')) {
+              _context9.next = 15;
+              break;
+            }
+
+            return _context9.abrupt("return", res.status(401).json({
+              msg: _text_messages.MESSAGE_UNAUTHORIZED_TOKEN
+            }));
+
+          case 15:
+            if (req.file) factura.url_file_adjunto = {
+              name: req.file.originalname,
+              size: req.file.size,
+              path: req.file.path,
+              type: req.file.mimetype
+            };
+            _context9.prev = 16;
+            _context9.next = 19;
             return db.collection("facturaciones").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -312,67 +580,79 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
               }
             });
 
-          case 9:
-            result = _context5.sent;
-            res.status(201).json({
-              message: "Factura modificada correctamente",
+          case 19:
+            result = _context9.sent;
+            return _context9.abrupt("return", res.status(200).json({
+              message: _text_messages.SUCCESSFULL_UPDATE,
               result: result
-            });
-            _context5.next = 16;
-            break;
+            }));
 
-          case 13:
-            _context5.prev = 13;
-            _context5.t0 = _context5["catch"](6);
-            res.status(500).json({
-              message: "ha ocurrido un error",
-              error: _context5.t0
-            });
+          case 23:
+            _context9.prev = 23;
+            _context9.t0 = _context9["catch"](16);
+            return _context9.abrupt("return", res.status(500).json({
+              msg: _text_messages.ERROR,
+              error: _context9.t0
+            }));
 
-          case 16:
+          case 26:
           case "end":
-            return _context5.stop();
+            return _context9.stop();
         }
       }
-    }, _callee5, null, [[6, 13]]);
+    }, _callee9, null, [[16, 23]]);
   }));
 
-  return function (_x9, _x10) {
-    return _ref5.apply(this, arguments);
+  return function (_x17, _x18) {
+    return _ref9.apply(this, arguments);
   };
 }()); //INSERTAR DATOS DE FACTURACION
 
 router.post("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
-  var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
-    var id, db, datos, archivo, obs, result;
-    return regeneratorRuntime.wrap(function _callee6$(_context6) {
+  var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(req, res) {
+    var id, db, datos, _archivo, obs, result, nombrePdf;
+
+    return regeneratorRuntime.wrap(function _callee10$(_context10) {
       while (1) {
-        switch (_context6.prev = _context6.next) {
+        switch (_context10.prev = _context10.next) {
           case 0:
             id = req.params.id;
-            _context6.next = 3;
+            _context10.next = 3;
             return (0, _database.connect)();
 
           case 3:
-            db = _context6.sent;
-            datos = JSON.parse(req.body.data);
-            archivo = {};
-            obs = {};
-            obs.obs = datos.observacion_factura;
-            obs.fecha = (0, _getDateNow.getDate)(new Date());
-            obs.estado = "Cargado";
+            db = _context10.sent;
+            datos = JSON.parse(req.body.data); // const token = req.headers['x-access-token'];
+            // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+            // const dataToken = await verifyToken(token);
+            // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+            _context10.prev = 5;
+            _archivo = '';
+            obs = {
+              obs: datos.observacion_factura,
+              fecha: (0, _getDateNow.getDate)(new Date()),
+              estado: "Cargado"
+            };
             result = "";
 
             if (req.file) {
-              archivo = {
-                name: req.file.originalname,
-                size: req.file.size,
-                path: req.file.path,
-                type: req.file.mimetype
-              };
+              nombrePdf = _var.OTHER_NAME_PDF;
+              _archivo = "Factura_".concat(datos.codigo, "_").concat((0, _uuid.v4)());
+              setTimeout(function () {
+                var fileContent = fs.readFileSync("uploads/".concat(nombrePdf));
+                var params = {
+                  Bucket: _var.AWS_BUCKET_NAME,
+                  Body: fileContent,
+                  Key: _archivo,
+                  ContentType: 'application/pdf'
+                };
+                (0, _aws.uploadFileToS3)(params);
+              }, 2000);
             }
 
-            _context6.next = 14;
+            ;
+            _context10.next = 13;
             return db.collection("facturaciones").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -380,71 +660,101 @@ router.post("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function 
                 fecha_facturacion: datos.fecha_facturacion,
                 estado_archivo: "Cargado",
                 nro_factura: datos.nro_factura,
-                archivo_factura: archivo,
+                archivo_factura: _archivo,
                 monto_neto: datos.monto_neto,
                 porcentaje_impuesto: datos.porcentaje_impuesto,
                 valor_impuesto: datos.valor_impuesto,
                 sub_total: datos.sub_total,
                 exento: datos.exento,
                 descuento: datos.descuento,
-                total: datos.total
+                total: datos.total,
+                representante: datos.representante,
+                razon_social_empresa: datos.razon_social_empresa,
+                email_empresa: datos.email_empresa
               },
               $push: {
                 observacion_factura: obs
               }
             });
 
-          case 14:
-            result = _context6.sent;
-            res.json(result);
+          case 13:
+            result = _context10.sent;
+            return _context10.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Factura cargada exitosamente',
+              res: result
+            }));
 
-          case 16:
+          case 17:
+            _context10.prev = 17;
+            _context10.t0 = _context10["catch"](5);
+            return _context10.abrupt("return", res.status(500).json({
+              err: String(_context10.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
+
+          case 20:
           case "end":
-            return _context6.stop();
+            return _context10.stop();
         }
       }
-    }, _callee6);
+    }, _callee10, null, [[5, 17]]);
   }));
 
-  return function (_x11, _x12) {
-    return _ref6.apply(this, arguments);
+  return function (_x19, _x20) {
+    return _ref10.apply(this, arguments);
   };
 }()); //INSERTAR FACTURA MASIVO
 
 router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () {
-  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(req, res) {
-    var db, new_array, datos, archivo, obs, result;
-    return regeneratorRuntime.wrap(function _callee7$(_context7) {
+  var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(req, res) {
+    var db, datos, new_array, obs, result, _archivo2, nombrePdf;
+
+    return regeneratorRuntime.wrap(function _callee11$(_context11) {
       while (1) {
-        switch (_context7.prev = _context7.next) {
+        switch (_context11.prev = _context11.next) {
           case 0:
-            _context7.next = 2;
+            _context11.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context7.sent;
+            db = _context11.sent;
+            datos = JSON.parse(req.body.data); // const token = req.headers['x-access-token'];
+            // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+            // const dataToken = await verifyToken(token);
+            // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+            _context11.prev = 4;
             new_array = [];
-            datos = JSON.parse(req.body.data);
-            archivo = {};
-            obs = {};
-            obs.obs = datos[0].observacion_factura;
-            obs.fecha = (0, _getDateNow.getDate)(new Date());
-            obs.estado = "Cargado";
+            obs = {
+              obs: datos[0].observacion_factura,
+              fecha: (0, _getDateNow.getDate)(new Date()),
+              estado: 'Cargado'
+            };
             result = "";
             datos[1].ids.forEach(function (element) {
               new_array.push((0, _mongodb.ObjectID)(element));
             });
+            _archivo2 = '';
 
             if (req.file) {
-              archivo = {
-                name: req.file.originalname,
-                size: req.file.size,
-                path: req.file.path,
-                type: req.file.mimetype
-              };
+              nombrePdf = _var.OTHER_NAME_PDF;
+              _archivo2 = "INVOICE_GROUP_".concat(datos[0].nro_factura, "_").concat((0, _uuid.v4)());
+              setTimeout(function () {
+                var fileContent = fs.readFileSync("uploads/".concat(nombrePdf));
+                var params = {
+                  Bucket: _var.AWS_BUCKET_NAME,
+                  Body: fileContent,
+                  Key: _archivo2,
+                  ContentType: 'application/pdf'
+                };
+                (0, _aws.uploadFileToS3)(params);
+              }, 2000);
             }
 
-            _context7.next = 15;
+            ;
+            _context11.next = 14;
             return db.collection("facturaciones").updateMany({
               _id: {
                 $in: new_array
@@ -454,72 +764,111 @@ router.post("/", _multer["default"].single("archivo"), /*#__PURE__*/function () 
                 fecha_facturacion: datos[0].fecha_facturacion,
                 estado_archivo: "Cargado",
                 nro_factura: datos[0].nro_factura,
-                archivo_factura: archivo,
+                archivo_factura: _archivo2,
                 monto_neto: datos[0].monto_neto,
                 porcentaje_impuesto: datos[0].porcentaje_impuesto,
                 valor_impuesto: datos[0].valor_impuesto,
                 sub_total: datos[0].sub_total,
                 exento: datos[0].exento,
                 descuento: datos[0].descuento,
-                total: datos[0].total
+                total: datos[0].total,
+                representante: datos[0].representante,
+                razon_social_empresa: datos[0].razon_social_empresa,
+                email_empresa: datos[0].email_empresa
               },
               $push: {
                 observacion_factura: obs
               }
             });
 
-          case 15:
-            result = _context7.sent;
-            res.json(result);
+          case 14:
+            result = _context11.sent;
+            return _context11.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Facturas cargas satisfactoriamente',
+              res: result
+            }));
 
-          case 17:
+          case 18:
+            _context11.prev = 18;
+            _context11.t0 = _context11["catch"](4);
+            console.log(_context11.t0);
+            return _context11.abrupt("return", res.status(500).json({
+              err: String(_context11.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
+
+          case 22:
           case "end":
-            return _context7.stop();
+            return _context11.stop();
         }
       }
-    }, _callee7);
+    }, _callee11, null, [[4, 18]]);
   }));
 
-  return function (_x13, _x14) {
-    return _ref7.apply(this, arguments);
+  return function (_x21, _x22) {
+    return _ref11.apply(this, arguments);
   };
 }()); //SUBIR OC
 
 router.post("/subiroc/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
-  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(req, res) {
-    var id, db, datos, archivo, obs, result;
-    return regeneratorRuntime.wrap(function _callee8$(_context8) {
+  var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(req, res) {
+    var id, db, datos, obs, _archivo3, nombrePdf, result;
+
+    return regeneratorRuntime.wrap(function _callee12$(_context12) {
       while (1) {
-        switch (_context8.prev = _context8.next) {
+        switch (_context12.prev = _context12.next) {
           case 0:
             id = req.params.id;
-            _context8.next = 3;
+            _context12.next = 3;
             return (0, _database.connect)();
 
           case 3:
-            db = _context8.sent;
-            datos = JSON.parse(req.body.data);
-            archivo = {};
-            obs = {};
-            obs.obs = datos.observacion_oc;
-            obs.fecha = (0, _getDateNow.getDate)(new Date());
-            obs.estado = "Cargado";
+            db = _context12.sent;
+            datos = JSON.parse(req.body.data); // const token = req.headers['x-access-token'];
+            // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+            // const dataToken = await verifyToken(token);
+            // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+            obs = {
+              obs: datos.observacion_oc,
+              fecha: (0, _getDateNow.getDate)(new Date()),
+              estado: "Cargado"
+            }; // if (req.file) {
+            //   archivo = {
+            //     name: req.file.originalname,
+            //     size: req.file.size,
+            //     path: req.file.path,
+            //     type: req.file.mimetype,
+            //   };
+            // }
+
+            _context12.prev = 6;
+            _archivo3 = '';
 
             if (req.file) {
-              archivo = {
-                name: req.file.originalname,
-                size: req.file.size,
-                path: req.file.path,
-                type: req.file.mimetype
-              };
+              nombrePdf = _var.OTHER_NAME_PDF;
+              _archivo3 = "OC_".concat(datos.codigo, "_").concat((0, _uuid.v4)());
+              setTimeout(function () {
+                var fileContent = fs.readFileSync("uploads/".concat(nombrePdf));
+                var params = {
+                  Bucket: _var.AWS_BUCKET_NAME,
+                  Body: fileContent,
+                  Key: _archivo3,
+                  ContentType: 'application/pdf'
+                };
+                (0, _aws.uploadFileToS3)(params);
+              }, 2000);
             }
 
-            _context8.next = 13;
+            ;
+            _context12.next = 12;
             return db.collection("facturaciones").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
-                archivo_oc: archivo,
+                archivo_oc: _archivo3,
                 fecha_oc: datos.fecha_oc,
                 hora_oc: datos.hora_oc,
                 nro_oc: datos.nro_oc,
@@ -531,38 +880,145 @@ router.post("/subiroc/:id", _multer["default"].single("archivo"), /*#__PURE__*/f
               }
             });
 
-          case 13:
-            result = _context8.sent;
-            res.json(result);
+          case 12:
+            result = _context12.sent;
+            return _context12.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Orden de compra cargada',
+              res: result
+            }));
 
-          case 15:
+          case 16:
+            _context12.prev = 16;
+            _context12.t0 = _context12["catch"](6);
+            console.log(_context12.t0);
+            return _context12.abrupt("return", res.status(500).json({
+              err: String(_context12.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
+
+          case 20:
           case "end":
-            return _context8.stop();
+            return _context12.stop();
         }
       }
-    }, _callee8);
+    }, _callee12, null, [[6, 16]]);
   }));
 
-  return function (_x15, _x16) {
-    return _ref8.apply(this, arguments);
+  return function (_x23, _x24) {
+    return _ref12.apply(this, arguments);
+  };
+}()); //GET FILE FROM AWS S3
+
+router.get('/downloadfile/:id/:type', /*#__PURE__*/function () {
+  var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(req, res) {
+    var _req$params, id, type, db, evaluacion, pathPdf, s3;
+
+    return regeneratorRuntime.wrap(function _callee13$(_context13) {
+      while (1) {
+        switch (_context13.prev = _context13.next) {
+          case 0:
+            _req$params = req.params, id = _req$params.id, type = _req$params.type;
+            _context13.next = 3;
+            return (0, _database.connect)();
+
+          case 3:
+            db = _context13.sent;
+            _context13.prev = 4;
+            _context13.next = 7;
+            return db.collection('facturaciones').findOne({
+              _id: (0, _mongodb.ObjectID)(id),
+              isActive: true
+            });
+
+          case 7:
+            evaluacion = _context13.sent;
+
+            if (evaluacion) {
+              _context13.next = 10;
+              break;
+            }
+
+            return _context13.abrupt("return", res.status(500).json({
+              err: 98,
+              msg: NOT_EXISTS,
+              res: null
+            }));
+
+          case 10:
+            pathPdf = type === 'oc' ? evaluacion.archivo_oc : type === 'invoice' ? evaluacion.archivo_factura : '';
+            s3 = new AWS.S3({
+              accessKeyId: _var.AWS_ACCESS_KEY,
+              secretAccessKey: _var.AWS_SECRET_KEY
+            });
+            s3.getObject({
+              Bucket: _var.AWS_BUCKET_NAME,
+              Key: pathPdf
+            }, function (error, data) {
+              if (error) {
+                return res.status(500).json({
+                  err: String(error),
+                  msg: 'error s3 get file',
+                  res: null
+                });
+              } else {
+                return res.status(200).json({
+                  err: null,
+                  msg: 'Archivo descargado',
+                  res: data.Body,
+                  filename: pathPdf
+                });
+              }
+
+              ;
+            });
+            _context13.next = 19;
+            break;
+
+          case 15:
+            _context13.prev = 15;
+            _context13.t0 = _context13["catch"](4);
+            console.log(_context13.t0);
+            return _context13.abrupt("return", res.status(500).json({
+              err: String(_context13.t0),
+              msg: 'Error al obtener archivo',
+              res: null
+            }));
+
+          case 19:
+          case "end":
+            return _context13.stop();
+        }
+      }
+    }, _callee13, null, [[4, 15]]);
+  }));
+
+  return function (_x25, _x26) {
+    return _ref13.apply(this, arguments);
   };
 }()); //SUBIR OC MASIVO
 
 router.post("/oc/subiroc/many", _multer["default"].single("archivo"), /*#__PURE__*/function () {
-  var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(req, res) {
-    var db, new_array, datos, archivo, obs, result;
-    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+  var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(req, res) {
+    var db, new_array, datos, obs, _archivo4, nombrePdf, result;
+
+    return regeneratorRuntime.wrap(function _callee14$(_context14) {
       while (1) {
-        switch (_context9.prev = _context9.next) {
+        switch (_context14.prev = _context14.next) {
           case 0:
-            _context9.next = 2;
+            _context14.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context9.sent;
+            db = _context14.sent;
             new_array = [];
-            datos = JSON.parse(req.body.data);
-            archivo = {};
+            datos = JSON.parse(req.body.data); // const token = req.headers['x-access-token'];
+            // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+            // const dataToken = await verifyToken(token);
+            // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+            _context14.prev = 5;
             obs = {};
             obs.obs = datos[0].observacion_oc;
             obs.fecha = (0, _getDateNow.getDate)(new Date());
@@ -570,24 +1026,32 @@ router.post("/oc/subiroc/many", _multer["default"].single("archivo"), /*#__PURE_
             datos[1].ids.forEach(function (element) {
               new_array.push((0, _mongodb.ObjectID)(element));
             });
+            _archivo4 = '';
 
             if (req.file) {
-              archivo = {
-                name: req.file.originalname,
-                size: req.file.size,
-                path: req.file.path,
-                type: req.file.mimetype
-              };
+              nombrePdf = _var.OTHER_NAME_PDF;
+              _archivo4 = "OC_GROUP_NRO_".concat(datos[0].nro_oc, "_").concat((0, _uuid.v4)());
+              setTimeout(function () {
+                var fileContent = fs.readFileSync("uploads/".concat(nombrePdf));
+                var params = {
+                  Bucket: _var.AWS_BUCKET_NAME,
+                  Body: fileContent,
+                  Key: _archivo4,
+                  ContentType: 'application/pdf'
+                };
+                (0, _aws.uploadFileToS3)(params);
+              }, 2000);
             }
 
-            _context9.next = 14;
+            ;
+            _context14.next = 16;
             return db.collection("facturaciones").updateMany({
               _id: {
                 $in: new_array
               }
             }, {
               $set: {
-                archivo_oc: archivo,
+                archivo_oc: _archivo4,
                 fecha_oc: datos[0].fecha_oc,
                 hora_oc: datos[0].hora_oc,
                 nro_oc: datos[0].nro_oc,
@@ -599,95 +1063,135 @@ router.post("/oc/subiroc/many", _multer["default"].single("archivo"), /*#__PURE_
               }
             });
 
-          case 14:
-            result = _context9.sent;
-            res.json(result);
-
           case 16:
+            result = _context14.sent;
+            return _context14.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'OC Subidas satisfactoriamente',
+              res: result
+            }));
+
+          case 20:
+            _context14.prev = 20;
+            _context14.t0 = _context14["catch"](5);
+            console.log(_context14.t0);
+            return _context14.abrupt("return", res.status(500).json({
+              err: String(_context14.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
+
+          case 24:
           case "end":
-            return _context9.stop();
+            return _context14.stop();
         }
       }
-    }, _callee9);
+    }, _callee14, null, [[5, 20]]);
   }));
 
-  return function (_x17, _x18) {
-    return _ref9.apply(this, arguments);
+  return function (_x27, _x28) {
+    return _ref14.apply(this, arguments);
   };
 }()); //CONFIRMAR OC
 
 router.post("/confirmaroc/:id", /*#__PURE__*/function () {
-  var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(req, res) {
-    var id, db, obs, estado, result;
-    return regeneratorRuntime.wrap(function _callee10$(_context10) {
+  var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(req, res) {
+    var id, db, data, obs, estado, result;
+    return regeneratorRuntime.wrap(function _callee15$(_context15) {
       while (1) {
-        switch (_context10.prev = _context10.next) {
+        switch (_context15.prev = _context15.next) {
           case 0:
             id = req.params.id;
-            _context10.next = 3;
+            _context15.next = 3;
             return (0, _database.connect)();
 
           case 3:
-            db = _context10.sent;
-            obs = {};
-            obs.obs = req.body.observaciones;
-            obs.fecha = (0, _getDateNow.getDate)(new Date());
-            obs.estado = req.body.estado_archivo;
+            db = _context15.sent;
+            data = req.body; // const token = req.headers['x-access-token'];
+            // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+            // const dataToken = await verifyToken(token);
+            // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+            _context15.prev = 5;
+            obs = {
+              obs: data.observacion_oc,
+              fecha: (0, _getDateNow.getDate)(new Date()),
+              estado: data.estado_archivo
+            };
             estado = "";
-            req.body.estado_archivo == "Aprobado" ? estado = "En Facturacion" : estado = "Ingresado";
-            _context10.next = 12;
+            data.estado_archivo == "Aprobado" ? estado = "En Facturacion" : estado = "Ingresado";
+            _context15.next = 11;
             return db.collection("facturaciones").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
                 estado: estado,
-                estado_archivo: req.body.estado_archivo
+                estado_archivo: data.estado_archivo
               },
               $push: {
                 observacion_oc: obs
               }
             });
 
-          case 12:
-            result = _context10.sent;
-            res.json(result);
+          case 11:
+            result = _context15.sent;
+            return _context15.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Orden de compra confirmada',
+              res: result
+            }));
 
-          case 14:
+          case 15:
+            _context15.prev = 15;
+            _context15.t0 = _context15["catch"](5);
+            return _context15.abrupt("return", res.status(500).json({
+              err: String(_context15.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
+
+          case 18:
           case "end":
-            return _context10.stop();
+            return _context15.stop();
         }
       }
-    }, _callee10);
+    }, _callee15, null, [[5, 15]]);
   }));
 
-  return function (_x19, _x20) {
-    return _ref10.apply(this, arguments);
+  return function (_x29, _x30) {
+    return _ref15.apply(this, arguments);
   };
 }()); //CONFIRMAR OC MASIVO
 
 router.post("/oc/confirmaroc/many", /*#__PURE__*/function () {
-  var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(req, res) {
-    var db, new_array, obs, estado, result;
-    return regeneratorRuntime.wrap(function _callee11$(_context11) {
+  var _ref16 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(req, res) {
+    var data, db, new_array, obs, estado, result;
+    return regeneratorRuntime.wrap(function _callee16$(_context16) {
       while (1) {
-        switch (_context11.prev = _context11.next) {
+        switch (_context16.prev = _context16.next) {
           case 0:
-            _context11.next = 2;
+            data = req.body; // const token = req.headers['x-access-token'];
+            // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+            // const dataToken = await verifyToken(token);
+            // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+            _context16.prev = 1;
+            _context16.next = 4;
             return (0, _database.connect)();
 
-          case 2:
-            db = _context11.sent;
+          case 4:
+            db = _context16.sent;
             new_array = [];
-            obs = {};
-            obs.obs = req.body[0].observaciones;
-            obs.fecha = (0, _getDateNow.getDate)(new Date());
-            obs.estado = req.body[0].estado_archivo;
-            estado = "";
-            req.body[0].estado_archivo == "Aprobado" ? estado = "En Facturacion" : estado = "Ingresado";
-            req.body[1].ids.forEach(function (element) {
+            obs = {
+              obs: data[0].observaciones,
+              fecha: (0, _getDateNow.getDate)(new Date()),
+              estado: data[0].estado_archivo
+            };
+            estado = data[0].estado_archivo == "Aprobado" ? 'En Facturacion' : 'Ingresado';
+            data[1].ids.forEach(function (element) {
               new_array.push((0, _mongodb.ObjectID)(element));
             });
-            _context11.next = 13;
+            _context16.next = 11;
             return db.collection("facturaciones").updateMany({
               _id: {
                 $in: new_array
@@ -695,52 +1199,69 @@ router.post("/oc/confirmaroc/many", /*#__PURE__*/function () {
             }, {
               $set: {
                 estado: estado,
-                estado_archivo: req.body[0].estado_archivo
+                estado_archivo: data[0].estado_archivo
               },
               $push: {
                 observacion_oc: obs
               }
             });
 
-          case 13:
-            result = _context11.sent;
-            res.json(result);
+          case 11:
+            result = _context16.sent;
+            return _context16.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'OC confirmada satisfactoriamente',
+              res: result
+            }));
 
           case 15:
+            _context16.prev = 15;
+            _context16.t0 = _context16["catch"](1);
+            console.log(_context16.t0);
+            return _context16.abrupt("return", res.status(500).json({
+              err: String(_context16.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
+
+          case 19:
           case "end":
-            return _context11.stop();
+            return _context16.stop();
         }
       }
-    }, _callee11);
+    }, _callee16, null, [[1, 15]]);
   }));
 
-  return function (_x21, _x22) {
-    return _ref11.apply(this, arguments);
+  return function (_x31, _x32) {
+    return _ref16.apply(this, arguments);
   };
 }()); // VALIDAR FACTURA
 
 router.post("/validar/:id", /*#__PURE__*/function () {
-  var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(req, res) {
-    var id, _req$body3, estado_archivo, observaciones, nro_nota_credito, fecha_nota_credito, monto_nota_credito, factura_anular, db, obs, estado, result, _db$collection$insert, codAsis, gi, servicio, _db$collection$insert2;
+  var _ref17 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17(req, res) {
+    var id, _req$body3, estado_archivo, observaciones, nro_nota_credito, fecha_nota_credito, monto_nota_credito, factura_anular, db, obs, estado, result, codAsis, gi, servicio, _db$collection$insert;
 
-    return regeneratorRuntime.wrap(function _callee12$(_context12) {
+    return regeneratorRuntime.wrap(function _callee17$(_context17) {
       while (1) {
-        switch (_context12.prev = _context12.next) {
+        switch (_context17.prev = _context17.next) {
           case 0:
             id = req.params.id;
             _req$body3 = req.body, estado_archivo = _req$body3.estado_archivo, observaciones = _req$body3.observaciones, nro_nota_credito = _req$body3.nro_nota_credito, fecha_nota_credito = _req$body3.fecha_nota_credito, monto_nota_credito = _req$body3.monto_nota_credito, factura_anular = _req$body3.factura_anular;
-            _context12.next = 4;
+            console.log(req.body);
+            _context17.next = 5;
             return (0, _database.connect)();
 
-          case 4:
-            db = _context12.sent;
-            obs = {};
-            obs.obs = observaciones;
-            obs.fecha = (0, _getDateNow.getDate)(new Date());
-            obs.estado = estado_archivo;
+          case 5:
+            db = _context17.sent;
+            _context17.prev = 6;
+            obs = {
+              obs: observaciones,
+              fecha: (0, _getDateNow.getDate)(new Date()),
+              estado: estado_archivo
+            };
             estado = "";
             estado_archivo == "Rechazado" ? estado = "En Facturacion" : estado = "Facturado";
-            _context12.next = 13;
+            _context17.next = 12;
             return db.collection("facturaciones").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -757,38 +1278,38 @@ router.post("/validar/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 13:
-            result = _context12.sent;
+          case 12:
+            result = _context17.sent;
 
             if (!(estado_archivo == "Aprobado")) {
-              _context12.next = 28;
+              _context17.next = 27;
               break;
             }
 
             //insertar pago en modulo pago
             codAsis = result.value.codigo;
-            _context12.next = 18;
+            _context17.next = 17;
             return db.collection("gi").findOne({
               rut: result.value.rut_cp,
               razon_social: result.value.razon_social_cp
             });
 
-          case 18:
-            gi = _context12.sent;
-            _context12.next = 21;
+          case 17:
+            gi = _context17.sent;
+            _context17.next = 20;
             return db.collection("solicitudes").findOne({
               codigo: codAsis.replace("FAC", "SOL")
             });
 
-          case 21:
-            servicio = _context12.sent;
-            _context12.next = 24;
-            return db.collection("pagos").insertOne((_db$collection$insert = {
+          case 20:
+            servicio = _context17.sent;
+            _context17.next = 23;
+            return db.collection("pagos").insertOne({
               codigo: codAsis.replace("FAC", "PAG"),
               nombre_servicio: result.value.nombre_servicio,
               id_GI_personalAsignado: result.value.id_GI_personalAsignado,
               faena_seleccionada_cp: result.value.faena_seleccionada_cp,
-              valor_servicio: result.value.valor_servicio,
+              // valor_servicio: result.value.valor_servicio,
               rut_cp: result.value.rut_cp,
               razon_social_cp: result.value.razon_social_cp,
               rut_cs: result.value.rut_cs,
@@ -799,17 +1320,22 @@ router.post("/validar/:id", /*#__PURE__*/function () {
               fecha_facturacion: result.value.fecha_facturacion,
               nro_factura: result.value.nro_factura,
               credito: gi.credito,
-              dias_credito: gi.dias_credito
-            }, _defineProperty(_db$collection$insert, "valor_servicio", Number(servicio.precio)), _defineProperty(_db$collection$insert, "valor_cancelado", 0), _defineProperty(_db$collection$insert, "fecha_pago", (0, _calculateFechaPago.getFechaPago)(result.value.fecha_facturacion, Number(gi.dias_credito))), _defineProperty(_db$collection$insert, "pagos", []), _db$collection$insert));
+              dias_credito: gi.dias_credito,
+              valor_servicio: result.value.valor_servicio,
+              valor_cancelado: 0,
+              fecha_pago: (0, _calculateFechaPago.getFechaPago)(result.value.fecha_facturacion, Number(gi.dias_credito)),
+              pagos: [],
+              isActive: true
+            });
 
-          case 24:
+          case 23:
             if (!((0, _changeToMiniscula.getMinusculas)(gi.credito) == "no")) {
-              _context12.next = 28;
+              _context17.next = 27;
               break;
             }
 
-            _context12.next = 27;
-            return db.collection("cobranza").insertOne((_db$collection$insert2 = {
+            _context17.next = 26;
+            return db.collection("cobranza").insertOne((_db$collection$insert = {
               codigo: codAsis.replace("FAC", "COB"),
               nombre_servicio: result.value.nombre_servicio,
               faena_seleccionada_cp: result.value.faena_seleccionada_cp,
@@ -824,52 +1350,67 @@ router.post("/validar/:id", /*#__PURE__*/function () {
               lugar_servicio: result.value.lugar_servicio,
               sucursal: result.value.sucursal,
               estado: "Vencido"
-            }, _defineProperty(_db$collection$insert2, "valor_servicio", Number(servicio.precio)), _defineProperty(_db$collection$insert2, "valor_cancelado", 0), _defineProperty(_db$collection$insert2, "valor_deuda", Number(servicio.precio)), _defineProperty(_db$collection$insert2, "cartas_cobranza", []), _db$collection$insert2));
+            }, _defineProperty(_db$collection$insert, "valor_servicio", result.value.valor_servicio), _defineProperty(_db$collection$insert, "valor_cancelado", 0), _defineProperty(_db$collection$insert, "valor_deuda", result.value.valor_servicio), _defineProperty(_db$collection$insert, "cartas_cobranza", []), _defineProperty(_db$collection$insert, "isActive", true), _db$collection$insert));
+
+          case 26:
+            result = _context17.sent;
 
           case 27:
-            result = _context12.sent;
+            return _context17.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Factura confirmada',
+              res: result
+            }));
 
-          case 28:
-            res.json(result);
+          case 30:
+            _context17.prev = 30;
+            _context17.t0 = _context17["catch"](6);
+            return _context17.abrupt("return", res.status(500).json({
+              err: String(_context17.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
 
-          case 29:
+          case 33:
           case "end":
-            return _context12.stop();
+            return _context17.stop();
         }
       }
-    }, _callee12);
+    }, _callee17, null, [[6, 30]]);
   }));
 
-  return function (_x23, _x24) {
-    return _ref12.apply(this, arguments);
+  return function (_x33, _x34) {
+    return _ref17.apply(this, arguments);
   };
 }()); //VALIDAR FACTURA MASIVO
 
 router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
-  var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(req, res) {
-    var db, obs, estado, estadoArchivo, result, new_array, resp, codigoAsis, arrayIDsCP, serviciosArray, arrayFacturaciones, GIs, gi, Servicios, servicio, resultPagos, resultCobranza;
-    return regeneratorRuntime.wrap(function _callee13$(_context13) {
+  var _ref18 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee18(req, res) {
+    var db, estado, estadoArchivo, new_array, obs, result, resp, codigoAsis, arrayIDsCP, serviciosArray, arrayFacturaciones, GIs, gi, Servicios, servicio, resultPagos;
+    return regeneratorRuntime.wrap(function _callee18$(_context18) {
       while (1) {
-        switch (_context13.prev = _context13.next) {
+        switch (_context18.prev = _context18.next) {
           case 0:
-            _context13.next = 2;
+            _context18.next = 2;
             return (0, _database.connect)();
 
           case 2:
-            db = _context13.sent;
-            obs = {};
+            db = _context18.sent;
+            _context18.prev = 3;
             estado = "";
             estadoArchivo = "";
-            result = "";
             new_array = [];
-            obs.obs = req.body[0].observaciones;
-            obs.fecha = (0, _getDateNow.getDate)(new Date());
-            obs.estado = req.body[0].estado_archivo;
+            estadoArchivo = req.body[0].estado_archivo;
+            obs = {
+              obs: req.body[0].observaciones,
+              fecha: (0, _getDateNow.getDate)(new Date()),
+              estado: estadoArchivo
+            };
             estadoArchivo == "Rechazado" ? estado = "En Facturacion" : estado = "Facturado";
             req.body[1].ids.forEach(function (element) {
               new_array.push((0, _mongodb.ObjectID)(element));
             });
-            _context13.next = 15;
+            _context18.next = 13;
             return db.collection("facturaciones").updateMany({
               _id: {
                 $in: new_array
@@ -888,11 +1429,11 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
               }
             });
 
-          case 15:
-            result = _context13.sent;
+          case 13:
+            result = _context18.sent;
 
             if (!(req.body[0].estado_archivo == "Aprobado")) {
-              _context13.next = 51;
+              _context18.next = 44;
               break;
             }
 
@@ -905,42 +1446,40 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
             gi = {};
             Servicios = [];
             servicio = {};
-            _context13.next = 28;
+            _context18.next = 26;
             return db.collection("facturaciones").find({
               _id: {
                 $in: new_array
               }
             }).toArray();
 
-          case 28:
-            resp = _context13.sent;
+          case 26:
+            resp = _context18.sent;
             resp.forEach(function (element) {
               arrayIDsCP.push(element.rut_cp.toString());
             });
             resp.forEach(function (element) {
               serviciosArray.push(element.codigo.replace("FAC", "SOL"));
             });
-            _context13.next = 33;
+            _context18.next = 31;
             return db.collection("gi").find({
               rut: {
                 $in: arrayIDsCP
               }
             }).toArray();
 
-          case 33:
-            GIs = _context13.sent;
-            _context13.next = 36;
+          case 31:
+            GIs = _context18.sent;
+            _context18.next = 34;
             return db.collection("solicitudes").find({
               codigo: {
                 $in: serviciosArray
               }
             }).toArray();
 
-          case 36:
-            Servicios = _context13.sent;
+          case 34:
+            Servicios = _context18.sent;
             resp.forEach(function (element) {
-              var _arrayFacturaciones$p;
-
               codigoAsis = element.codigo;
               codigoAsis = codigoAsis.replace("FAC", "PAG"); //- se busca el gi correspondiente
 
@@ -953,7 +1492,7 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
                 return serv.codigo.replace("SOL", "FAC").toString() === element.codigo;
               }); //-
 
-              arrayFacturaciones.push((_arrayFacturaciones$p = {
+              arrayFacturaciones.push({
                 codigo: codigoAsis,
                 nombre_servicio: element.nombre_servicio,
                 id_GI_personalAsignado: element.id_GI_personalAsignado,
@@ -969,14 +1508,19 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
                 fecha_facturacion: element.fecha_facturacion,
                 nro_factura: element.nro_factura,
                 credito: gi.credito,
-                dias_credito: gi.dias_credito
-              }, _defineProperty(_arrayFacturaciones$p, "valor_servicio", Number(servicio.precio)), _defineProperty(_arrayFacturaciones$p, "valor_cancelado", 0), _defineProperty(_arrayFacturaciones$p, "fecha_pago", (0, _calculateFechaPago.getFechaPago)(element.fecha_facturacion, Number(gi.dias_credito))), _defineProperty(_arrayFacturaciones$p, "pagos", []), _arrayFacturaciones$p));
+                dias_credito: gi.dias_credito,
+                // valor_servicio: Number(servicio.precio),
+                valor_cancelado: 0,
+                fecha_pago: (0, _calculateFechaPago.getFechaPago)(element.fecha_facturacion, Number(gi.dias_credito)),
+                pagos: [],
+                isActive: true
+              });
             });
-            _context13.next = 40;
+            _context18.next = 38;
             return db.collection("pagos").insertMany(arrayFacturaciones);
 
-          case 40:
-            resultPagos = _context13.sent;
+          case 38:
+            resultPagos = _context18.sent;
             //si no tiene dias credito , pasa directo a cobranza
             arrayFacturaciones = [];
             resp.forEach(function (element) {
@@ -991,9 +1535,9 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
               }); //-
 
               if ((0, _changeToMiniscula.getMinusculas)(gi.credito) == "no") {
-                var _arrayFacturaciones$p2;
+                var _arrayFacturaciones$p;
 
-                arrayFacturaciones.push((_arrayFacturaciones$p2 = {
+                arrayFacturaciones.push((_arrayFacturaciones$p = {
                   codigo: servicio.codigo.replace("SOL", "COB"),
                   nombre_servicio: element.nombre_servicio,
                   faena_seleccionada_cp: element.faena_seleccionada_cp,
@@ -1008,38 +1552,62 @@ router.post("/validar/factura/asis/many", /*#__PURE__*/function () {
                   lugar_servicio: element.lugar_servicio,
                   sucursal: element.sucursal,
                   estado: "Vencido"
-                }, _defineProperty(_arrayFacturaciones$p2, "valor_servicio", Number(servicio.precio)), _defineProperty(_arrayFacturaciones$p2, "valor_cancelado", 0), _defineProperty(_arrayFacturaciones$p2, "valor_deuda", Number(servicio.precio)), _defineProperty(_arrayFacturaciones$p2, "cartas_cobranza", []), _arrayFacturaciones$p2));
+                }, _defineProperty(_arrayFacturaciones$p, "valor_servicio", Number(servicio.precio)), _defineProperty(_arrayFacturaciones$p, "valor_cancelado", 0), _defineProperty(_arrayFacturaciones$p, "valor_deuda", Number(servicio.precio)), _defineProperty(_arrayFacturaciones$p, "cartas_cobranza", []), _defineProperty(_arrayFacturaciones$p, "isActive", true), _arrayFacturaciones$p));
               }
             });
 
             if (!(arrayFacturaciones.length > 0)) {
-              _context13.next = 50;
+              _context18.next = 44;
               break;
             }
 
-            _context13.next = 46;
+            _context18.next = 44;
             return db.collection("cobranza").insertMany(arrayFacturaciones);
 
-          case 46:
-            resultCobranza = _context13.sent;
-            res.json(resultCobranza);
-            _context13.next = 51;
-            break;
+          case 44:
+            return _context18.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Facturas confirmadas satisfactoriamente',
+              res: []
+            }));
 
-          case 50:
-            res.json(resultPagos);
+          case 47:
+            _context18.prev = 47;
+            _context18.t0 = _context18["catch"](3);
+            console.log(_context18.t0);
+            return _context18.abrupt("return", res.status(500).json({
+              err: String(_context18.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
 
           case 51:
           case "end":
-            return _context13.stop();
+            return _context18.stop();
         }
       }
-    }, _callee13);
+    }, _callee18, null, [[3, 47]]);
   }));
 
-  return function (_x25, _x26) {
-    return _ref13.apply(this, arguments);
+  return function (_x35, _x36) {
+    return _ref18.apply(this, arguments);
   };
-}());
+}()); // ADD IsActive
+// router.get('/addisactive/sdsdsd', async (req, res) => {
+//   const db = await connect();
+//   try {
+//     const result = await db
+//       .collection("facturaciones")
+//       .updateMany({}, {
+//         $set: {
+//           isActive: true
+//         }
+//       });
+//     res.status(200).json(result);
+//   } catch (error) {
+//     res.status(500).json({ msg: String(error) });
+//   }
+// });
+
 var _default = router;
 exports["default"] = _default;

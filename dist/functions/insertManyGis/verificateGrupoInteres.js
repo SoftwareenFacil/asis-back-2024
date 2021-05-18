@@ -7,7 +7,7 @@ exports["default"] = verificateGrupoInteres;
 
 function verificateGrupoInteres(data) {
   var result = data.filter(function (e) {
-    return e.GrupoInteres === 'Clientes' || e.GrupoInteres === 'Empleados' || e.GrupoInteres === 'Colaboradores';
+    return e.grupo_interes === 'Clientes' || e.grupo_interes === 'Empleados' || e.grupo_interes === 'Colaboradores';
   });
   return result;
 }

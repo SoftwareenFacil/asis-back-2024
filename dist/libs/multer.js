@@ -16,7 +16,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 var storage = _multer["default"].diskStorage({
   destination: 'uploads',
   filename: function filename(req, file, cb) {
-    cb(null, (0, _uuid.v4)() + _path["default"].extname(file.originalname));
+    // cb(null, v4() + path.extname(file.originalname));
+    cb(null, 'EXAMEN.pdf');
   }
 });
 

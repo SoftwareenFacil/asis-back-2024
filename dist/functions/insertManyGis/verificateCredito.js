@@ -7,7 +7,7 @@ exports["default"] = verificateCredito;
 
 function verificateCredito(data) {
   var result = data.filter(function (e) {
-    return e.Credito === 'Si' || e.Credito === 'No';
+    return e.credito === 'Si' || e.credito === 'No';
   });
   return result;
 }

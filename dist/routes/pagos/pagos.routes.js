@@ -11,17 +11,31 @@ var _multer = _interopRequireDefault(require("../../libs/multer"));
 
 var _uuid = require("uuid");
 
+var _aws = require("../../libs/aws");
+
+var _jwt = require("../../libs/jwt");
+
+var _text_messages = require("../../constant/text_messages");
+
 var _database = require("../../database");
 
 var _mongodb = require("mongodb");
 
+var _var = require("../../constant/var");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
 
-var router = (0, _express.Router)(); //database connection
+var router = (0, _express.Router)();
+
+var AWS = require('aws-sdk');
+
+var fs = require("fs");
 
 //SELECT
 router.get("/", /*#__PURE__*/function () {
@@ -37,11 +51,13 @@ router.get("/", /*#__PURE__*/function () {
           case 2:
             db = _context.sent;
             _context.next = 5;
-            return db.collection("pagos").find({}).toArray();
+            return db.collection("pagos").find({
+              isActive: true
+            }).toArray();
 
           case 5:
             result = _context.sent;
-            res.json(result);
+            return _context.abrupt("return", res.json(result));
 
           case 7:
           case "end":
@@ -76,7 +92,7 @@ router.get('/:id', /*#__PURE__*/function () {
 
           case 6:
             result = _context2.sent;
-            res.json(result);
+            return _context2.abrupt("return", res.json(result));
 
           case 8:
           case "end":
@@ -105,31 +121,44 @@ router.post("/pagination", /*#__PURE__*/function () {
           case 2:
             db = _context3.sent;
             _req$body = req.body, pageNumber = _req$body.pageNumber, nPerPage = _req$body.nPerPage;
-            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0; // const token = req.headers['x-access-token'];
+            // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+            // const dataToken = await verifyToken(token);
+            // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
             _context3.prev = 5;
             _context3.next = 8;
-            return db.collection("pagos").find().count();
+            return db.collection("pagos").find({
+              isActive: true
+            }).count();
 
           case 8:
             countPagos = _context3.sent;
             _context3.next = 11;
-            return db.collection("pagos").find().skip(skip_page).limit(nPerPage).toArray();
+            return db.collection("pagos").find({
+              isActive: true
+            }).skip(skip_page).limit(nPerPage).toArray();
 
           case 11:
             result = _context3.sent;
-            res.json({
+            return _context3.abrupt("return", res.status(200).json({
+              // auth: AUTHORIZED,
               total_items: countPagos,
               pagina_actual: pageNumber,
               nro_paginas: parseInt(countPagos / nPerPage + 1),
               pagos: result
-            });
-            _context3.next = 18;
-            break;
+            }));
 
           case 15:
             _context3.prev = 15;
             _context3.t0 = _context3["catch"](5);
-            res.status(501).json(_context3.t0);
+            return _context3.abrupt("return", res.status(500).json({
+              total_items: 0,
+              pagina_actual: 1,
+              nro_paginas: 0,
+              pagos: null,
+              err: String(_context3.t0)
+            }));
 
           case 18:
           case "end":
@@ -146,91 +175,67 @@ router.post("/pagination", /*#__PURE__*/function () {
 
 router.post("/buscar", /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
-    var _req$body2, identificador, filtro, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countPagos;
+    var _req$body2, identificador, filtro, headFilter, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countPagos, _db$collection$find, _db$collection$find2;
 
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
           case 0:
-            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
+            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, headFilter = _req$body2.headFilter, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
             skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
             _context4.next = 4;
             return (0, _database.connect)();
 
           case 4:
             db = _context4.sent;
+            rutFiltrado = filtro;
 
             if (identificador === 1 && filtro.includes("k")) {
-              rutFiltrado = filtro;
               rutFiltrado.replace("k", "K");
-            } else {
-              rutFiltrado = filtro;
-            }
+            } // if (identificador === 1 && filtro.includes("k")) {
+            //   rutFiltrado = filtro;
+            //   rutFiltrado.replace("k", "K");
+            // } else {
+            //   rutFiltrado = filtro;
+            // }
+
 
             rexExpresionFiltro = new RegExp(rutFiltrado, "i");
-            _context4.prev = 7;
-
-            if (!(identificador === 1)) {
-              _context4.next = 17;
-              break;
-            }
-
+            _context4.prev = 8;
             _context4.next = 11;
-            return db.collection("pagos").find({
-              rut_cp: rexExpresionFiltro
-            }).count();
+            return db.collection("pagos").find((_db$collection$find = {}, _defineProperty(_db$collection$find, headFilter, rexExpresionFiltro), _defineProperty(_db$collection$find, "isActive", true), _db$collection$find)).count();
 
           case 11:
             countPagos = _context4.sent;
             _context4.next = 14;
-            return db.collection("pagos").find({
-              rut_cp: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
+            return db.collection("pagos").find((_db$collection$find2 = {}, _defineProperty(_db$collection$find2, headFilter, rexExpresionFiltro), _defineProperty(_db$collection$find2, "isActive", true), _db$collection$find2)).skip(skip_page).limit(nPerPage).toArray();
 
           case 14:
             result = _context4.sent;
-            _context4.next = 23;
-            break;
-
-          case 17:
-            _context4.next = 19;
-            return db.collection("pagos").find({
-              razon_social_cp: rexExpresionFiltro
-            }).count();
-
-          case 19:
-            countPagos = _context4.sent;
-            _context4.next = 22;
-            return db.collection("pagos").find({
-              razon_social_cp: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
-
-          case 22:
-            result = _context4.sent;
-
-          case 23:
-            res.json({
+            return _context4.abrupt("return", res.status(200).json({
               total_items: countPagos,
               pagina_actual: pageNumber,
               nro_paginas: parseInt(countPagos / nPerPage + 1),
               pagos: result
-            });
-            _context4.next = 29;
-            break;
+            }));
 
-          case 26:
-            _context4.prev = 26;
-            _context4.t0 = _context4["catch"](7);
-            res.status(501).json({
-              mgs: "ha ocurrido un error ".concat(_context4.t0)
-            });
+          case 18:
+            _context4.prev = 18;
+            _context4.t0 = _context4["catch"](8);
+            return _context4.abrupt("return", res.status(500).json({
+              total_items: 0,
+              pagina_actual: 1,
+              nro_paginas: 0,
+              pagos: null,
+              err: String(_context4.t0)
+            }));
 
-          case 29:
+          case 21:
           case "end":
             return _context4.stop();
         }
       }
-    }, _callee4, null, [[7, 26]]);
+    }, _callee4, null, [[8, 18]]);
   }));
 
   return function (_x7, _x8) {
@@ -240,7 +245,8 @@ router.post("/buscar", /*#__PURE__*/function () {
 
 router.post("/nuevo/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
-    var db, id, datos, archivo, obj, result, codigoPAG, codigoCOB;
+    var db, id, datos, _result$value, archivo, nombrePdf, obj, result, codigoPAG, codigoCOB;
+
     return regeneratorRuntime.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
@@ -251,31 +257,53 @@ router.post("/nuevo/:id", _multer["default"].single("archivo"), /*#__PURE__*/fun
           case 2:
             db = _context5.sent;
             id = req.params.id;
-            datos = JSON.parse(req.body.data);
-            archivo = {};
+            console.log(req.body.data);
+            datos = JSON.parse(req.body.data); // const token = req.headers['x-access-token'];
+            // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+            // const dataToken = await verifyToken(token);
+            // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+            // if (req.file) archivo = {
+            //   name: req.file.originalname,
+            //   size: req.file.size,
+            //   path: req.file.path,
+            //   type: req.file.mimetype,
+            // };
+
+            console.log(datos);
+            _context5.prev = 7;
+            archivo = '';
 
             if (req.file) {
-              archivo = {
-                name: req.file.originalname,
-                size: req.file.size,
-                path: req.file.path,
-                type: req.file.mimetype
-              };
+              nombrePdf = _var.OTHER_NAME_PDF;
+              archivo = "PAGO_".concat(datos.codigo, "_").concat((0, _uuid.v4)());
+              setTimeout(function () {
+                var fileContent = fs.readFileSync("uploads/".concat(nombrePdf));
+                var params = {
+                  Bucket: _var.AWS_BUCKET_NAME,
+                  Body: fileContent,
+                  Key: archivo,
+                  ContentType: 'application/pdf'
+                };
+                (0, _aws.uploadFileToS3)(params);
+              }, 2000);
             }
 
-            obj = {};
-            obj.id = (0, _uuid.v4)();
-            obj.fecha_pago = datos.fecha_pago;
-            obj.hora_pago = datos.hora_pago;
-            obj.sucursal = datos.sucursal;
-            obj.tipo_pago = datos.tipo_pago;
-            obj.monto = datos.monto;
-            obj.descuento = datos.descuento;
-            obj.total = datos.total;
-            obj.observaciones = datos.observaciones;
-            obj.institucion_bancaria = datos.institucion_bancaria;
-            obj.archivo_adjunto = archivo;
-            _context5.next = 21;
+            ;
+            obj = {
+              id: (0, _uuid.v4)(),
+              fecha_pago: datos.fecha_pago,
+              hora_pago: datos.hora_pago,
+              sucursal: datos.sucursal,
+              tipo_pago: datos.tipo_pago,
+              monto: datos.monto,
+              descuento: datos.descuento,
+              total: datos.total,
+              observaciones: datos.observaciones,
+              institucion_bancaria: datos.institucion_bancaria,
+              archivo_adjunto: archivo,
+              isActive: true
+            };
+            _context5.next = 14;
             return db.collection("pagos").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -289,18 +317,18 @@ router.post("/nuevo/:id", _multer["default"].single("archivo"), /*#__PURE__*/fun
               returnOriginal: false
             });
 
-          case 21:
+          case 14:
             result = _context5.sent;
             //-- sacamos el codigo de pagos y lo transformamos a cobranza para buscar si existe
             codigoPAG = result.value.codigo;
             codigoCOB = codigoPAG.replace("PAG", "COB"); //--
 
             if (!(result.value.valor_cancelado > 0 && result.value.valor_cancelado < result.value.valor_servicio)) {
-              _context5.next = 30;
+              _context5.next = 23;
               break;
             }
 
-            _context5.next = 27;
+            _context5.next = 20;
             return db.collection("pagos").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -309,18 +337,18 @@ router.post("/nuevo/:id", _multer["default"].single("archivo"), /*#__PURE__*/fun
               }
             });
 
-          case 27:
+          case 20:
             result = _context5.sent;
-            _context5.next = 34;
+            _context5.next = 27;
             break;
 
-          case 30:
+          case 23:
             if (!(result.value.valor_cancelado === result.value.valor_servicio)) {
-              _context5.next = 34;
+              _context5.next = 27;
               break;
             }
 
-            _context5.next = 33;
+            _context5.next = 26;
             return db.collection("pagos").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -329,11 +357,11 @@ router.post("/nuevo/:id", _multer["default"].single("archivo"), /*#__PURE__*/fun
               }
             });
 
-          case 33:
+          case 26:
             result = _context5.sent;
 
-          case 34:
-            _context5.next = 36;
+          case 27:
+            _context5.next = 29;
             return db.collection("cobranza").findOneAndUpdate({
               codigo: codigoCOB
             }, {
@@ -345,15 +373,15 @@ router.post("/nuevo/:id", _multer["default"].single("archivo"), /*#__PURE__*/fun
               returnOriginal: false
             });
 
-          case 36:
+          case 29:
             result = _context5.sent;
 
-            if (!(result.value.valor_deuda === 0)) {
-              _context5.next = 41;
+            if (!(result && ((_result$value = result.value) === null || _result$value === void 0 ? void 0 : _result$value.valor_deuda) === 0)) {
+              _context5.next = 34;
               break;
             }
 
-            _context5.next = 40;
+            _context5.next = 33;
             return db.collection("cobranza").updateOne({
               codigo: codigoCOB
             }, {
@@ -362,18 +390,32 @@ router.post("/nuevo/:id", _multer["default"].single("archivo"), /*#__PURE__*/fun
               }
             });
 
-          case 40:
+          case 33:
             result = _context5.sent;
 
-          case 41:
-            res.json(result);
+          case 34:
+            return _context5.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Pago ingresado correctamente',
+              res: result
+            }));
 
-          case 42:
+          case 37:
+            _context5.prev = 37;
+            _context5.t0 = _context5["catch"](7);
+            console.log(_context5.t0);
+            return _context5.abrupt("return", res.status(500).json({
+              err: String(_context5.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
+
+          case 41:
           case "end":
             return _context5.stop();
         }
       }
-    }, _callee5);
+    }, _callee5, null, [[7, 37]]);
   }));
 
   return function (_x9, _x10) {
@@ -383,7 +425,7 @@ router.post("/nuevo/:id", _multer["default"].single("archivo"), /*#__PURE__*/fun
 
 router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(req, res) {
-    var db, datos, archivo, new_array, result, codesCobranza;
+    var db, datos, token, dataToken, archivo, new_array, result, codesCobranza;
     return regeneratorRuntime.wrap(function _callee6$(_context6) {
       while (1) {
         switch (_context6.prev = _context6.next) {
@@ -394,6 +436,36 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
           case 2:
             db = _context6.sent;
             datos = JSON.parse(req.body.data);
+            token = req.headers['x-access-token'];
+
+            if (token) {
+              _context6.next = 7;
+              break;
+            }
+
+            return _context6.abrupt("return", res.status(401).json({
+              msg: _text_messages.MESSAGE_UNAUTHORIZED_TOKEN,
+              auth: _text_messages.UNAUTHOTIZED
+            }));
+
+          case 7:
+            _context6.next = 9;
+            return (0, _jwt.verifyToken)(token);
+
+          case 9:
+            dataToken = _context6.sent;
+
+            if (!(Object.entries(dataToken).length === 0)) {
+              _context6.next = 12;
+              break;
+            }
+
+            return _context6.abrupt("return", res.status(400).json({
+              msg: _text_messages.ERROR_MESSAGE_TOKEN,
+              auth: _text_messages.UNAUTHOTIZED
+            }));
+
+          case 12:
             archivo = {};
             new_array = [];
             datos[1].ids.forEach(function (element) {
@@ -409,8 +481,8 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
               };
             }
 
-            _context6.prev = 8;
-            _context6.next = 11;
+            _context6.prev = 16;
+            _context6.next = 19;
             return db.collection("pagos").find({
               _id: {
                 $in: new_array
@@ -431,7 +503,8 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
                     total: c.valor_servicio - c.valor_cancelado,
                     observaciones: datos[0].observaciones,
                     institucion_bancaria: datos[0].institucion_bancaria,
-                    archivo_adjunto: archivo
+                    archivo_adjunto: archivo,
+                    isActive: true
                   }
                 },
                 $set: {
@@ -441,14 +514,14 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
               });
             });
 
-          case 11:
+          case 19:
             result = _context6.sent;
             //pasar los codigos de pago a cobranza
             codesCobranza = datos[2].codes;
             codesCobranza = codesCobranza.map(function (e) {
               return e = e.replace("PAG", "COB");
             });
-            _context6.next = 16;
+            _context6.next = 24;
             return db.collection("cobranza").find({
               codigo: {
                 $in: codesCobranza
@@ -465,30 +538,28 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
               });
             });
 
-          case 16:
+          case 24:
             result = _context6.sent;
-            res.json({
+            return _context6.abrupt("return", res.json({
               message: "Pagos realizados satisfactoriamente",
               isOK: true
-            });
-            _context6.next = 23;
-            break;
+            }));
 
-          case 20:
-            _context6.prev = 20;
-            _context6.t0 = _context6["catch"](8);
-            res.json({
+          case 28:
+            _context6.prev = 28;
+            _context6.t0 = _context6["catch"](16);
+            return _context6.abrupt("return", res.json({
               message: "ha ocurrido un error",
               err: _context6.t0,
               isOK: false
-            });
+            }));
 
-          case 23:
+          case 31:
           case "end":
             return _context6.stop();
         }
       }
-    }, _callee6, null, [[8, 20]]);
+    }, _callee6, null, [[16, 28]]);
   }));
 
   return function (_x11, _x12) {
@@ -498,7 +569,7 @@ router.post("/many", _multer["default"].single("archivo"), /*#__PURE__*/function
 
 router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
   var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(req, res) {
-    var id, db, datos, archivo, obj, coleccionPago, arrayPagos, pagos, sumPrices, total, deuda, result, codigoPAG, codigoCOB;
+    var id, db, datos, token, dataToken, archivo, obj, coleccionPago, arrayPagos, pagos, sumPrices, total, deuda, result, codigoPAG, codigoCOB;
     return regeneratorRuntime.wrap(function _callee7$(_context7) {
       while (1) {
         switch (_context7.prev = _context7.next) {
@@ -510,17 +581,43 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
           case 3:
             db = _context7.sent;
             datos = JSON.parse(req.body.data);
-            archivo = {};
+            token = req.headers['x-access-token'];
 
-            if (req.file) {
-              archivo = {
-                name: req.file.originalname,
-                size: req.file.size,
-                path: req.file.path,
-                type: req.file.mimetype
-              };
+            if (token) {
+              _context7.next = 8;
+              break;
             }
 
+            return _context7.abrupt("return", res.status(401).json({
+              msg: _text_messages.MESSAGE_UNAUTHORIZED_TOKEN,
+              auth: _text_messages.UNAUTHOTIZED
+            }));
+
+          case 8:
+            _context7.next = 10;
+            return (0, _jwt.verifyToken)(token);
+
+          case 10:
+            dataToken = _context7.sent;
+
+            if (!(Object.entries(dataToken).length === 0)) {
+              _context7.next = 13;
+              break;
+            }
+
+            return _context7.abrupt("return", res.status(400).json({
+              msg: _text_messages.ERROR_MESSAGE_TOKEN,
+              auth: _text_messages.UNAUTHOTIZED
+            }));
+
+          case 13:
+            archivo = {};
+            if (req.file) archivo = {
+              name: req.file.originalname,
+              size: req.file.size,
+              path: req.file.path,
+              type: req.file.mimetype
+            };
             obj = {};
             obj.id = datos.id;
             obj.fecha_pago = datos.fecha_pago;
@@ -534,16 +631,16 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
             obj.institucion_bancaria = datos.institucion_bancaria;
             obj.archivo_adjunto = archivo; //1.- traigo la coleccion
 
-            _context7.next = 21;
+            _context7.next = 29;
             return db.collection("pagos").findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
-          case 21:
+          case 29:
             coleccionPago = _context7.sent;
 
             if (!coleccionPago) {
-              _context7.next = 51;
+              _context7.next = 59;
               break;
             }
 
@@ -572,7 +669,7 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
             total = pagos.reduce(sumPrices, 0);
             deuda = coleccionPago.valor_servicio - total; //4.- edito la coleccion de pagos
 
-            _context7.next = 30;
+            _context7.next = 38;
             return db.collection("pagos").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -584,18 +681,18 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
               returnOriginal: false
             });
 
-          case 30:
+          case 38:
             result = _context7.sent;
             //-- sacamos el codigo de pagos y lo transformamos a cobranza para buscar si existe
             codigoPAG = result.value.codigo;
             codigoCOB = codigoPAG.replace("PAG", "COB"); //--
 
             if (!(result.value.valor_cancelado > 0 && result.value.valor_cancelado < result.value.valor_servicio)) {
-              _context7.next = 39;
+              _context7.next = 47;
               break;
             }
 
-            _context7.next = 36;
+            _context7.next = 44;
             return db.collection("pagos").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -604,18 +701,18 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
               }
             });
 
-          case 36:
+          case 44:
             result = _context7.sent;
-            _context7.next = 43;
+            _context7.next = 51;
             break;
 
-          case 39:
+          case 47:
             if (!(result.value.valor_cancelado === result.value.valor_servicio)) {
-              _context7.next = 43;
+              _context7.next = 51;
               break;
             }
 
-            _context7.next = 42;
+            _context7.next = 50;
             return db.collection("pagos").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -624,11 +721,11 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
               }
             });
 
-          case 42:
+          case 50:
             result = _context7.sent;
 
-          case 43:
-            _context7.next = 45;
+          case 51:
+            _context7.next = 53;
             return db.collection("cobranza").findOneAndUpdate({
               codigo: codigoCOB
             }, {
@@ -640,15 +737,15 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
               returnOriginal: false
             });
 
-          case 45:
+          case 53:
             result = _context7.sent;
 
             if (!(result.value.valor_deuda === 0)) {
-              _context7.next = 50;
+              _context7.next = 58;
               break;
             }
 
-            _context7.next = 49;
+            _context7.next = 57;
             return db.collection("cobranza").updateOne({
               codigo: codigoCOB
             }, {
@@ -657,13 +754,13 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
               }
             });
 
-          case 49:
+          case 57:
             result = _context7.sent;
 
-          case 50:
-            res.json(result);
+          case 58:
+            return _context7.abrupt("return", res.json(result));
 
-          case 51:
+          case 59:
           case "end":
             return _context7.stop();
         }
@@ -678,7 +775,7 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
 
 router["delete"]("/:id", /*#__PURE__*/function () {
   var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(req, res) {
-    var id, pago, db, coleccionPago, pagos, index, element, sumPrices, total, deuda, result, codigoPAG, codigoCOB;
+    var id, pago, db, token, dataToken, coleccionPago, pagos, index, element, sumPrices, total, deuda, result, codigoPAG, codigoCOB;
     return regeneratorRuntime.wrap(function _callee8$(_context8) {
       while (1) {
         switch (_context8.prev = _context8.next) {
@@ -690,12 +787,42 @@ router["delete"]("/:id", /*#__PURE__*/function () {
 
           case 4:
             db = _context8.sent;
-            _context8.next = 7;
+            token = req.headers['x-access-token'];
+
+            if (token) {
+              _context8.next = 8;
+              break;
+            }
+
+            return _context8.abrupt("return", res.status(401).json({
+              msg: _text_messages.MESSAGE_UNAUTHORIZED_TOKEN,
+              auth: _text_messages.UNAUTHOTIZED
+            }));
+
+          case 8:
+            _context8.next = 10;
+            return (0, _jwt.verifyToken)(token);
+
+          case 10:
+            dataToken = _context8.sent;
+
+            if (!(Object.entries(dataToken).length === 0)) {
+              _context8.next = 13;
+              break;
+            }
+
+            return _context8.abrupt("return", res.status(400).json({
+              msg: _text_messages.ERROR_MESSAGE_TOKEN,
+              auth: _text_messages.UNAUTHOTIZED
+            }));
+
+          case 13:
+            _context8.next = 15;
             return db.collection("pagos").findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
-          case 7:
+          case 15:
             coleccionPago = _context8.sent;
             pagos = coleccionPago.pagos;
 
@@ -717,7 +844,7 @@ router["delete"]("/:id", /*#__PURE__*/function () {
             total = pagos.reduce(sumPrices, 0);
             deuda = coleccionPago.valor_servicio - total; //edito la coleccion de pagos
 
-            _context8.next = 15;
+            _context8.next = 23;
             return db.collection("pagos").findOneAndUpdate({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -729,18 +856,18 @@ router["delete"]("/:id", /*#__PURE__*/function () {
               returnOriginal: false
             });
 
-          case 15:
+          case 23:
             result = _context8.sent;
             //-- sacamos el codigo de pagos y lo transformamos a cobranza para buscar si existe
             codigoPAG = result.value.codigo;
             codigoCOB = codigoPAG.replace("PAG", "COB"); //--
 
             if (!(result.value.valor_cancelado > 0 && result.value.valor_cancelado < result.value.valor_servicio)) {
-              _context8.next = 24;
+              _context8.next = 32;
               break;
             }
 
-            _context8.next = 21;
+            _context8.next = 29;
             return db.collection("pagos").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -749,18 +876,18 @@ router["delete"]("/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 21:
+          case 29:
             result = _context8.sent;
-            _context8.next = 28;
+            _context8.next = 36;
             break;
 
-          case 24:
+          case 32:
             if (!(result.value.valor_cancelado === result.value.valor_servicio)) {
-              _context8.next = 28;
+              _context8.next = 36;
               break;
             }
 
-            _context8.next = 27;
+            _context8.next = 35;
             return db.collection("pagos").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
@@ -769,11 +896,11 @@ router["delete"]("/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 27:
+          case 35:
             result = _context8.sent;
 
-          case 28:
-            _context8.next = 30;
+          case 36:
+            _context8.next = 38;
             return db.collection("cobranza").findOneAndUpdate({
               codigo: codigoCOB
             }, {
@@ -785,15 +912,15 @@ router["delete"]("/:id", /*#__PURE__*/function () {
               returnOriginal: false
             });
 
-          case 30:
+          case 38:
             result = _context8.sent;
 
             if (!(result.value.valor_deuda === 0)) {
-              _context8.next = 35;
+              _context8.next = 43;
               break;
             }
 
-            _context8.next = 34;
+            _context8.next = 42;
             return db.collection("cobranza").updateOne({
               codigo: codigoCOB
             }, {
@@ -802,14 +929,14 @@ router["delete"]("/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 34:
+          case 42:
             result = _context8.sent;
 
-          case 35:
+          case 43:
             ;
-            res.json(result);
+            return _context8.abrupt("return", res.json(result));
 
-          case 37:
+          case 45:
           case "end":
             return _context8.stop();
         }
@@ -820,6 +947,22 @@ router["delete"]("/:id", /*#__PURE__*/function () {
   return function (_x15, _x16) {
     return _ref8.apply(this, arguments);
   };
-}());
+}()); // ADD IsActive
+// router.get('/addisactive/sdsdsd', async (req, res) => {
+//   const db = await connect();
+//   try {
+//     const result = await db
+//       .collection("pagos")
+//       .updateMany({}, {
+//         $set: {
+//           isActive: true
+//         }
+//       });
+//     res.status(200).json(result);
+//   } catch (error) {
+//     res.status(500).json({ msg: String(error) });
+//   }
+// });
+
 var _default = router;
 exports["default"] = _default;

@@ -26,13 +26,10 @@ function _main() {
             return _server["default"].listen(_server["default"].get('port'));
 
           case 2:
-            _context.next = 4;
-            return (0, _database.connect)();
-
-          case 4:
+            // await connect()
             console.log('Server on port ', _server["default"].get('port'));
 
-          case 5:
+          case 3:
           case "end":
             return _context.stop();
         }

@@ -7,7 +7,7 @@ exports["default"] = verificateCatEmpresa;
 
 function verificateCatEmpresa(data) {
   var result = data.filter(function (e) {
-    return e.CategoriaEmpresa === 'Microempresa';
+    return e.categoria_empresa === 'Microempresa';
   });
   return result;
 }

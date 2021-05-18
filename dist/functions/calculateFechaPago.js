@@ -20,5 +20,5 @@ function getFechaPago(fecha, dias) {
   if (day.length < 2) day = '0' + day;
   if (hour.length < 2) hour = '0' + hour;
   if (minutes.length < 2) minutes = '0' + minutes;
-  return "".concat([year, month, day].join('-'));
+  return "".concat([day, month, year].join('-'));
 }

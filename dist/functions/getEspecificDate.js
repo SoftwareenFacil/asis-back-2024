@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.getDateEspecific = getDateEspecific;
 
 function getDateEspecific(fecha) {
-  var d = fecha,
+  var d = new Date(fecha),
       month = '' + (d.getMonth() + 1),
       day = '' + d.getDate(),
       year = d.getFullYear(),
@@ -18,5 +18,5 @@ function getDateEspecific(fecha) {
   if (minutes < 10) minutes = '0' + minutes; // let fecha = `${f.toISOString().slice(0, 10)} ${f.toISOString().slice(11, f.toString().length)}`
   // let fecha = f.toLocaleDateString('cl-CL').toISO
 
-  return "".concat([year, month, day].join('-'), " ").concat([hour, minutes].join(':'));
+  return "".concat([day, month, year].join('-'), " ").concat([hour, minutes].join(':'));
 }

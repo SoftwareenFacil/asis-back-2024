@@ -47,6 +47,10 @@ var _empleados = _interopRequireDefault(require("./routes/empleados/empleados.ro
 
 var _empleados_ausencias = _interopRequireDefault(require("./routes/empleados_ausencias/empleados_ausencias.routes"));
 
+var _login = _interopRequireDefault(require("./routes/Login/login.routes"));
+
+var _roles = _interopRequireDefault(require("./routes/roles/roles.routes"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
@@ -56,7 +60,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 //---------------------IMPORTS ROUTES
 var app = (0, _express["default"])(); //Settings
 
-app.set('port', process.env.PORT || 3000); //Middlewares
+app.set('port', 4000); //Middlewares
 
 app.use((0, _cors["default"])());
 app.use((0, _morgan["default"])('dev'));
@@ -83,5 +87,7 @@ app.use('/existencia', _existencia["default"]);
 app.use('/catgenerales', _categoriasGenerales["default"]);
 app.use('/empleados', _empleados["default"]);
 app.use('/ausencias', _empleados_ausencias["default"]);
+app.use('/login', _login["default"]);
+app.use('/roles', _roles["default"]);
 var _default = app;
 exports["default"] = _default;

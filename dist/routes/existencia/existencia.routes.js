@@ -15,6 +15,8 @@ var _database = require("../../database");
 
 var _mongodb = require("mongodb");
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -40,7 +42,7 @@ router.get("/", /*#__PURE__*/function () {
 
           case 5:
             result = _context.sent;
-            res.json(result);
+            return _context.abrupt("return", res.json(result));
 
           case 7:
           case "end":
@@ -75,7 +77,7 @@ router.get('/:id', /*#__PURE__*/function () {
 
           case 6:
             result = _context2.sent;
-            res.json(result);
+            return _context2.abrupt("return", res.json(result));
 
           case 8:
           case "end":
@@ -116,19 +118,23 @@ router.post("/pagination", /*#__PURE__*/function () {
 
           case 11:
             result = _context3.sent;
-            res.json({
+            return _context3.abrupt("return", res.status(200).json({
               total_items: countExistencia,
               pagina_actual: pageNumber,
               nro_paginas: parseInt(countExistencia / nPerPage + 1),
               existencias: result
-            });
-            _context3.next = 18;
-            break;
+            }));
 
           case 15:
             _context3.prev = 15;
             _context3.t0 = _context3["catch"](5);
-            res.status(501).json(_context3.t0);
+            return _context3.abrupt("return", res.status(501).json({
+              total_items: 0,
+              pagina_actual: 1,
+              nro_paginas: 0,
+              existencias: null,
+              err: String(err)
+            }));
 
           case 18:
           case "end":
@@ -141,87 +147,65 @@ router.post("/pagination", /*#__PURE__*/function () {
   return function (_x5, _x6) {
     return _ref3.apply(this, arguments);
   };
-}()); //BUSCAR POR CATEGORIA GENERAL Y SUBCATEGORIA 1
+}()); //BUSCAR
 
 router.post("/buscar", /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(req, res) {
-    var _req$body2, identificador, filtro, pageNumber, nPerPage, skip_page, db, rexExpresionFiltro, result, countExis;
+    var _req$body2, identificador, filtro, headFilter, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countExis;
 
     return regeneratorRuntime.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
           case 0:
-            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
+            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, headFilter = _req$body2.headFilter, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
             skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
             _context4.next = 4;
             return (0, _database.connect)();
 
           case 4:
             db = _context4.sent;
-            rexExpresionFiltro = new RegExp(filtro, "i");
-            _context4.prev = 6;
+            rutFiltrado = filtro;
 
-            if (!(identificador === 1)) {
-              _context4.next = 16;
-              break;
+            if (identificador === 1 && filtro.includes("k")) {
+              rutFiltrado.replace("k", "K");
             }
 
-            _context4.next = 10;
-            return db.collection("existencia").find({
-              categoria_general: rexExpresionFiltro
-            }).count();
+            rexExpresionFiltro = new RegExp(rutFiltrado, "i");
+            _context4.prev = 8;
+            _context4.next = 11;
+            return db.collection("existencia").find(_defineProperty({}, headFilter, rexExpresionFiltro)).count();
 
-          case 10:
+          case 11:
             countExis = _context4.sent;
-            _context4.next = 13;
-            return db.collection("existencia").find({
-              categoria_general: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
+            _context4.next = 14;
+            return db.collection("existencia").find(_defineProperty({}, headFilter, rexExpresionFiltro)).skip(skip_page).limit(nPerPage).toArray();
 
-          case 13:
+          case 14:
             result = _context4.sent;
-            _context4.next = 22;
-            break;
-
-          case 16:
-            _context4.next = 18;
-            return db.collection("existencia").find({
-              subcategoria_uno: rexExpresionFiltro
-            }).count();
-
-          case 18:
-            countExis = _context4.sent;
-            _context4.next = 21;
-            return db.collection("existencia").find({
-              subcategoria_uno: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
-
-          case 21:
-            result = _context4.sent;
-
-          case 22:
-            res.json({
+            return _context4.abrupt("return", res.status(200).json({
               total_items: countExis,
               pagina_actual: pageNumber,
               nro_paginas: parseInt(countExis / nPerPage + 1),
               existencias: result
-            });
-            _context4.next = 28;
-            break;
+            }));
 
-          case 25:
-            _context4.prev = 25;
-            _context4.t0 = _context4["catch"](6);
-            res.status(501).json({
-              mgs: "ha ocurrido un error ".concat(_context4.t0)
-            });
+          case 18:
+            _context4.prev = 18;
+            _context4.t0 = _context4["catch"](8);
+            return _context4.abrupt("return", res.status(500).json({
+              total_items: 0,
+              pagina_actual: 1,
+              nro_paginas: 0,
+              existencias: null,
+              err: String(_context4.t0)
+            }));
 
-          case 28:
+          case 21:
           case "end":
             return _context4.stop();
         }
       }
-    }, _callee4, null, [[6, 25]]);
+    }, _callee4, null, [[8, 18]]);
   }));
 
   return function (_x7, _x8) {
@@ -252,26 +236,30 @@ router.post("/consultar", /*#__PURE__*/function () {
           case 7:
             result = _context5.sent;
 
-            if (result == null) {
-              res.json({
-                message: "La Subcategoria 3 consultada no existe en la existencia del sistema",
-                isOK: false
-              });
-            } else {
-              if (indicador === 2) {
-                cupos_disponibles = result.existencia + cant;
-              } else {
-                cupos_disponibles = result.existencia;
-              }
-
-              res.json({
-                isOK: true,
-                cupos_disponibles: cupos_disponibles,
-                costo_unitario_promedio: result.costo_unitario_promedio
-              });
+            if (!(result == null)) {
+              _context5.next = 12;
+              break;
             }
 
-          case 9:
+            return _context5.abrupt("return", res.json({
+              message: "La Subcategoria 3 consultada no existe en la existencia del sistema",
+              isOK: false
+            }));
+
+          case 12:
+            if (indicador === 2) {
+              cupos_disponibles = result.existencia + cant;
+            } else {
+              cupos_disponibles = result.existencia;
+            }
+
+            return _context5.abrupt("return", res.json({
+              isOK: true,
+              cupos_disponibles: cupos_disponibles,
+              costo_unitario_promedio: result.costo_unitario_promedio
+            }));
+
+          case 14:
           case "end":
             return _context5.stop();
         }

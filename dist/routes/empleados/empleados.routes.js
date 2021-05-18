@@ -13,7 +13,7 @@ var _calculateDaysVacation = _interopRequireDefault(require("../../functions/cal
 
 var _calculateDesgloseEmpleados = _interopRequireDefault(require("../../functions/calculateDesgloseEmpleados"));
 
-var _multer = _interopRequireDefault(require("../../libs/multer"));
+var _text_messages = require("../../constant/text_messages");
 
 var _database = require("../../database");
 
@@ -24,6 +24,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function _getRequireWildcardCache() { return cache; }; return cache; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || _typeof(obj) !== "object" && typeof obj !== "function") { return { "default": obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj["default"] = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -45,13 +51,14 @@ router.get("/", /*#__PURE__*/function () {
           case 2:
             db = _context.sent;
             _context.next = 5;
-            return db.collection("empleados").find({
-              activo_inactivo: true
+            return db.collection("gi").find({
+              activo_inactivo: true,
+              grupo_interes: 'Empleados'
             }).toArray();
 
           case 5:
             result = _context.sent;
-            res.json(result);
+            return _context.abrupt("return", res.json(result));
 
           case 7:
           case "end":
@@ -80,33 +87,49 @@ router.post("/pagination", /*#__PURE__*/function () {
           case 2:
             db = _context2.sent;
             _req$body = req.body, pageNumber = _req$body.pageNumber, nPerPage = _req$body.nPerPage;
-            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0; // const token = req.headers['x-access-token'];
+            // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+            // const dataToken = await verifyToken(token);
+            // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
             _context2.prev = 5;
             _context2.next = 8;
-            return db.collection("empleados").find().count();
+            return db.collection("gi").find({
+              grupo_interes: 'Empleados',
+              activo_inactivo: true
+            }).count();
 
           case 8:
             countEmpleados = _context2.sent;
             _context2.next = 11;
-            return db.collection("empleados").find().skip(skip_page).limit(nPerPage).toArray();
+            return db.collection("gi").find({
+              grupo_interes: 'Empleados',
+              activo_inactivo: true
+            }).skip(skip_page).limit(nPerPage).toArray();
 
           case 11:
             result = _context2.sent;
-            res.json({
+            return _context2.abrupt("return", res.status(200).json({
+              // auth: AUTHORIZED,
               total_items: countEmpleados,
               pagina_actual: pageNumber,
               nro_paginas: parseInt(countEmpleados / nPerPage + 1),
               empleados: result
-            });
-            _context2.next = 18;
-            break;
+            }));
 
           case 15:
             _context2.prev = 15;
             _context2.t0 = _context2["catch"](5);
-            res.status(501).json(_context2.t0);
+            console.log(_context2.t0);
+            return _context2.abrupt("return", res.status(500).json({
+              total_items: 0,
+              pagina_actual: 1,
+              nro_paginas: 0,
+              empleados: null,
+              err: String(_context2.t0)
+            }));
 
-          case 18:
+          case 19:
           case "end":
             return _context2.stop();
         }
@@ -121,91 +144,73 @@ router.post("/pagination", /*#__PURE__*/function () {
 
 router.post("/buscar", /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(req, res) {
-    var _req$body2, identificador, filtro, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countEmpleados;
+    var db, _req$body2, identificador, filtro, headFilter, pageNumber, nPerPage, skip_page, rutFiltrado, rexExpresionFiltro, result, countEmpleados, _db$collection$find, _db$collection$find2;
 
     return regeneratorRuntime.wrap(function _callee3$(_context3) {
       while (1) {
         switch (_context3.prev = _context3.next) {
           case 0:
-            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
-            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-            _context3.next = 4;
+            _context3.next = 2;
             return (0, _database.connect)();
 
-          case 4:
+          case 2:
             db = _context3.sent;
+            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, headFilter = _req$body2.headFilter, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
+            skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0; // const token = req.headers['x-access-token'];
+            // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+            // const dataToken = await verifyToken(token);
+            // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+            // let rutFiltrado;
+            // if (identificador === 1 && filtro.includes("k")) {
+            //   rutFiltrado = filtro;
+            //   rutFiltrado.replace("k", "K");
+            // } else {
+            //   rutFiltrado = filtro;
+            // }
+
+            rutFiltrado = filtro;
 
             if (identificador === 1 && filtro.includes("k")) {
-              rutFiltrado = filtro;
               rutFiltrado.replace("k", "K");
-            } else {
-              rutFiltrado = filtro;
             }
 
             rexExpresionFiltro = new RegExp(rutFiltrado, "i");
-            _context3.prev = 7;
-
-            if (!(identificador === 1)) {
-              _context3.next = 17;
-              break;
-            }
-
+            _context3.prev = 8;
             _context3.next = 11;
-            return db.collection("empleados").find({
-              rut: rexExpresionFiltro
-            }).count();
+            return db.collection("gi").find((_db$collection$find = {}, _defineProperty(_db$collection$find, headFilter, rexExpresionFiltro), _defineProperty(_db$collection$find, "grupo_interes", 'Empleados'), _defineProperty(_db$collection$find, "activo_inactivo", true), _db$collection$find)).count();
 
           case 11:
             countEmpleados = _context3.sent;
             _context3.next = 14;
-            return db.collection("empleados").find({
-              rut: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
+            return db.collection("gi").find((_db$collection$find2 = {}, _defineProperty(_db$collection$find2, headFilter, rexExpresionFiltro), _defineProperty(_db$collection$find2, "grupo_interes", 'Empleados'), _defineProperty(_db$collection$find2, "activo_inactivo", true), _db$collection$find2)).skip(skip_page).limit(nPerPage).toArray();
 
           case 14:
             result = _context3.sent;
-            _context3.next = 23;
-            break;
-
-          case 17:
-            _context3.next = 19;
-            return db.collection("empleados").find({
-              nombre: rexExpresionFiltro
-            }).count();
-
-          case 19:
-            countEmpleados = _context3.sent;
-            _context3.next = 22;
-            return db.collection("empleados").find({
-              nombre: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
-
-          case 22:
-            result = _context3.sent;
-
-          case 23:
-            res.json({
+            return _context3.abrupt("return", res.status(200).json({
               total_items: countEmpleados,
               pagina_actual: pageNumber,
               nro_paginas: parseInt(countEmpleados / nPerPage + 1),
               empleados: result
-            });
-            _context3.next = 29;
-            break;
+            }));
 
-          case 26:
-            _context3.prev = 26;
-            _context3.t0 = _context3["catch"](7);
-            res.status(501).json({
-              mgs: "ha ocurrido un error ".concat(_context3.t0)
-            });
+          case 18:
+            _context3.prev = 18;
+            _context3.t0 = _context3["catch"](8);
+            console.log(_context3.t0);
+            return _context3.abrupt("return", res.status(500).json({
+              total_items: 0,
+              pagina_actual: 1,
+              nro_paginas: 0,
+              empleados: null,
+              err: String(_context3.t0)
+            }));
 
-          case 29:
+          case 22:
           case "end":
             return _context3.stop();
         }
       }
-    }, _callee3, null, [[7, 26]]);
+    }, _callee3, null, [[8, 18]]);
   }));
 
   return function (_x5, _x6) {
@@ -227,13 +232,13 @@ router.get("/:id", /*#__PURE__*/function () {
           case 3:
             db = _context4.sent;
             _context4.next = 6;
-            return db.collection("empleados").findOne({
+            return db.collection("gi").findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
           case 6:
             result = _context4.sent;
-            res.json(result);
+            return _context4.abrupt("return", res.json(result));
 
           case 8:
           case "end":
@@ -248,7 +253,7 @@ router.get("/:id", /*#__PURE__*/function () {
   };
 }()); //EDITAR EMPLEADO
 
-router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function () {
+router.put("/:id", /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
     var id, db, data, diasVacaciones, empleado, result;
     return regeneratorRuntime.wrap(function _callee5$(_context5) {
@@ -261,17 +266,15 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
 
           case 3:
             db = _context5.sent;
-            data = JSON.parse(req.body.data);
-            diasVacaciones = 0;
-
-            if (req.file) {
-              data.archivo_adjunto = {
-                name: req.file.originalname,
-                size: req.file.size,
-                path: req.file.path,
-                type: req.file.mimetype
-              };
-            }
+            data = req.body;
+            diasVacaciones = 0; // if (req.file) {
+            //   data.archivo_adjunto = {
+            //     name: req.file.originalname,
+            //     size: req.file.size,
+            //     path: req.file.path,
+            //     type: req.file.mimetype,
+            //   };
+            // }
 
             if (data.fecha_inicio_contrato) {
               if (data.fecha_fin_contrato != null && data.fecha_fin_contrato != "" && data.fecha_fin_contrato != undefined) {
@@ -281,25 +284,25 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
               }
             }
 
-            _context5.next = 10;
-            return db.collection("empleados").findOne({
+            _context5.next = 9;
+            return db.collection("gi").findOne({
               _id: (0, _mongodb.ObjectID)(id)
             });
 
-          case 10:
+          case 9:
             empleado = _context5.sent;
 
             if (!empleado) {
-              _context5.next = 18;
+              _context5.next = 17;
               break;
             }
 
-            _context5.next = 14;
-            return db.collection("empleados").updateOne({
+            _context5.next = 13;
+            return db.collection("gi").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
-              $set: {
-                cargo: data.cargo,
+              $set: _objectSpread({}, empleado, {
+                // cargo: data.cargo,
                 tipo_contrato: data.tipo_contrato,
                 estado_contrato: data.estado_contrato,
                 fecha_inicio_contrato: data.fecha_inicio_contrato,
@@ -310,21 +313,25 @@ router.put("/:id", _multer["default"].single("archivo"), /*#__PURE__*/function (
                 seguridad_laboral: data.seguridad_laboral,
                 dias_vacaciones: diasVacaciones,
                 comentarios: data.comentarios,
-                detalle_empleado: (0, _calculateDesgloseEmpleados["default"])(empleado.detalle_empleado, "none", 0, diasVacaciones, "none", diasVacaciones),
-                archivo_adjunto: data.archivo_adjunto
-              }
+                detalle_empleado: (0, _calculateDesgloseEmpleados["default"])(empleado.detalle_empleado, "none", 0, diasVacaciones, "none", diasVacaciones)
+              })
             });
 
-          case 14:
+          case 13:
             result = _context5.sent;
-            res.json(result);
-            _context5.next = 19;
-            break;
+            return _context5.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Empleado editado correctamente',
+              res: result
+            }));
 
-          case 18:
-            res.status(500).json({
-              msg: "No se ha encontrado el empleado"
-            });
+          case 17:
+            console.log(error);
+            return _context5.abrupt("return", res.status(500).json({
+              err: String(error),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
 
           case 19:
           case "end":
@@ -404,15 +411,13 @@ router.get("/traspaso/test", /*#__PURE__*/function () {
 
           case 12:
             r = _context6.sent;
-            res.json(r);
-            _context6.next = 17;
-            break;
+            return _context6.abrupt("return", res.json(r));
 
           case 16:
-            res.json({
+            return _context6.abrupt("return", res.json({
               cant: result.length,
               data: result
-            });
+            }));
 
           case 17:
           case "end":
@@ -425,7 +430,8 @@ router.get("/traspaso/test", /*#__PURE__*/function () {
   return function (_x11, _x12) {
     return _ref6.apply(this, arguments);
   };
-}());
+}()); //DELETE EMPLEADOS
+
 router["delete"]("/:id", /*#__PURE__*/function () {
   var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(req, res) {
     var id, db, result;
@@ -439,8 +445,10 @@ router["delete"]("/:id", /*#__PURE__*/function () {
 
           case 3:
             db = _context7.sent;
-            _context7.next = 6;
-            return db.collection("empleados").updateOne({
+            console.log(id);
+            _context7.prev = 5;
+            _context7.next = 8;
+            return db.collection("gi").updateOne({
               _id: (0, _mongodb.ObjectID)(id)
             }, {
               $set: {
@@ -448,16 +456,29 @@ router["delete"]("/:id", /*#__PURE__*/function () {
               }
             });
 
-          case 6:
-            result = _context7.sent;
-            res.json(result);
-
           case 8:
+            result = _context7.sent;
+            return _context7.abrupt("return", res.status(200).json({
+              err: null,
+              msg: 'Empleado eliminado correctamente',
+              res: result
+            }));
+
+          case 12:
+            _context7.prev = 12;
+            _context7.t0 = _context7["catch"](5);
+            return _context7.abrupt("return", res.status(500).json({
+              err: String(_context7.t0),
+              msg: _text_messages.ERROR,
+              res: null
+            }));
+
+          case 15:
           case "end":
             return _context7.stop();
         }
       }
-    }, _callee7);
+    }, _callee7, null, [[5, 12]]);
   }));
 
   return function (_x13, _x14) {

@@ -7,10 +7,10 @@ exports["default"] = eliminateDuplicated;
 
 function eliminateDuplicated(arr, prop) {
   var result = Array.from(new Set(arr.map(function (e) {
-    return e.Rut;
-  }))).map(function (Rut) {
+    return e.rut;
+  }))).map(function (rut) {
     return arr.find(function (s) {
-      return s.Rut === Rut;
+      return s.rut === rut;
     });
   });
   return result;

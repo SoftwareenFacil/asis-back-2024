@@ -17,6 +17,8 @@ var _mongodb = require("mongodb");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
 function _asyncToGenerator(fn) { return function () { var self = this, args = arguments; return new Promise(function (resolve, reject) { var gen = fn.apply(self, args); function _next(value) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value); } function _throw(err) { asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err); } _next(undefined); }); }; }
@@ -37,11 +39,13 @@ router.get("/", /*#__PURE__*/function () {
           case 2:
             db = _context.sent;
             _context.next = 5;
-            return db.collection("cobranza").find({}).toArray();
+            return db.collection("cobranza").find({
+              isActive: true
+            }).toArray();
 
           case 5:
             result = _context.sent;
-            res.json(result);
+            return _context.abrupt("return", res.json(result));
 
           case 7:
           case "end":
@@ -76,7 +80,7 @@ router.get('/:id', /*#__PURE__*/function () {
 
           case 6:
             result = _context2.sent;
-            res.json(result);
+            return _context2.abrupt("return", res.json(result));
 
           case 8:
           case "end":
@@ -119,19 +123,17 @@ router.get("/pdf", /*#__PURE__*/function () {
                 console.log(res);
               }
             });
-            res.status(201).json({
+            return _context3.abrupt("return", res.status(201).json({
               msg: 'Codigo creado satisfactoriamente',
               code: codeQR
-            });
-            _context3.next = 16;
-            break;
+            }));
 
           case 13:
             _context3.prev = 13;
             _context3.t0 = _context3["catch"](3);
-            res.status(400).json({
+            return _context3.abrupt("return", res.status(400).json({
               msg: _context3.t0
-            });
+            }));
 
           case 16:
           case "end":
@@ -163,28 +165,36 @@ router.post('/pagination', /*#__PURE__*/function () {
             skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
             _context4.prev = 5;
             _context4.next = 8;
-            return db.collection("cobranza").find().count();
+            return db.collection("cobranza").find({
+              isActive: true
+            }).count();
 
           case 8:
             countCobranza = _context4.sent;
             _context4.next = 11;
-            return db.collection("cobranza").find().skip(skip_page).limit(nPerPage).toArray();
+            return db.collection("cobranza").find({
+              isActive: true
+            }).skip(skip_page).limit(nPerPage).toArray();
 
           case 11:
             result = _context4.sent;
-            res.json({
+            return _context4.abrupt("return", res.status(200).json({
               total_items: countCobranza,
               pagina_actual: pageNumber,
               nro_paginas: parseInt(countCobranza / nPerPage + 1),
               cobranzas: result
-            });
-            _context4.next = 18;
-            break;
+            }));
 
           case 15:
             _context4.prev = 15;
             _context4.t0 = _context4["catch"](5);
-            res.status(501).json(_context4.t0);
+            return _context4.abrupt("return", res.status(500).status(501).json({
+              total_items: 0,
+              pagina_actual: 1,
+              nro_paginas: 1,
+              cobranzas: null,
+              err: String(_context4.t0)
+            }));
 
           case 18:
           case "end":
@@ -201,91 +211,62 @@ router.post('/pagination', /*#__PURE__*/function () {
 
 router.post('/buscar', /*#__PURE__*/function () {
   var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(req, res) {
-    var _req$body2, identificador, filtro, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countCobranza;
+    var _req$body2, identificador, filtro, headFilter, pageNumber, nPerPage, skip_page, db, rutFiltrado, rexExpresionFiltro, result, countCobranza, _db$collection$find, _db$collection$find2;
 
     return regeneratorRuntime.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
           case 0:
-            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
+            _req$body2 = req.body, identificador = _req$body2.identificador, filtro = _req$body2.filtro, headFilter = _req$body2.headFilter, pageNumber = _req$body2.pageNumber, nPerPage = _req$body2.nPerPage;
             skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
             _context5.next = 4;
             return (0, _database.connect)();
 
           case 4:
             db = _context5.sent;
+            rutFiltrado = filtro;
 
             if (identificador === 1 && filtro.includes("k")) {
-              rutFiltrado = filtro;
               rutFiltrado.replace("k", "K");
-            } else {
-              rutFiltrado = filtro;
             }
 
+            ;
             rexExpresionFiltro = new RegExp(rutFiltrado, "i");
-            _context5.prev = 7;
+            _context5.prev = 9;
+            _context5.next = 12;
+            return db.collection("cobranza").find((_db$collection$find = {}, _defineProperty(_db$collection$find, headFilter, rexExpresionFiltro), _defineProperty(_db$collection$find, "isActive", true), _db$collection$find)).count();
 
-            if (!(identificador === 1)) {
-              _context5.next = 17;
-              break;
-            }
-
-            _context5.next = 11;
-            return db.collection("cobranza").find({
-              rut_cp: rexExpresionFiltro
-            }).count();
-
-          case 11:
+          case 12:
             countCobranza = _context5.sent;
-            _context5.next = 14;
-            return db.collection("cobranza").find({
-              rut_cp: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
+            _context5.next = 15;
+            return db.collection("cobranza").find((_db$collection$find2 = {}, _defineProperty(_db$collection$find2, headFilter, rexExpresionFiltro), _defineProperty(_db$collection$find2, "isActive", true), _db$collection$find2)).skip(skip_page).limit(nPerPage).toArray();
 
-          case 14:
+          case 15:
             result = _context5.sent;
-            _context5.next = 23;
-            break;
-
-          case 17:
-            _context5.next = 19;
-            return db.collection("cobranza").find({
-              razon_social_cp: rexExpresionFiltro
-            }).count();
-
-          case 19:
-            countCobranza = _context5.sent;
-            _context5.next = 22;
-            return db.collection("cobranza").find({
-              razon_social_cp: rexExpresionFiltro
-            }).skip(skip_page).limit(nPerPage).toArray();
-
-          case 22:
-            result = _context5.sent;
-
-          case 23:
-            res.json({
+            return _context5.abrupt("return", res.status(200).json({
               total_items: countCobranza,
               pagina_actual: pageNumber,
               nro_paginas: parseInt(countCobranza / nPerPage + 1),
               cobranzas: result
-            });
-            _context5.next = 29;
-            break;
+            }));
 
-          case 26:
-            _context5.prev = 26;
-            _context5.t0 = _context5["catch"](7);
-            res.status(501).json({
-              mgs: "ha ocurrido un error ".concat(_context5.t0)
-            });
+          case 19:
+            _context5.prev = 19;
+            _context5.t0 = _context5["catch"](9);
+            return _context5.abrupt("return", res.status(500).json({
+              total_items: 0,
+              pagina_actual: 1,
+              nro_paginas: 0,
+              cobranzas: null,
+              err: String(_context5.t0)
+            }));
 
-          case 29:
+          case 22:
           case "end":
             return _context5.stop();
         }
       }
-    }, _callee5, null, [[7, 26]]);
+    }, _callee5, null, [[9, 19]]);
   }));
 
   return function (_x9, _x10) {
@@ -335,7 +316,7 @@ router.post("/envio/:id", /*#__PURE__*/function () {
 
           case 13:
             result = _context6.sent;
-            res.json(result);
+            return _context6.abrupt("return", res.json(result));
 
           case 15:
           case "end":
@@ -348,6 +329,21 @@ router.post("/envio/:id", /*#__PURE__*/function () {
   return function (_x11, _x12) {
     return _ref6.apply(this, arguments);
   };
-}());
+}()); // router.get('/addisactive/sdsdsd', async (req, res) => {
+//   const db = await connect();
+//   try {
+//     const result = await db
+//       .collection("cobranza")
+//       .updateMany({}, {
+//         $set: {
+//           isActive: true
+//         }
+//       });
+//     res.status(200).json(result);
+//   } catch (error) {
+//     res.status(500).json({ msg: String(error) });
+//   }
+// });
+
 var _default = router;
 exports["default"] = _default;
