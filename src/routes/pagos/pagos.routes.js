@@ -23,6 +23,19 @@ router.get("/", async (req, res) => {
   return res.json(result);
 });
 
+//GET PENDING PAYMENTS
+router.get("/pending", async (req, res) => {
+  try {
+    const db = await connect();
+    const result = await db.collection('pagos').find({}).toArray();
+    const filtered = result.filter((payment) => payment.estado !== 'Pagado');
+    return res.status(200).json({ err: null, msg: 'Pagos encontrados', res: filtered })
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }
+})
+
 //SELECT ONE
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
@@ -332,33 +345,45 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
 
 //INGRESO MASIVO DE PAGOS
 router.post("/many", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
   let datos = JSON.parse(req.body.data);
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  const dataToken = await verifyToken(token);
+  // const dataToken = await verifyToken(token);
 
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
-
-  let archivo = {};
-  let new_array = [];
-
-  datos[1].ids.forEach((element) => {
-    new_array.push(ObjectID(element));
-  });
-
-  if (req.file) {
-    archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
+
+    const db = await connect();
+
+    let archivo = '';
+    let new_array = [];
+
+    datos[1].ids.forEach((element) => {
+      new_array.push(ObjectID(element));
+    });
+
+    if (req.file) {
+      const nombrePdf = OTHER_NAME_PDF;
+
+      archivo = `PAGO_GROUP_${uuid()}`
+
+      setTimeout(() => {
+        const fileContent = fs.readFileSync(`uploads/${nombrePdf}`);
+
+        const params = {
+          Bucket: AWS_BUCKET_NAME,
+          Body: fileContent,
+          Key: archivo,
+          ContentType: 'application/pdf'
+        };
+
+        uploadFileToS3(params);
+      }, 2000);
+    };
+
     let result = await db
       .collection("pagos")
       .find({ _id: { $in: new_array } })
@@ -410,15 +435,17 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
         );
       });
 
-    return res.json({
+    return res.status(200).json({
+      err: null,
       message: "Pagos realizados satisfactoriamente",
-      isOK: true,
+      res: result
     });
   } catch (error) {
-    return res.json({
-      message: "ha ocurrido un error",
-      err: error,
-      isOK: false,
+    console.log(error)
+    return res.status(500).json({
+      err: String(error),
+      message: ERROR,
+      res: null
     });
   }
 });

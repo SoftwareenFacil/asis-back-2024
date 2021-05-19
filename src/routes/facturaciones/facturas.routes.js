@@ -5,6 +5,7 @@ import { getFechaPago } from "../../functions/calculateFechaPago";
 import multer from "../../libs/multer";
 import { v4 as uuid } from "uuid";
 import { uploadFileToS3 } from "../../libs/aws";
+import moment from 'moment';
 
 import { verifyToken } from "../../libs/jwt";
 
@@ -19,7 +20,7 @@ var fs = require("fs");
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF } from "../../constant/var";
+import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE } from "../../constant/var";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -991,10 +992,7 @@ router.post("/validar/factura/asis/many", async (req, res) => {
           dias_credito: gi.dias_credito,
           // valor_servicio: Number(servicio.precio),
           valor_cancelado: 0,
-          fecha_pago: getFechaPago(
-            element.fecha_facturacion,
-            Number(gi.dias_credito)
-          ),
+          fecha_pago: moment(element.fecha_facturacion, FORMAT_DATE).add(gi.dias_credito, 'days').format(FORMAT_DATE),
           pagos: [],
           isActive: true
         });
