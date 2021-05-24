@@ -88,7 +88,7 @@ router.post("/pagination", async (req, res) => {
       .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
-      .sort({ fecha_solicitud: -1 })
+      .sort({ fecha_solicitud: 1 })
       .toArray();
 
     return res.status(200).json({
