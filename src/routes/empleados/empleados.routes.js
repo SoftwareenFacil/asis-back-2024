@@ -2,8 +2,13 @@ import e, { Router } from "express";
 import calculateVacationByDay from "../../functions/calculateDaysVacation";
 import calculateDesgloseEmpleados from "../../functions/calculateDesgloseEmpleados";
 import { ERROR } from "../../constant/text_messages";
+import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY } from "../../constant/var";
 
 const router = Router();
+var path = require("path");
+var AWS = require('aws-sdk');
+var fs = require("fs");
+
 
 //database connection
 import { connect } from "../../database";
@@ -190,6 +195,39 @@ router.post("/buscar", async (req, res) => {
   }
 });
 
+//GET FILE FROM AWS S3
+router.get('/downloadfile/:filestring/', async (req, res) => {
+  const { filestring } = req.params;
+
+  try {
+
+    const pathPdf = filestring || '';
+
+    const s3 = new AWS.S3({
+      accessKeyId: AWS_ACCESS_KEY,
+      secretAccessKey: AWS_SECRET_KEY
+    });
+
+    s3.getObject({ Bucket: AWS_BUCKET_NAME, Key: pathPdf }, (error, data) => {
+      if (error) {
+        return res.status(500).json({ err: String(error), msg: 'error s3 get file', res: null });
+      }
+      else {
+        return res.status(200).json({
+          err: null,
+          msg: 'Archivo descargado',
+          res: data.Body,
+          filename: pathPdf
+        });
+      };
+    });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: 'Error al obtener archivo', res: null });
+  }
+});
+
 //SELECT BY ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
@@ -217,12 +255,10 @@ router.put("/:id", async (req, res) => {
   //   };
   // }
 
-  if (data.fecha_inicio_contrato) {
-    if (
-      data.fecha_fin_contrato != null &&
-      data.fecha_fin_contrato != "" &&
-      data.fecha_fin_contrato != undefined
-    ) {
+  console.log([data.fecha_inicio_contrato, data.fecha_fin_contrato])
+
+  if (!!data.fecha_inicio_contrato) {
+    if (!!data.fecha_fin_contrato) {
       diasVacaciones = calculateVacationByDay(
         data.fecha_inicio_contrato,
         data.fecha_fin_contrato
@@ -238,6 +274,8 @@ router.put("/:id", async (req, res) => {
   const empleado = await db
     .collection("gi")
     .findOne({ _id: ObjectID(id) });
+
+  console.log(diasVacaciones)
 
   if (empleado) {
     const result = await db.collection("gi").updateOne(

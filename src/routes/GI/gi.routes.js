@@ -18,12 +18,12 @@ import verificateOrdenCompra from "../../functions/insertManyGis/verificateOrden
 import createJsonGIs from "../../functions/insertManyGis/createJsonGiForInsert";
 import addCodeGI from "../../functions/insertManyGis/addCodeGI";
 
-import { 
-  verificateGrupoInteres, 
-  eliminatedDuplicated, 
-  verificateClientType, 
-  isExistsRUT, 
-  mapDataToInsertManyGIs 
+import {
+  verificateGrupoInteres,
+  eliminatedDuplicated,
+  verificateClientType,
+  isExistsRUT,
+  mapDataToInsertManyGIs
 } from '../../functions/companiesInsert';
 
 import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR } from "../../constant/text_messages";
@@ -392,7 +392,7 @@ router.post('/masivo/empresas', multer.single("archivo"), async (req, res) => {
     if (uniqueCompanies.length === 0) return res.status(200).json({ err: null, msg: 'Todos los gi ya se encuentran ingresados en la db', res: null });
 
     const { clients, notInsertClient } = verificateClientType(uniqueCompanies, 'empresa/organizacion');
-    if (clients.length === 0) return res.status(200).json({ err: null, msg: 'No existen Empresa/Organizacion en los datos del excel', res: null });
+    if (clients.length === 0) return res.status(200).json({ err: null, msg: 'No existen Empresa/Organizacion en los datos del excel o solo contenia información duplicada', res: null });
 
     const { gisWithRut, notInsertGIWithoutRut } = isExistsRUT(clients);
     if (gisWithRut.length === 0) return res.status(200).json({ err: null, msg: 'Ningun gi ingresado contiene rut válido', res: null });
@@ -410,11 +410,19 @@ router.post('/masivo/empresas', multer.single("archivo"), async (req, res) => {
 
     await db.collection('gi').insertMany(gisWithCode);
 
-    return res.status(200).json({ err: null, msg: 'GIs insertados correctamente', res: {
-      cant_inserted: gisWithCode.length,
-      cant_not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut].length,
-      not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut]
-    } });
+    return res.status(200).json({
+      err: null, msg: 'GIs insertados correctamente', res: {
+        cant_inserted: gisWithCode.length,
+        cant_not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut].length,
+        not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut],
+        not_inserted: {
+          not_interest_group: noInserted,
+          duplicate: duplicatedGI,
+          not_company: notInsertClient,
+          not_contain_rut: notInsertGIWithoutRut
+        }
+      }
+    });
 
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
@@ -457,11 +465,18 @@ router.post('/masivo/persona', multer.single("archivo"), async (req, res) => {
 
     await db.collection('gi').insertMany(gisWithCode);
 
-    return res.status(200).json({ err: null, msg: 'GIs insertados correctamente', res: {
-      cant_inserted: gisWithCode.length,
-      cant_not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut].length,
-      not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut]
-    } });
+    return res.status(200).json({
+      err: null, msg: 'GIs insertados correctamente', res: {
+        cant_inserted: gisWithCode.length,
+        cant_not_inserted: [...noInserted, ...duplicatedGI, ...notInsertClient, ...notInsertGIWithoutRut].length,
+        not_inserted: {
+          not_interest_group: noInserted,
+          duplicate: duplicatedGI,
+          not_company: notInsertClient,
+          not_contain_rut: notInsertGIWithoutRut
+        }
+      }
+    });
 
   } catch (error) {
     console.log(error)
@@ -652,8 +667,26 @@ router.delete("/:id", async (req, res) => {
 
 //para programar solamente limpiar toda la db
 router.delete("/", async (req, res) => {
-  const db = await connect();
-  let result = await db.collection("gi").drop();
+  // const db = await connect();
+
+  // const gis = await db.collection('gi').find({ categoria: 'Empresa/Organizacion' }).toArray();
+  // const reducered = gis.reduce((acc, current) => {
+  //   const aux = acc.find(item => item.rut === current.rut);
+  //   if (!aux) {
+  //     return acc.concat([current]);
+  //   }
+  //   else {
+  //     return acc;
+  //   }
+  // }, []);
+  
+  // await db.collection('gi').deleteMany({ categoria: 'Empresa/Organizacion' })
+
+  // await db.collection('gi').insertMany(reducered);
+
+
+  // let result = await db.collection("gi").drop();
+  // await db.collection('gi').deleteMany({ categoria: 'Persona Natural' })
   // await db.collection("cobranza").drop();
   // await db.collection("evaluaciones").drop();
   // await db.collection("existencia").drop();
@@ -714,5 +747,6 @@ router.get("/changerut/dv", async (req, res) => {
   }
 
 });
+
 
 export default router;

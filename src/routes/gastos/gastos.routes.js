@@ -277,6 +277,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
     const result = await db.collection("gastos").insertOne(newGasto);
 
+    console.log(datos)
+
     //luego , si corresponde y existe el empleado
     if (
       (datos.categoria_general === "Mano de Obra Directa" ||
@@ -284,8 +286,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       (datos.subcategoria_uno === "Personal" ||
         datos.subcategoria_uno === "Gastos Indirectos")
     ) {
-      await db.collection("empleados").updateOne(
-        { rut: datos.rut_proveedor, categoria: datos.categoria },
+      await db.collection("gi").updateOne(
+        { rut: datos.rut_proveedor, grupo_interes: 'Empleados'},
         {
           $push: {
             detalle_pagos: {

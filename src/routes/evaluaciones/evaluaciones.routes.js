@@ -168,12 +168,12 @@ router.post('/evaluacionpsico', async (req, res) => {
       obs: data.obs_examen_psicotecnico
     },
     {
-      active: true,
+      active: data.is_somnolencia,
       resultado: data.evaluacion_somnolencia,
       obs: data.obs_evaluacion_somnolencia
     },
     {
-      active: true,
+      active: data.is_psicologico,
       resultado: data.evaluacion_psicologica,
       obs: data.obs_evaluacion_psicologica
     },
@@ -281,7 +281,7 @@ router.post('/evaluacionpsico', async (req, res) => {
 
       const signPerson = await db.collection('gi').findOne({ rut: '12398638-5', categoria: 'Persona Natural' });
 
-      // console.log('sign person', signPerson)
+      console.log('examenes', [examen_somnolencia, test_psicologico])
 
       pdfPsicosensotecnico(informacionPersonal, evaluaciones, conclusion_recomendaciones, e_sensometricos, e_psicotecnicos, test_espe_vel_anticipacion, examen_somnolencia,
         test_psicologico, test_espe_tol_monotonia, test_espe_reac_multiples,

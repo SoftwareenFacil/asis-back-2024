@@ -7,7 +7,7 @@ const verificateClientType = (data, type) => {
   let notInsertClient = [];
 
   data.forEach(element => {
-    if(element.tipo_cliente && element.tipo_cliente.toLowerCase() === type){
+    if(element?.categoria && element.categoria.toLowerCase() === type){
       clients.push(element);
     }
     else{
@@ -38,11 +38,12 @@ const verificateGrupoInteres = (data) => {
 };
 
 const eliminatedDuplicated = (data, gisDB) => {
-  let uniqueCompanies = [...gisDB];
+  let uniqueCompanies = [];
   let duplicatedGI = [];
 
   data.forEach(element => {
-    const aux = uniqueCompanies.find((gi) => gi.rut === element.rut);
+    let aux = uniqueCompanies.find((gi) => gi.rut === element.rut);
+    aux = gisDB.find((gi) => gi.rut === element.rut);
     if(!aux){
       uniqueCompanies.push(element);
     }
@@ -59,7 +60,8 @@ const isExistsRUT = (data) => {
   let notInsertGIWithoutRut = [];
 
   data.forEach(element => {
-    if(element.rut && element.rut !== '' && element.rut.includes('-')){
+    console.log(element.rut)
+    if(element?.rut && String(element.rut).includes("-")){
       gisWithRut.push(element)
     }
     else{
@@ -89,10 +91,10 @@ const mapDataToInsertManyGIs = (data) => {
         rubro: 'Otros.'
       },
       grupo_interes: gi.grupo_interes,
-      categoria: gi.tipo_cliente,
+      categoria: gi.categoria,
       categoria_empresa: COMPANY_CATEGORY.some((e) => gi.categoria_empresa) ? gi.categoria_empresa : 'Microempresa',
       categoria_cliente: 'Frecuente',
-      fecha_inic_mac: (gi.fecha_inic_mac && gi.fecha_inic_mac !== '') ? moment(gi.fecha_inic_mac).format(FORMAT_DATE) : '01-01-2020',
+      fecha_inic_mac: (!!gi.fecha_inic_mac && gi.fecha_inic_mac !== 'No Aplica') ? moment(gi.fecha_inic_mac).format(FORMAT_DATE) : '01-01-2020',
       edad_gi: 0,
       contacto: gi.contacto || '',
       contacto_2: gi.contacto_secundario || '',

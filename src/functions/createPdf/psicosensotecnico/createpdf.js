@@ -240,7 +240,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
     //datos
     evaluaciones.forEach(function (element, index) {
 
-        if (index < 4) {
+        if (index < 2) {
             doc
                 .font("Helvetica")
                 .text(element.resultado, 278, generalSpace, { align: "left" });
@@ -249,7 +249,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
                 .font("Helvetica")
                 .text(element.obs, 370, generalSpace, { align: "left" });
         }
-        if (index >= 4) {
+        if (index >= 2) {
             if (element.active) {
                 doc
                     .font("Helvetica")

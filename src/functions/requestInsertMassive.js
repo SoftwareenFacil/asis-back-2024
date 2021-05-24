@@ -12,7 +12,8 @@ const addCodeRequest = (data, lastrequest, year) => {
   }
   let nextCode = ""
   let result = data.map(function (obj) {
-    nextCode = `ASIS-SOL-${year}-${calculate(code)}`
+    const aux = moment(obj.fecha_solicitud).format('YYYY');
+    nextCode = `ASIS-SOL-${!!aux ? aux : year}-${calculate(code)}`
     obj.codigo = nextCode
     code.codigo = nextCode
     return obj

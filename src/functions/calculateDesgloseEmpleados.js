@@ -4,11 +4,12 @@ export default function calculateDesgloseEmpleados(
   dias,
   diasVacaciones,
   incDec,
-  diasPendientes = null
+  diasPendientes
 ) {
-  let obj = detalle;
+  console.log([detalle, abrev, dias, diasVacaciones, incDec, diasPendientes])
+  let obj = !!detalle ? detalle : {};
 
-  if(diasPendientes != null){
+  if(!!diasPendientes){
     obj.dias_pendientes = diasPendientes;
   }
 
@@ -63,6 +64,18 @@ export default function calculateDesgloseEmpleados(
         obj.mediodia_recuperados_cant -= dias / 2;
       }
       break;
+    default:
+      obj = {
+        ...obj,
+        recuperados_cant: 0,
+        mediodia_recuperados_cant: 0,
+        enfermedad_cant: 0,
+        maternidad_cant: 0,
+        mediodia_cant: 0,
+        tramites_cant: 0,
+        vacaciones_cant: 0
+      }
+      break
   }
 
   //luego calculamos los valores generales
