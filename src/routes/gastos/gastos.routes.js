@@ -438,16 +438,17 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 //DELETE GASTO
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
   let result = "";
 
   try {
     //1.- traigo la coleccion
-    const coleccionGasto = await db
-      .collection("gastos")
-      .findOne({ _id: ObjectID(id) });
+    const db = await connect();
+    // const coleccionGasto = await db
+    //   .collection("gastos")
+    //   .findOne({ _id: ObjectID(id) });
 
-    let entradas = coleccionGasto.entradas;
+    // let entradas = coleccionGasto.entradas;
+
 
     //2.- elimino el gasto
     result = await db.collection("gastos").deleteOne({ _id: ObjectID(id) });
@@ -465,9 +466,10 @@ router.delete("/:id", async (req, res) => {
     //insertar cada objeto como document en collection existencia
     result = await db.collection("existencia").insertMany(result);
 
-    return res.json(result);
+    return res.json({ err: null, msg: 'Gasto eliminado correctamente', res: result});
   } catch (error) {
-    return res.status(401).json({ msg: "ha ocurrido un error", error })
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
   }
 });
 

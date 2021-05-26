@@ -843,8 +843,10 @@ router.post("/validar/:id", async (req, res) => {
         isActive: true
       });
 
+      console.log(gi)
+
       //si no tiene dias credito , pasa directo a cobranza
-      if (getMinusculas(gi.credito) == "no") {
+      if (getMinusculas(gi.credito) === "no" || (getMinusculas(gi.credito) === "si" && gi.dias_credito === 0)) {
         result = await db.collection("cobranza").insertOne({
           codigo: codAsis.replace("FAC", "COB"),
           nombre_servicio: result.value.nombre_servicio,

@@ -437,14 +437,14 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 
     return res.status(200).json({
       err: null,
-      message: "Pagos realizados satisfactoriamente",
+      msg: "Pagos realizados satisfactoriamente",
       res: result
     });
   } catch (error) {
     console.log(error)
     return res.status(500).json({
       err: String(error),
-      message: ERROR,
+      msg: ERROR,
       res: null
     });
   }
