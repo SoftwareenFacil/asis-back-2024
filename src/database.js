@@ -1,12 +1,13 @@
 import MongoClient from "mongodb";
-import { MONGODB_CONNECTION_DEV, MONGODB_CLIENT_DEV } from "./constant/var";
+import { MONGODB_CONNECTION_DEV, MONGODB_CONNECTION_STAGING, MONGODB_CONNECTION_PROD } from "./constant/var";
 
 export async function connect(){
     try {
-        // const mongoUri = 'mongodb://localhost/local-db-asis';
-        // const connextionMongodb = process.env.MONGODB_CONNECTION_PROD || MONGODB_CONNECTION_DEV;
-        const mongoUri = 'mongodb+srv://admin:Karla2021@cluster0.3pzmz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority';
-        const client = await MongoClient.connect(mongoUri, {
+        const MONGO_DEV = MONGODB_CONNECTION_DEV;
+        const MONGO_STAGING = MONGODB_CONNECTION_STAGING;
+        const MONGO_PROD = MONGODB_CONNECTION_PROD;
+
+        const client = await MongoClient.connect(MONGO_DEV, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         })
