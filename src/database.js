@@ -7,7 +7,7 @@ export async function connect(){
         const MONGO_STAGING = MONGODB_CONNECTION_STAGING;
         const MONGO_PROD = MONGODB_CONNECTION_PROD;
 
-        const client = await MongoClient.connect(MONGO_STAGING, {
+        const client = await MongoClient.connect(MONGO_PROD, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         })

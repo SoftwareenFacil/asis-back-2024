@@ -148,9 +148,10 @@ router.get('/workers', async (req, res) => {
   try {
     const result = await db
       .collection("gi")
-      .find({ categoria: "Persona Natural", grupo_interes: 'Empleados', activo_inactivo: true })
+      .find({ categoria: "Persona Natural", activo_inactivo: true })
       .toArray();
-    return res.status(200).json({ err: null, res: result });
+    const gisMapped = result.filter((gi) => gi.grupo_interes === 'Empleados' || gi.grupo_interes === 'Colaboradores') || []
+    return res.status(200).json({ err: null, res: gisMapped });
   } catch (error) {
     return res.status(400).json({ err: String(error), res: [] })
   }
