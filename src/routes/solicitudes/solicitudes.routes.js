@@ -88,7 +88,7 @@ router.post("/pagination", async (req, res) => {
       .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
-      .sort({ fecha_solicitud: 1 })
+      .sort({ anio_solicitud: -1 })
       .toArray();
 
     return res.status(200).json({
@@ -669,11 +669,11 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
   }
 });
 
-// router.delete("/", async (req, res) => {
-//   const db = await connect();
-//   const requests = await db.collection('solicitudes').deleteMany({ anio_solicitud: '2021' })
-//   res.json(requests)
-// })
+router.delete("/", async (req, res) => {
+  const db = await connect();
+  const requests = await db.collection('solicitudes').deleteMany({ anio_solicitud: '2021' })
+  res.json(requests)
+})
 
 //DELETE / ANULAR
 router.delete('/:id', async (req, res) => {
