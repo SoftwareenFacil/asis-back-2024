@@ -56,4 +56,4 @@ app.use('/ausencias', EmpleadosAusenciasRoute);
 app.use('/login', LoginRoute);
 app.use('/roles', RolesRoute);
 
-export default app;
+module.exports = app;

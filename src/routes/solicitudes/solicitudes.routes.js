@@ -38,7 +38,7 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS } from "../../constant/var";
+import { NOT_EXISTS, FORMAT_DATE } from "../../constant/var";
 import { mapRequestsToInsert, addCodeRequest } from "../../functions/requestInsertMassive";
 
 //SELECT
@@ -88,20 +88,32 @@ router.post("/pagination", async (req, res) => {
       .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
-      .sort({ anio_solicitud: -1 })
+      // .sort({ anio_solicitud: -1 })
+      .sort({ codigo: -1 })
       .toArray();
 
+    // console.log(
+    //   new Date(moment(result[0].fecha_solicitud, FORMAT_DATE)).getTime()
+    // )
+
+    // const resultSorted = result.sort((a, b) => {
+    //   return new Date(moment(a.fecha_solicitud, FORMAT_DATE)).getTime() > new Date(moment(b.fecha_solicitud, FORMAT_DATE)).getTime()
+    //     ? 1
+    //     : new Date(moment(a.fecha_solicitud, FORMAT_DATE)).getTime() < new Date(moment(b.fecha_solicitud, FORMAT_DATE)).getTime() ? -1 : 0
+    // })
+
+    // console.log(a)
+
     return res.status(200).json({
-      // auth: AUTHORIZED,
       total_items: countSol,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countSol / nPerPage + 1),
       solicitudes: result,
+      // solicitudes: resultSorted
     });
   } catch (error) {
     console.log(error)
     return res.status(500).json({
-      // auth: AUTHORIZED,
       total_items: 0,
       pagina_actual: 1,
       nro_paginas: 0,
@@ -669,10 +681,39 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
   }
 });
 
+// router.delete("/", async (req, res) => {
+//   const db = await connect();
+//   const result = await db.collection('solicitudes').find({ mes_solicitud: 'Mayo' }).toArray()
+//   const aux = result.map((element) => {
+//     return {
+//       ...element,
+//       fecha_servicio_solicitado: moment(element.fecha_servicio_solicitado, 'MM-DD-YYYY').format(FORMAT_DATE),
+//       fecha_servicio_solicitado_termino: moment(element.fecha_servicio_solicitado_termino, 'MM-DD-YYYY').format(FORMAT_DATE)
+//     }
+//   });
+//   await db.collection('solicitudes').deleteMany({ mes_solicitud: 'Mayo' })
+//   await db.collection('solicitudes').insertMany(aux)
+//   // const requests = await db.collection('solicitudes').deleteMany({ mes_solicitud: 'Mayo' })
+//   res.json({ msg: 'listo' })
+// })
+
 router.delete("/", async (req, res) => {
   const db = await connect();
-  const requests = await db.collection('solicitudes').deleteMany({ anio_solicitud: '2021' })
-  res.json(requests)
+  const result = await db.collection('solicitudes').find({ anio_solicitud: '2020' }).toArray();
+  const aux = result.map((element) => {
+    if(element.codigo.includes('Invalid')){
+      return {
+        ...element,
+        codigo: `ASIS-SOL-${moment(element.fecha_solicitud, FORMAT_DATE).format('YYYY')}-${element.codigo.split('-')[3]}`
+      }
+    }
+    else {
+      return element
+    }
+  });
+  await db.collection('solicitudes').deleteMany({ anio_solicitud: '2020' });
+  await db.collection('solicitudes').insertMany(aux)
+  res.json({ msg: 'listo' })
 })
 
 //DELETE / ANULAR

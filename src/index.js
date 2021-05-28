@@ -1,7 +1,7 @@
 import '@babel/polyfill';
 
 import appserver from './server';
-import { connect } from "./database";
+// import { connect } from "./database";
 
 async function main(){
     await appserver.listen(appserver.get('port'))

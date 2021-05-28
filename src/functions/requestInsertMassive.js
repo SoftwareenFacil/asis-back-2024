@@ -32,7 +32,6 @@ const getYear = (date) => {
 
 const existsGI = (atrr, rutgi, data) => {
   const aux = data.find((element) => element.rut === rutgi);
-  console.log(aux)
   if (aux) {
     return {
       _id: aux._id,
@@ -47,7 +46,6 @@ const existsGI = (atrr, rutgi, data) => {
 
 const existProfessional = (atrr, razon, data) => {
   const aux = data.find((element) => element.razon_social === razon);
-  console.log(aux)
   if (aux) {
     return {
       _id: aux._id,

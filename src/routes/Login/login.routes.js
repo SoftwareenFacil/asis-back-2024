@@ -17,6 +17,7 @@ import { ObjectID } from "mongodb";
 router.post('/', async (req, res) => {
   const { rut, password } = req.body;
   const db = await connect();
+
   const gi = await db.collection('gi').findOne({ rut: rut });
 
   if (!gi) return res.json({ err: 'ASIS01', msg: 'Usuario no encontrado.', res: null });
@@ -78,6 +79,9 @@ router.post('/', async (req, res) => {
       msg: String(error),
       res: null
     })
+  }
+  finally{
+    db.close();
   }
 });
 

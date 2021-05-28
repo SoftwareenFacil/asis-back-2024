@@ -451,6 +451,7 @@ router.delete("/:id", async (req, res) => {
 
 
     //2.- elimino el gasto
+    const expense = await db.collection('gastos').findOne({ _id: ObjectID(id) });
     result = await db.collection("gastos").deleteOne({ _id: ObjectID(id) });
 
     //3.- elimino la prexisrtencia
@@ -465,6 +466,17 @@ router.delete("/:id", async (req, res) => {
     await db.collection("existencia").deleteMany({});
     //insertar cada objeto como document en collection existencia
     result = await db.collection("existencia").insertMany(result);
+
+    //eliminarla tambien del empleados
+    const employee = await db.collection('gi').findOne({ grupo_interes: 'Empleados', rut: expense.rut_proveedor });
+
+    const newPaymentDetails = !!employee.detalle_pagos.length && employee.detalle_pagos.filter((element) => element.codigo !== expense.codigo);
+
+    await db.collection('gi').updateOne({ grupo_interes: 'Empleados', rut: expense.rut_proveedor }, {
+      $set:{
+        detalle_pagos: newPaymentDetails
+      }
+    })
 
     return res.json({ err: null, msg: 'Gasto eliminado correctamente', res: result});
   } catch (error) {
