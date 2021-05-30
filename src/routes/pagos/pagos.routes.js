@@ -18,38 +18,45 @@ import { AWS_BUCKET_NAME, OTHER_NAME_PDF } from "../../constant/var";
 
 //SELECT
 router.get("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const result = await db.collection("pagos").find({ isActive: true }).toArray();
+  conn.close();
   return res.json(result);
 });
 
 //GET PENDING PAYMENTS
 router.get("/pending", async (req, res) => {
   try {
-    const db = await connect();
+    const conn = await connect();
+    const db = conn.db('asis-db');
     const result = await db.collection('pagos').find({}).toArray();
     const filtered = result.filter((payment) => payment.estado !== 'Pagado');
     return res.status(200).json({ err: null, msg: 'Pagos encontrados', res: filtered })
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }finally {
+    conn.close()
   }
 })
 
 //SELECT ONE
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   const result = await db.collection('pagos').findOne({ _id: ObjectID(id) });
-
+  conn.close();
   return res.json(result);
 
 })
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   // const token = req.headers['x-access-token'];
@@ -94,6 +101,8 @@ router.post("/pagination", async (req, res) => {
       pagos: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
@@ -101,7 +110,8 @@ router.post("/pagination", async (req, res) => {
 router.post("/buscar", async (req, res) => {
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -210,12 +220,15 @@ router.post("/buscar", async (req, res) => {
       pagos: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //INGRESAR PAGO
 router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { id } = req.params;
   console.log(req.body.data)
   let datos = JSON.parse(req.body.data);
@@ -342,12 +355,16 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //INGRESO MASIVO DE PAGOS
 router.post("/many", multer.single("archivo"), async (req, res) => {
   let datos = JSON.parse(req.body.data);
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -357,8 +374,6 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-
-    const db = await connect();
 
     let archivo = '';
     let new_array = [];
@@ -449,13 +464,16 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
       msg: ERROR,
       res: null
     });
+  }finally {
+    conn.close()
   }
 });
 
 //EDIT PAGO
 router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let datos = JSON.parse(req.body.data);
   const token = req.headers['x-access-token'];
 
@@ -580,6 +598,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
       );
     }
 
+    conn.close();
     return res.json(result);
   }
 });
@@ -588,7 +607,8 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   const pago = JSON.parse(req.query.data);
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const token = req.headers['x-access-token'];
 
   if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -682,6 +702,7 @@ router.delete("/:id", async (req, res) => {
     );
   };
 
+  conn.close();
   return res.json(result);
 });
 

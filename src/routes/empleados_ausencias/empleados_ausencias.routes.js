@@ -21,7 +21,8 @@ router.post("/show/:id", async (req, res) => {
   const { pageNumber } = req.body;
   const nPerPage = 10;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const countAusencias = await db
@@ -43,13 +44,16 @@ router.post("/show/:id", async (req, res) => {
     });
   } catch (error) {
     res.status(501).json(error);
+  } finally {
+    conn.close()
   }
 });
 
 //SHOW AUSENCIAS POR EMPLEADO, AÑO Y MES
 router.post("/show/:id/:mes/:anio", async (req, res) => {
   const { id, mes, anio } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const result = await db
@@ -61,15 +65,18 @@ router.post("/show/:id/:mes/:anio", async (req, res) => {
       })
       .toArray();
 
+    conn.close();
     return res.status(200).json({ err: null, msg: '', res: result });
   } catch (error) {
+    conn.close();
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
 
 //INSERT AUSENCIA BY EMPLEADO
 router.post("/", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const data = JSON.parse(req.body.data);
   let r = null;
 
@@ -126,10 +133,11 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       empleado.dias_vacaciones,
       "inc"
     ))
-
+    conn.close();
     return res.status(200).json({ err: null, msg: 'Ausencia creada satisfactoriamente', res: result });
 
   } catch (error) {
+    conn.close();
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
   }
@@ -138,7 +146,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 //UPDATE AUSENCIA
 router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const data = JSON.parse(req.body.data);
   let r = null;
 
@@ -189,9 +198,10 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
           },
         }
       );
-
+      conn.close();
       res.json(result);
     } else {
+      conn.close();
       res.status(500).json({ msg: "No se ha encontrado el empleado" });
     }
   }
@@ -200,7 +210,8 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 //DELETE AUSENCIA
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const data = JSON.parse(req.query.data);
   let r = null;
 
@@ -225,8 +236,10 @@ router.delete("/:id", async (req, res) => {
         },
       }
     );
+    conn.close();
     res.json(result);
   } else {
+    conn.close();
     res.status(500).json({ msg: "No se ha encontrado el empleado" });
   }
 });

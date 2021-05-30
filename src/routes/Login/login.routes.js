@@ -16,7 +16,8 @@ import { ObjectID } from "mongodb";
 //Login de usuario
 router.post('/', async (req, res) => {
   const { rut, password } = req.body;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   const gi = await db.collection('gi').findOne({ rut: rut });
 
@@ -80,15 +81,16 @@ router.post('/', async (req, res) => {
       res: null
     })
   }
-  finally{
-    db.close();
+  finally {
+    conn.close()
   }
 });
 
 //test
 router.post('/crearrol/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const roles = await db.collection('roles').find().toArray();
 
   const result = await db.collection('roles').updateOne({ _id: ObjectID(id) }, {
@@ -96,7 +98,7 @@ router.post('/crearrol/:id', async (req, res) => {
       admin: roles[0].colaboradores
     }
   });
-
+  conn.close();
   return res.json({ msg: 'listo' });
 })
 

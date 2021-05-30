@@ -36,19 +36,22 @@ import { pipe } from "pdfkit";
 
 //SELECT
 router.get("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const result = await db
     .collection("evaluaciones")
     .find({ isActive: true })
     .sort({ codigo: -1 })
     .toArray();
+  conn.close();
   res.json(result);
 });
 
 //SELECT ONE 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -66,13 +69,16 @@ router.get('/:id', async (req, res) => {
     return res.status(200).json({ err: null, msg: '', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 
 });
 
 //GENERAR PDF DE PSICOSENSOTECNICO
 router.post('/evaluacionpsico', async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const data = req.body;
   // const token = req.headers['x-access-token'];
 
@@ -336,12 +342,15 @@ router.post('/evaluacionpsico', async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.json({ err: String(error), msg: 'Error al crear el examen', res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //GENERAR PDF DE AVERSION AL RIESGO
 router.post('/evaluacionaversion', async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const data = req.body;
   // const token = req.headers['x-access-token'];
 
@@ -536,9 +545,12 @@ router.post('/evaluacionaversion', async (req, res) => {
     } catch (error) {
       console.log(error)
       return res.json({ err: 97, msg: ERROR_PDF, res: null })
+    }finally {
+      conn.close()
     }
   }
   else {
+    conn.close();
     return res.json({ err: 98, msg: 'Cliente secundario no encontrado', res: null });
   }
 })
@@ -546,7 +558,8 @@ router.post('/evaluacionaversion', async (req, res) => {
 //GET FILE FROM AWS S3
 router.get('/downloadfile/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const evaluacion = await db.collection('evaluaciones').findOne({ _id: ObjectID(id), isActive: true });
@@ -576,12 +589,15 @@ router.get('/downloadfile/:id', async (req, res) => {
 
   } catch (error) {
     return res.json({ err: String(error), msg: 'Error al obtener archivo', res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   // const token = req.headers['x-access-token'];
@@ -676,6 +692,8 @@ router.post("/pagination", async (req, res) => {
       evaluaciones: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
@@ -683,7 +701,8 @@ router.post("/pagination", async (req, res) => {
 router.post("/buscar", async (req, res) => {
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -776,6 +795,8 @@ router.post("/buscar", async (req, res) => {
       evaluaciones: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
@@ -783,7 +804,8 @@ router.post("/buscar", async (req, res) => {
 router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const evaluacion = JSON.parse(req.body.data);
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const token = req.headers['x-access-token'];
 
   if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -814,13 +836,16 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     return res.status(201).json({ message: "Evaluacion modificada correctamente" });
   } catch (error) {
     return res.status(501).json({ message: "ha ocurrido un error", error });
+  }finally {
+    conn.close()
   }
 });
 
 //PASAR A EN EVALUACION
 router.post("/evaluar/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const datos = JSON.parse(req.body.data);
   // const token = req.headers['x-access-token'];
 
@@ -892,13 +917,16 @@ router.post("/evaluar/:id", multer.single("archivo"), async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Examen cargado', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }finally {
+    conn.close()
   }
 });
 
 //PASAR A EVALUADO
 router.post("/evaluado/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const datos = req.body;
 
   console.log(datos)
@@ -985,13 +1013,16 @@ router.post("/evaluado/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Evaluacion realizada', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //DELETE / ANULAR
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const existEvaluacion = await db.collection('evaluaciones').findOne({ _id: ObjectID(id) });
@@ -1024,6 +1055,8 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 

@@ -34,7 +34,8 @@ import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME
 
 //SELECT
 router.get("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const token = req.headers['x-access-token'];
 
   if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -51,13 +52,16 @@ router.get("/", async (req, res) => {
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ msg: ERROR, error })
+  }finally {
+    conn.close()
   }
 });
 
 //SELECT ONE 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -74,12 +78,15 @@ router.get('/:id', async (req, res) => {
 
   } catch (error) {
     return res.status(200).json({ err: String(error), msg: 'Ha ocurrido un error', res: null })
+  }finally {
+    conn.close()
   }
 })
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   // const token = req.headers['x-access-token'];
@@ -123,6 +130,8 @@ router.post("/pagination", async (req, res) => {
       resultados: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
@@ -130,7 +139,8 @@ router.post("/pagination", async (req, res) => {
 router.post('/buscar', async (req, res) => {
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -225,6 +235,8 @@ router.post('/buscar', async (req, res) => {
       resultados: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 
 })
@@ -232,7 +244,8 @@ router.post('/buscar', async (req, res) => {
 //SUBIR ARCHIVO RESULTADO
 router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const datos = JSON.parse(req.body.data);
   // const token = req.headers['x-access-token'];
 
@@ -309,6 +322,8 @@ router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: null, msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 
 });
@@ -316,7 +331,8 @@ router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
 //confirmar resultado
 router.post("/confirmar/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const datos = req.body;
   // const token = req.headers['x-access-token'];
 
@@ -462,13 +478,16 @@ router.post("/confirmar/:id", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //GET FILE FROM AWS S3
 router.get('/downloadfile/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const evaluacion = await db.collection('resultados').findOne({ _id: ObjectID(id), isActive: true });
@@ -498,13 +517,16 @@ router.get('/downloadfile/:id', async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: 'Error al obtener archivo', res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //DELETE / ANULAR
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const existResultado = await db.collection('resultados').findOne({ _id: ObjectID(id) });
@@ -546,6 +568,8 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 

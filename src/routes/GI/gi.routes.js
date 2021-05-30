@@ -45,7 +45,8 @@ import { mapDataToInsertManyNaturalPersons } from "../../functions/naturalPerson
 
 // SELECT
 router.get("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED, ERROR });
@@ -73,6 +74,8 @@ router.get("/", async (req, res) => {
       nro_paginas: 0,
       gis: [],
     })
+  }finally{
+    conn.close()
   }
 });
 
@@ -80,7 +83,8 @@ router.get("/", async (req, res) => {
 router.post("/pagination", async (req, res) => {
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const countGIs = await db.collection("gi").find({ activo_inactivo: true }).count();
@@ -104,6 +108,7 @@ router.post("/pagination", async (req, res) => {
       nro_paginas: parseInt(countGIs / nPerPage + 1),
       gis: result,
     });
+
   } catch (error) {
     return res.status(500).json({
       total_items: 0,
@@ -111,12 +116,15 @@ router.post("/pagination", async (req, res) => {
       nro_paginas: 0,
       gis: []
     });
+  }finally{
+    conn.close()
   }
 });
 
 //SELECT ONLY EMPRESAS
 router.get("/empresas", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   try {
     const result = await db
       .collection("gi")
@@ -125,12 +133,15 @@ router.get("/empresas", async (req, res) => {
     return res.status(200).json({ err: null, res: result });
   } catch (error) {
     return res.status(400).json({ err: String(error), res: [] })
+  }finally{
+    conn.close()
   }
 });
 
 //SELECT ONLY PERSONS
 router.get("/personal", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   try {
     const result = await db
       .collection("gi")
@@ -139,12 +150,15 @@ router.get("/personal", async (req, res) => {
     return res.status(200).json({ err: null, res: result });
   } catch (error) {
     return res.status(400).json({ err: String(error), res: [] })
+  }finally{
+    conn.close()
   }
 });
 
 //get only workers and natural person
 router.get('/workers', async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   try {
     const result = await db
       .collection("gi")
@@ -154,6 +168,8 @@ router.get('/workers', async (req, res) => {
     return res.status(200).json({ err: null, res: gisMapped });
   } catch (error) {
     return res.status(400).json({ err: String(error), res: [] })
+  }finally{
+    conn.close()
   }
 });
 
@@ -161,7 +177,8 @@ router.get('/workers', async (req, res) => {
 router.post("/buscar", async (req, res) => {
   const { identificador, filtro, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   console.log('', [identificador, filtro, pageNumber, nPerPage])
 
@@ -240,13 +257,16 @@ router.post("/buscar", async (req, res) => {
       gis: [],
       err: String(error)
     });
+  }finally{
+    conn.close()
   }
 });
 
 //SELECT BY RUT
 router.post("/client", async (req, res) => {
   const { rut, selector } = req.body;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let rutFiltrado;
   let result = "";
 
@@ -276,19 +296,24 @@ router.post("/client", async (req, res) => {
     return res.status(200).json({ err: null, res: result });
   } catch (error) {
     return res.status(500).json({ err: String(err), res: null });
+  }finally{
+    conn.close()
   }
 });
 
 //SELECT BY ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   try {
     const result = await db.collection("gi").findOne({ _id: ObjectID(id), activo_inactivo: true });
     return res.status(200).json({ err: null, res: result });
   } catch (error) {
     console.log(error)
     return res.status(400).json({ err: String(error), res: null });
+  }finally{
+    conn.close()
   }
 });
 
@@ -296,7 +321,8 @@ router.get("/:id", async (req, res) => {
 router.put('/:id', multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   let updatedGI = JSON.parse(req.body.data);
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   if (req.file) {
     updatedGI.url_file_adjunto = {
@@ -328,12 +354,15 @@ router.put('/:id', multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), res: null });
+  }finally{
+    conn.close()
   }
 });
 
 //UPDATE PASSWORD
 router.put('/editpassword/:id', async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { id } = req.params;
   const data = req.body;
 
@@ -368,6 +397,8 @@ router.put('/editpassword/:id', async (req, res) => {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
 
+  }finally{
+    conn.close()
   }
 });
 
@@ -379,6 +410,8 @@ router.post("/test/gonzalo", multer.single("archivo"), async (req, res) => {
 //ENDPOINT PARA INSERCION DE GI EMPRESAS
 router.post('/masivo/empresas', multer.single("archivo"), async (req, res) => {
   const data = excelToJson(req.file.path, "PLANTILLA GI_ASIS");
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
 
@@ -387,7 +420,6 @@ router.post('/masivo/empresas', multer.single("archivo"), async (req, res) => {
     const { companies, noInserted } = verificateGrupoInteres(data);
     if (companies.length === 0) return res.status(200).json({ err: null, msg: 'No se encontraron gi acorde al tipo en sistema en el excel', res: null });
 
-    const db = await connect();
     const gisInDB = await db.collection('gi').find({ categoria: 'Empresa/Organizacion' }).toArray();
     const { uniqueCompanies, duplicatedGI } = eliminatedDuplicated(companies, gisInDB);
     if (uniqueCompanies.length === 0) return res.status(200).json({ err: null, msg: 'Todos los gi ya se encuentran ingresados en la db', res: null });
@@ -427,12 +459,16 @@ router.post('/masivo/empresas', multer.single("archivo"), async (req, res) => {
 
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally{
+    conn.close()
   }
 });
 
 //ENDPOINT PARA INSERCION DE GI PERSONA NATURAL
 router.post('/masivo/persona', multer.single("archivo"), async (req, res) => {
   const data = excelToJson(req.file.path, "PLANTILLA GI_ASIS");
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     if (!data && data.length === 0) return res.status(200).json({ err: null, msg: 'Excel no contiene información', res: null });
@@ -442,7 +478,6 @@ router.post('/masivo/persona', multer.single("archivo"), async (req, res) => {
 
     console.log(companies.length)
 
-    const db = await connect();
     const gisInDB = await db.collection('gi').find({ categoria: 'Persona Natural' }).toArray();
     const { uniqueCompanies, duplicatedGI } = eliminatedDuplicated(companies, gisInDB);
     if (!uniqueCompanies && uniqueCompanies.length === 0) return res.status(200).json({ err: null, msg: 'Todos los gi ya se encuentran ingresados en la db', res: null });
@@ -482,6 +517,8 @@ router.post('/masivo/persona', multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally{
+    conn.close()
   }
 });
 
@@ -572,7 +609,8 @@ router.post('/masivo/persona', multer.single("archivo"), async (req, res) => {
 
 //INSERT
 router.post("/", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let newGi = JSON.parse(req.body.data);
   const items = await db.collection("gi").find({}).toArray();
 
@@ -642,13 +680,16 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ err: `Se ha generado el siguiente error : ${String(error)}`, res: null })
+  }finally{
+    conn.close()
   }
 });
 
 //DELETE
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const result = await db.collection("gi").updateOne(
@@ -663,6 +704,8 @@ router.delete("/:id", async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ err: String(error), res: null })
+  }finally{
+    conn.close()
   }
 });
 
@@ -704,7 +747,8 @@ router.delete("/", async (req, res) => {
 
 //change rut k
 router.get("/changerut/dv", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   const changeDv = (rut) => {
     const dv = rut.split('-')[1];
@@ -745,6 +789,8 @@ router.get("/changerut/dv", async (req, res) => {
     return res.json({ msg: 'Ok' });
   } catch (error) {
     return res.status(500).json({ msg: String(error) });
+  }finally{
+    conn.close()
   }
 
 });

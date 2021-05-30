@@ -31,7 +31,8 @@ import { NOT_EXISTS } from "../../constant/var";
 
 //SELECT
 router.get('/', async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const token = req.headers['x-access-token'];
 
   if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED, ERROR });
@@ -45,13 +46,16 @@ router.get('/', async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ msg: ERROR, error });
+  }finally {
+    conn.close()
   }
 
 })
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   // const token = req.headers['x-access-token'];
@@ -95,16 +99,19 @@ router.post("/pagination", async (req, res) => {
       reservas: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //SELECT BY DATE (DAY, MONTH, YEAR)
 router.post("/date", async (req, res) => {
   const { month = null, year = null } = req.body;
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     let result = []
-    const db = await connect();
 
     if (!!month && !!year) {
       result = await db.collection('reservas').find({ mes: month, anio: year, isActive: true }).toArray();
@@ -134,13 +141,17 @@ router.post("/date", async (req, res) => {
       reservas: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //SELECT RESERVATIONS TO CONFIRM
 router.get('/ingresadas', async (req, res) => {
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
   try {
-    const db = await connect();
     const result = await db.collection('reservas').find({ estado: 'Ingresado' }).toArray();
 
     return res.status(200).json({
@@ -155,13 +166,16 @@ router.get('/ingresadas', async (req, res) => {
       msg: 'No se ha podido cargar las reservas',
       res: null
     });
+  }finally {
+    conn.close()
   }
 });
 
 //SELECT ONE
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -175,6 +189,8 @@ router.get("/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: '', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
@@ -182,7 +198,8 @@ router.get("/:id", async (req, res) => {
 router.post('/buscar', async (req, res) => {
   const { identificador, filtro, pageNumber, headFilter, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let rutFiltrado;
   // const token = req.headers['x-access-token'];
 
@@ -273,12 +290,15 @@ router.post('/buscar', async (req, res) => {
       reservas: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 })
 
 //EDITAR RESERVA
 router.put("/:id", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const datos = JSON.parse(req.body.data);
   const { id } = req.params;
   // const token = req.headers['x-access-token'];
@@ -330,6 +350,8 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     return res.status(200).json({ err: null, msg: SUCCESSFULL_UPDATE, res: [] });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 
 });
@@ -338,7 +360,8 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const datos = JSON.parse(req.body.data);
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // let archivo = {};
@@ -504,12 +527,15 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       msg: ERROR,
       res: null
     });
+  }finally {
+    conn.close()
   }
 });
 
 //CONFIRMACION MASIVA DE RESERVAS
 router.post("/confirmar", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let datosJson = JSON.parse(req.body.data);
   // const token = req.headers['x-access-token'];
 
@@ -606,6 +632,7 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
       .collection("evaluaciones")
       .insertMany(arrayEvaluaciones);
 
+    conn.close();
     return res.status(200).json({
       err: null,
       msg: 'Reservas confirmadas correctamente',
@@ -684,6 +711,8 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
       });
     });
 
+    conn.close();
+
     const resultFac = await db
       .collection("facturaciones")
       .insertMany(arrayReservas);
@@ -699,7 +728,8 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
 //DELETE / ANULAR
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const existReserva = await db.collection('reservas').findOne({ _id: ObjectID(id) });
@@ -724,6 +754,8 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 

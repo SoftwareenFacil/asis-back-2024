@@ -11,19 +11,24 @@ import { ObjectID } from "mongodb";
 
 //SELECT
 router.get("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const result = await db.collection("cobranza").find({ isActive: true }).toArray();
-  return res.json(result);
+  res.json(result);
+  conn.close();
 });
 
 //SELECT ONE
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   const result = await db.collection('cobranza').findOne({ _id: ObjectID(id) });
 
-  return res.json(result);
+  res.json(result);
+
+  conn.close();
 })
 
 //TEST CREACION DE PDF PARA ENVIO POR CORREO
@@ -61,7 +66,8 @@ router.get("/pdf", async (req, res) => {
 
 //SELECT WITH PAGINATION
 router.post('/pagination', async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
 
@@ -95,7 +101,8 @@ router.post('/pagination', async (req, res) => {
 router.post('/buscar', async (req, res) => {
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   // let rutFiltrado;
 
@@ -172,6 +179,8 @@ router.post('/buscar', async (req, res) => {
       cobranzas: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 })
 // router.post("/buscar", async (req, res) => {
@@ -186,7 +195,8 @@ router.post('/buscar', async (req, res) => {
 
 router.post("/envio/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let obj = {};
   obj.fecha_creacion_carta = req.body.fecha_creacion_carta;
   obj.hora_creacion_carta = req.body.hora_creacion_carta;
@@ -207,7 +217,9 @@ router.post("/envio/:id", async (req, res) => {
     }
   );
 
-  return res.json(result);
+  res.json(result);
+
+  conn.close();
 });
 
 // router.get('/addisactive/sdsdsd', async (req, res) => {

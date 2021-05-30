@@ -24,9 +24,11 @@ import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT
 
 //SELECT
 router.get("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const result = await db.collection("facturaciones").find({ isActive: true }).toArray();
   const empresa = await db.collection("empresa").findOne({});
+  conn.close();
   return res.json({
     datos: result,
     empresa: empresa,
@@ -34,7 +36,8 @@ router.get("/", async (req, res) => {
 });
 
 router.get('/asis', async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const empresa = await db.collection("empresa").findOne({});
@@ -47,47 +50,59 @@ router.get('/asis', async (req, res) => {
       empresa: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //-------------------------------------------------------MASSIVE LOAD
 router.get("/getoc", async (req, res) => {
   try {
-    const db = await connect();
+    const conn = await connect();
+    const db = conn.db('asis-db');
     const result = await db.collection('facturaciones').find({ oc: 'Si', estado: 'Ingresado' }).toArray();
     return res.status(200).json({ err: null, msg: 'Facturaciones cargadas', res: result });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }finally {
+    conn.close()
   }
 });
 
 router.get("/getconfirmoc", async (req, res) => {
   try {
-    const db = await connect();
+    const conn = await connect();
+    const db = conn.db('asis-db');
     const result = await db.collection('facturaciones').find({ oc: 'Si', estado: 'En Revisión' }).toArray();
     return res.status(200).json({ err: null, msg: 'Facturaciones cargadas', res: result });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }finally {
+    conn.close()
   }
 });
 
 router.get("/getinvoices", async (req, res) => {
   try {
-    const db = await connect();
+    const conn = await connect();
+    const db = conn.db('asis-db');
     const result = await db.collection('facturaciones').find({ estado: 'En Facturacion' }).toArray();
     return res.status(200).json({ err: null, msg: 'Facturaciones cargadas', res: result });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }finally {
+    conn.close()
   }
 });
 
 //SELECT ONE 
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   const token = req.headers['x-access-token'];
 
@@ -107,12 +122,15 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ msg: ERROR, error });
+  }finally {
+    conn.close()
   }
 })
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   // const token = req.headers['x-access-token'];
@@ -159,6 +177,8 @@ router.post("/pagination", async (req, res) => {
       facturaciones: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
@@ -166,7 +186,8 @@ router.post("/pagination", async (req, res) => {
 router.post("/buscar", async (req, res) => {
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -273,13 +294,16 @@ router.post("/buscar", async (req, res) => {
       nro_paginas: 0,
       facturaciones: null,
     });
+  }finally {
+    conn.close()
   }
 });
 
 //EDIT
 router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const factura = JSON.parse(req.body.data);
   const token = req.headers['x-access-token'];
 
@@ -323,13 +347,16 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ msg: ERROR, error });
+  }finally {
+    conn.close()
   }
 });
 
 //INSERTAR DATOS DE FACTURACION
 router.post("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let datos = JSON.parse(req.body.data);
   // const token = req.headers['x-access-token'];
 
@@ -397,13 +424,16 @@ router.post("/:id", multer.single("archivo"), async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Factura cargada exitosamente', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }finally {
+    conn.close()
   }
 
 });
 
 //INSERTAR FACTURA MASIVO
 router.post("/", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let datos = JSON.parse(req.body.data);
   // const token = req.headers['x-access-token'];
 
@@ -477,13 +507,16 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //SUBIR OC
 router.post("/subiroc/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let datos = JSON.parse(req.body.data);
   // const token = req.headers['x-access-token'];
 
@@ -551,13 +584,16 @@ router.post("/subiroc/:id", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //GET FILE FROM AWS S3
 router.get('/downloadfile/:id/:type', async (req, res) => {
   const { id, type } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const evaluacion = await db.collection('facturaciones').findOne({ _id: ObjectID(id), isActive: true });
@@ -587,12 +623,15 @@ router.get('/downloadfile/:id/:type', async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: 'Error al obtener archivo', res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //SUBIR OC MASIVO
 router.post("/oc/subiroc/many", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let new_array = [];
   let datos = JSON.parse(req.body.data);
   // const token = req.headers['x-access-token'];
@@ -654,13 +693,16 @@ router.post("/oc/subiroc/many", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }finally {
+    conn.close()
   }
 });
 
 //CONFIRMAR OC
 router.post("/confirmaroc/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const data = req.body;
   // const token = req.headers['x-access-token'];
 
@@ -698,6 +740,8 @@ router.post("/confirmaroc/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Orden de compra confirmada', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
@@ -714,7 +758,8 @@ router.post("/oc/confirmaroc/many", async (req, res) => {
 
 
   try {
-    const db = await connect();
+    const conn = await connect();
+    const db = conn.db('asis-db');
 
     let new_array = [];
 
@@ -749,6 +794,8 @@ router.post("/oc/confirmaroc/many", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
@@ -766,7 +813,8 @@ router.post("/validar/:id", async (req, res) => {
 
   console.log(req.body)
 
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -874,12 +922,15 @@ router.post("/validar/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Factura confirmada', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }finally {
+    conn.close()
   }
 });
 
 //VALIDAR FACTURA MASIVO
 router.post("/validar/factura/asis/many", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -1047,7 +1098,7 @@ router.post("/validar/factura/asis/many", async (req, res) => {
           .insertMany(arrayFacturaciones);
 
         // return res.json(resultCobranza);
-      } 
+      }
       // else {
       //   return res.json(resultPagos);
       // }
@@ -1057,6 +1108,8 @@ router.post("/validar/factura/asis/many", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }finally {
+    conn.close()
   }
 });
 

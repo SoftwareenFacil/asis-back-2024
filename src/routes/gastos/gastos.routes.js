@@ -24,8 +24,10 @@ var fs = require("fs");
 
 // SELECT
 router.get("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const result = await db.collection("gastos").find({}).toArray();
+  conn.close();
   return res.json(result);
 });
 
@@ -35,13 +37,14 @@ router.get("/:id", async (req, res) => {
   const db = await connect();
 
   const result = await db.collection("gastos").findOne({ _id: ObjectID(id) });
-
+  conn.close();
   return res.json(result);
 });
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
 
@@ -68,12 +71,15 @@ router.post("/pagination", async (req, res) => {
       gastos: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //SEARCH BY cateogy, subcategory 1 and subcategiry 2
 router.post("/searchbycategory", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { category, subcategoryone, subcategorytwo } = req.body;
 
   try {
@@ -88,13 +94,16 @@ router.post("/searchbycategory", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //GET FILE FROM AWS S3
 router.get('/downloadfile/:id/', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     const gasto = await db.collection('gastos').findOne({ _id: ObjectID(id), isActive: true });
@@ -124,6 +133,8 @@ router.get('/downloadfile/:id/', async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: 'Error al obtener archivo', res: null });
+  }finally {
+    conn.close()
   }
 });
 
@@ -131,7 +142,8 @@ router.get('/downloadfile/:id/', async (req, res) => {
 router.post("/buscar", async (req, res) => {
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   // let rutFiltrado;
 
@@ -208,12 +220,15 @@ router.post("/buscar", async (req, res) => {
       gastos: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //INSERT GASTO
 router.post("/", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const datos = JSON.parse(req.body.data);
 
   try {
@@ -318,13 +333,16 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       msg: ERROR,
       res: result
     });
+  }finally {
+    conn.close()
   }
 });
 
 //INSERT ENTRADA AND EDIT PREXISTENCIA
 router.post("/entrada/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let data = req.body;
   let result = "";
 
@@ -377,6 +395,8 @@ router.post("/entrada/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Entrada ingresada correctamente', res: result });
   } catch (error) {
     return res.status(5001).json({ err: String(err), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
@@ -384,7 +404,8 @@ router.post("/entrada/:id", async (req, res) => {
 router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const gasto = JSON.parse(req.body.data);
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   if (req.file) {
     gasto.archivo_adjunto = {
@@ -432,6 +453,8 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     return res.status(201).json({ message: "Gasto modificado correctamente", result });
   } catch (error) {
     return res.status(500).json({ message: "ha ocurrido un error", error });
+  }finally {
+    conn.close()
   }
 });
 
@@ -439,10 +462,11 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   let result = "";
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     //1.- traigo la coleccion
-    const db = await connect();
     // const coleccionGasto = await db
     //   .collection("gastos")
     //   .findOne({ _id: ObjectID(id) });
@@ -482,6 +506,8 @@ router.delete("/:id", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }finally {
+    conn.close()
   }
 });
 
@@ -489,7 +515,8 @@ router.delete("/:id", async (req, res) => {
 router.delete("/entrada/:id", async (req, res) => {
   const { id } = req.params;
   const entrada = req.body;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let result = "";
 
   //1.- traigo la coleccion
@@ -557,6 +584,8 @@ router.delete("/entrada/:id", async (req, res) => {
     return res.json(result);
   } catch (error) {
     return res.status(400).json(error);
+  }finally {
+    conn.close()
   }
 });
 

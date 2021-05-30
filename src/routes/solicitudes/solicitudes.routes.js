@@ -43,7 +43,8 @@ import { mapRequestsToInsert, addCodeRequest } from "../../functions/requestInse
 
 //SELECT
 router.get("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   try {
     const result = await db.collection("solicitudes").find({ isActive: true }).toArray();
     return res.status(200).json({
@@ -57,12 +58,15 @@ router.get("/", async (req, res) => {
       msg: ERROR,
       res: null
     });
+  }finally {
+    conn.close()
   }
 });
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   // const token = req.headers['x-access-token'];
@@ -120,16 +124,19 @@ router.post("/pagination", async (req, res) => {
       solicitudes: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //SELECT BY DATE (DAY, MONTH, YEAR)
 router.post("/date", async (req, res) => {
   const { month = null, year = null } = req.body;
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     let result = []
-    const db = await connect();
 
     if (!!month && !!year) {
       result = await db.collection('solicitudes').find({ mes_solicitud: month, anio_solicitud: year, isActive: true }).toArray();
@@ -159,12 +166,15 @@ router.post("/date", async (req, res) => {
       solicitudes: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //BUSCAR POR RUT O NOMBRE
 router.post("/buscar", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
 
@@ -259,13 +269,17 @@ router.post("/buscar", async (req, res) => {
       solicitudes: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //SELECT REQUESTS TO CONFIRM
 router.get('/ingresadas', async (req, res) => {
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
   try {
-    const db = await connect();
     const result = await db.collection('solicitudes').find({ estado: 'Ingresado' }).toArray();
 
     return res.status(200).json({
@@ -280,12 +294,15 @@ router.get('/ingresadas', async (req, res) => {
       msg: 'No se ha podido cargar las solicitudes',
       res: null
     });
+  }finally {
+    conn.close()
   }
 });
 
 //SELECT FIELDS TO CONFIRM SOLICITUD
 router.get("/mostrar/:id", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { id } = req.params;
   // const token = req.headers['x-access-token'];
 
@@ -308,6 +325,8 @@ router.get("/mostrar/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: '', res: resultSol });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: '', res: null });
+  }finally {
+    conn.close()
   }
 });
 
@@ -315,7 +334,8 @@ router.get("/mostrar/:id", async (req, res) => {
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   console.log(id)
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   try {
     const result = await db.collection("solicitudes").findOne({ _id: ObjectID(id), isActive: true });
     const { observacion_solicitud, ...restOfData } = result;
@@ -324,12 +344,15 @@ router.get("/:id", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: '', res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //INSERT
 router.post("/", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let newSolicitud = JSON.parse(req.body.data);
   const nuevaObs = newSolicitud.observacion_solicitud;
   const token = req.headers['x-access-token'];
@@ -384,6 +407,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
 
+  }finally {
+    conn.close()
   }
 
 });
@@ -391,12 +416,13 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 //TEST PARA RECIBIR EXCEL DE INGRESO MASIVO DE SOLICITUDES
 router.post("/masivo", multer.single("archivo"), async (req, res) => {
   const data = excelToJson(req.file.path, "PLANTILLA SOL_ASIS");
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
 
     if (!data || data.length === 0) return res.status(200).json({ err: null, msg: 'No existe datos en el excel ingresado', res: null });
 
-    const db = await connect();
     const companies = await db.collection('gi').find({ activo_inactivo: true, categoria: 'Empresa/Organizacion' }).toArray();
     const naturalPersons = await db.collection('gi').find({ activo_inactivo: true, categoria: 'Persona Natural' }).toArray();
 
@@ -431,12 +457,15 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
       msg: ERROR,
       res: null,
     });
+  }finally {
+    conn.close()
   }
 });
 
 //EDITAR SOLICITUD
 router.put("/:id", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const solicitud = JSON.parse(req.body.data);
   const { id } = req.params;
   // const token = req.headers['x-access-token'];
@@ -494,12 +523,15 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //CONFIRMAR SOLICITUD
 router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const solicitud = JSON.parse(req.body.data);
   const { id } = req.params;
 
@@ -600,12 +632,15 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
     }
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: '', res: null })
+  }finally {
+    conn.close()
   }
 });
 
 //CONFIRM MANY
 router.post("/many", multer.single("archivo"), async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let dataJson = JSON.parse(req.body.data);
   // const token = req.headers['x-access-token'];
 
@@ -717,6 +752,8 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
       msg: ERROR,
       res: null
     });
+  }finally {
+    conn.close()
   }
 });
 
@@ -737,7 +774,8 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 // })
 
 router.delete("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const result = await db.collection('solicitudes').find({ anio_solicitud: '2020' }).toArray();
   const aux = result.map((element) => {
     if (element.codigo.includes('Invalid')) {
@@ -752,13 +790,15 @@ router.delete("/", async (req, res) => {
   });
   await db.collection('solicitudes').deleteMany({ anio_solicitud: '2020' });
   await db.collection('solicitudes').insertMany(aux)
+  conn.close();
   res.json({ msg: 'listo' })
 })
 
 //DELETE / ANULAR
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     await db.collection('solicitudes').updateOne({ _id: ObjectID(id) }, {
@@ -770,11 +810,14 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
 router.delete('/deletemany/many', async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   try {
 
     let ids = [];
@@ -791,6 +834,8 @@ router.delete('/deletemany/many', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ msg: 'error', err: String(error) });
+  }finally {
+    conn.close()
   }
 });
 

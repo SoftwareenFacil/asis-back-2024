@@ -16,17 +16,20 @@ import { ObjectID } from "mongodb";
 
 //SELECT
 router.get("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const result = await db
     .collection("gi")
     .find({ activo_inactivo: true, grupo_interes: 'Empleados' })
     .toArray();
-  return res.json(result);
+  res.json(result);
+  conn.close();
 });
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   // const token = req.headers['x-access-token'];
@@ -74,12 +77,15 @@ router.post("/pagination", async (req, res) => {
       empleados: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //BUSCAR POR NOMBRE O RUT
 router.post("/buscar", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   // const token = req.headers['x-access-token'];
@@ -192,6 +198,8 @@ router.post("/buscar", async (req, res) => {
       empleados: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
@@ -231,29 +239,24 @@ router.get('/downloadfile/:filestring/', async (req, res) => {
 //SELECT BY ID
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const result = await db
     .collection("gi")
     .findOne({ _id: ObjectID(id) });
 
-  return res.json(result);
+  res.json(result);
+
+  conn.close();
 });
 
 //EDITAR EMPLEADO
 router.put("/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const data = req.body;
   let diasVacaciones = 0;
-
-  // if (req.file) {
-  //   data.archivo_adjunto = {
-  //     name: req.file.originalname,
-  //     size: req.file.size,
-  //     path: req.file.path,
-  //     type: req.file.mimetype,
-  //   };
-  // }
 
   console.log([data.fecha_inicio_contrato, data.fecha_fin_contrato])
 
@@ -305,16 +308,19 @@ router.put("/:id", async (req, res) => {
         },
       }
     );
+    conn.close();
     return res.status(200).json({ err: null, msg: 'Empleado editado correctamente', res: result });
   } else {
     console.log(error)
+    conn.close();
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });
 
 //test para pasar los empleados desde gi a la coleccion empleados
 router.get("/traspaso/test", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   let newArray = [];
   let result;
   result = await db
@@ -359,9 +365,10 @@ router.get("/traspaso/test", async (req, res) => {
     });
 
     const r = await db.collection("empleados").insertMany(newArray);
-
+    conn.close();
     return res.json(r);
   } else {
+    conn.close();
     return res.json({
       cant: result.length,
       data: result,
@@ -372,7 +379,8 @@ router.get("/traspaso/test", async (req, res) => {
 //DELETE EMPLEADOS
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   console.log(id)
 
   try {
@@ -384,9 +392,10 @@ router.delete("/:id", async (req, res) => {
         },
       }
     );
-
+    conn.close();
     return res.status(200).json({ err: null, msg: 'Empleado eliminado correctamente', res: result });
   } catch (error) {
+    conn.close();
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }
 });

@@ -11,24 +11,28 @@ import { ObjectID } from "mongodb";
 
 // SELECT
 router.get("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const result = await db.collection("existencia").find({}).toArray();
+  conn.close();
   return res.json(result);
 });
 
 //SELECT ONE
 router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   const result = await db.collection('existencia').findOne({ _id: ObjectID(id) });
-
+  conn.close();
   return res.json(result);
 })
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
 
@@ -55,6 +59,8 @@ router.post("/pagination", async (req, res) => {
       existencias: null,
       err: String(err)
     });
+  }finally {
+    conn.close()
   }
 });
 
@@ -62,7 +68,8 @@ router.post("/pagination", async (req, res) => {
 router.post("/buscar", async (req, res) => {
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   let rutFiltrado;
 
@@ -128,18 +135,22 @@ router.post("/buscar", async (req, res) => {
       existencias: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //CONSULTAR POR ENTRADAS PARA INSERCION DE SALIDAS
 router.post("/consultar", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { code, indicador, cant } = req.body;
   let cupos_disponibles = 0;
 
   const result = await db
     .collection("existencia")
     .findOne({ codigo_categoria_tres: code });
+  conn.close();
   if (result == null) {
     return res.json({
       message:

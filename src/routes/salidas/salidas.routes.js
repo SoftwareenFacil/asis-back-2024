@@ -16,24 +16,28 @@ import { ERROR } from "../../constant/text_messages";
 
 // SELECT
 router.get("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const result = await db.collection("salidas").find({}).toArray();
+  conn.close();
   return res.json(result);
 });
 
 //SELECT ONE
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   const result = await db.collection("salidas").findOne({ _id: ObjectID(id) });
-
+  conn.close();
   return res.json(result);
 });
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
 
@@ -54,6 +58,8 @@ router.post("/pagination", async (req, res) => {
     });
   } catch (error) {
     return res.status(501).json(error);
+  }finally {
+    conn.close()
   }
 });
 
@@ -61,7 +67,8 @@ router.post("/pagination", async (req, res) => {
 router.post("/buscar", async (req, res) => {
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   // const rexExpresionFiltro = new RegExp(filtro, "i");
 
@@ -129,12 +136,15 @@ router.post("/buscar", async (req, res) => {
       salidas: null,
       err: String(error)
     });
+  }finally {
+    conn.close()
   }
 });
 
 //INSERT SALIDA
 router.post("/", async (req, res) => {
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const datos = req.body;
 
   let newSalida = {};
@@ -207,13 +217,16 @@ router.post("/", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
 //EDIT
 router.put("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
   const datos = JSON.parse(req.body.data);
 
   if (req.file) {
@@ -295,13 +308,16 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     return res.status(201).json(result);
   } catch (error) {
     return res.status(400).json({ msg: "ha ocurrido un error ", error });
+  }finally {
+    conn.close()
   }
 });
 
 //DELETE
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
-  const db = await connect();
+  const conn = await connect();
+  const db = conn.db('asis-db');
 
   try {
     let result = await db
@@ -324,6 +340,8 @@ router.delete("/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Salida eliminada correctamente', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }finally {
+    conn.close()
   }
 });
 
