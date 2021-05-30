@@ -163,7 +163,7 @@ router.post("/buscar", async (req, res) => {
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const db = await connect();
 
-  console.log('error', [identificador, filtro, pageNumber, nPerPage])
+  console.log('', [identificador, filtro, pageNumber, nPerPage])
 
   try {
     let rutFiltrado;

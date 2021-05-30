@@ -110,6 +110,8 @@ router.post("/buscar", async (req, res) => {
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
+  console.log([identificador, filtro, headFilter, pageNumber, nPerPage])
+
   let rutFiltrado;
 
   rutFiltrado = filtro;

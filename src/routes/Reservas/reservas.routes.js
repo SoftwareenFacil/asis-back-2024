@@ -98,6 +98,45 @@ router.post("/pagination", async (req, res) => {
   }
 });
 
+//SELECT BY DATE (DAY, MONTH, YEAR)
+router.post("/date", async (req, res) => {
+  const { month = null, year = null } = req.body;
+
+  try {
+    let result = []
+    const db = await connect();
+
+    if (!!month && !!year) {
+      result = await db.collection('reservas').find({ mes: month, anio: year, isActive: true }).toArray();
+    }
+    if (!!month && !year) {
+      result = await db.collection('reservas').find({ mes: month, isActive: true }).toArray();
+    }
+    if (!month && !!year) {
+      result = await db.collection('reservas').find({ anio: year, isActive: true }).toArray();
+    }
+
+    console.log([month, year, result.length])
+
+    return res.status(200).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 1,
+      reservas: result,
+    });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      reservas: null,
+      err: String(error)
+    });
+  }
+});
+
 //SELECT RESERVATIONS TO CONFIRM
 router.get('/ingresadas', async (req, res) => {
   try {
@@ -152,6 +191,8 @@ router.post('/buscar', async (req, res) => {
   // const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  console.log([identificador, filtro, headFilter, pageNumber, nPerPage])
 
   rutFiltrado = filtro;
 

@@ -123,6 +123,45 @@ router.post("/pagination", async (req, res) => {
   }
 });
 
+//SELECT BY DATE (DAY, MONTH, YEAR)
+router.post("/date", async (req, res) => {
+  const { month = null, year = null } = req.body;
+
+  try {
+    let result = []
+    const db = await connect();
+
+    if (!!month && !!year) {
+      result = await db.collection('solicitudes').find({ mes_solicitud: month, anio_solicitud: year, isActive: true }).toArray();
+    }
+    if (!!month && !year) {
+      result = await db.collection('solicitudes').find({ mes_solicitud: month, isActive: true }).toArray();
+    }
+    if (!month && !!year) {
+      result = await db.collection('solicitudes').find({ anio_solicitud: year, isActive: true }).toArray();
+    }
+
+    // console.log([month, year, result.length])
+
+    return res.status(200).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 1,
+      solicitudes: result,
+    });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({
+      total_items: 0,
+      pagina_actual: 1,
+      nro_paginas: 0,
+      solicitudes: null,
+      err: String(error)
+    });
+  }
+});
+
 //BUSCAR POR RUT O NOMBRE
 router.post("/buscar", async (req, res) => {
   const db = await connect();
@@ -701,7 +740,7 @@ router.delete("/", async (req, res) => {
   const db = await connect();
   const result = await db.collection('solicitudes').find({ anio_solicitud: '2020' }).toArray();
   const aux = result.map((element) => {
-    if(element.codigo.includes('Invalid')){
+    if (element.codigo.includes('Invalid')) {
       return {
         ...element,
         codigo: `ASIS-SOL-${moment(element.fecha_solicitud, FORMAT_DATE).format('YYYY')}-${element.codigo.split('-')[3]}`
