@@ -223,20 +223,21 @@ router.post("/", async (req, res) => {
 });
 
 //EDIT
-router.put("/:id", multer.single("archivo"), async (req, res) => {
+router.put("/:id", async (req, res) => {
   const { id } = req.params;
   const conn = await connect();
   const db = conn.db('asis-db');
-  const datos = JSON.parse(req.body.data);
+  const datos = req.body;
+  // const datos = JSON.parse(req.body.data);
 
-  if (req.file) {
-    datos.archivo = {
-      name: req.file.originalname,
-      size: req.file.size,
-      path: req.file.path,
-      type: req.file.mimetype,
-    };
-  }
+  // if (req.file) {
+  //   datos.archivo = {
+  //     name: req.file.originalname,
+  //     size: req.file.size,
+  //     path: req.file.path,
+  //     type: req.file.mimetype,
+  //   };
+  // }
 
   try {
     let result = await db.collection("salidas").findOneAndUpdate(
@@ -259,7 +260,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
           costo_total: datos.costo_total,
           precio_venta_unitario: datos.precio_venta_unitario,
           ingreso_total: datos.ingreso_total,
-          archivo_adjunto: datos.archivo,
+          // archivo_adjunto: datos.archivo,
         },
       },
       { returnOriginal: false }
@@ -305,9 +306,9 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     //insertar cada objeto como document en collection existencia
     result = await db.collection("existencia").insertMany(result);
 
-    return res.status(201).json(result);
+    return res.status(200).json({ err: null, msg: 'Salida editada correctamente', res: result });
   } catch (error) {
-    return res.status(400).json({ msg: "ha ocurrido un error ", error });
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
   }finally {
     conn.close()
   }
