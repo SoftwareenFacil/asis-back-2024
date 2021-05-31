@@ -339,8 +339,10 @@ router.get("/:id", async (req, res) => {
   try {
     const result = await db.collection("solicitudes").findOne({ _id: ObjectID(id), isActive: true });
     const { observacion_solicitud, ...restOfData } = result;
-    console.log(observacion_solicitud[0].obs)
-    return res.status(200).json({ err: null, msg: '', res: { ...restOfData, observacion_solicitud: observacion_solicitud[0].obs } });
+    return res.status(200).json({ 
+      err: null, 
+      msg: '', 
+      res: { ...restOfData, observacion_solicitud: !!observacion_solicitud.length ? observacion_solicitud[0].obs : '' } });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: '', res: null });
@@ -758,37 +760,36 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 });
 
 // router.delete("/", async (req, res) => {
-//   const db = await connect();
-//   const result = await db.collection('solicitudes').find({ mes_solicitud: 'Mayo' }).toArray()
+//   const conn = await connect();
+//   const db = conn.db('asis-db');
+//   const result = await db.collection('solicitudes').find({ fecha_solicitud: '30-05-2021' }).toArray()
 //   const aux = result.map((element) => {
 //     return {
 //       ...element,
-//       fecha_servicio_solicitado: moment(element.fecha_servicio_solicitado, 'MM-DD-YYYY').format(FORMAT_DATE),
-//       fecha_servicio_solicitado_termino: moment(element.fecha_servicio_solicitado_termino, 'MM-DD-YYYY').format(FORMAT_DATE)
+//       fecha_servicio_solicitado: element.fecha_solicitud,
+//       fecha_servicio_solicitado_termino: element.fecha_solicitud,
 //     }
 //   });
-//   await db.collection('solicitudes').deleteMany({ mes_solicitud: 'Mayo' })
+//   await db.collection('solicitudes').deleteMany({ fecha_solicitud: '30-05-2021' })
 //   await db.collection('solicitudes').insertMany(aux)
 //   // const requests = await db.collection('solicitudes').deleteMany({ mes_solicitud: 'Mayo' })
 //   res.json({ msg: 'listo' })
+
+//   conn.close();
 // })
 
 router.delete("/", async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
-  const result = await db.collection('solicitudes').find({ anio_solicitud: '2020' }).toArray();
+  const result = await db.collection('solicitudes').find({fecha_servicio_solicitado: 'Invalid date', fecha_servicio_solicitado_termino: 'Invalid date'}).toArray();
   const aux = result.map((element) => {
-    if (element.codigo.includes('Invalid')) {
-      return {
-        ...element,
-        codigo: `ASIS-SOL-${moment(element.fecha_solicitud, FORMAT_DATE).format('YYYY')}-${element.codigo.split('-')[3]}`
-      }
-    }
-    else {
-      return element
+    return {
+      ...element,
+      fecha_servicio_solicitado: element.fecha_solicitud,
+      fecha_servicio_solicitado_termino: element.fecha_solicitud
     }
   });
-  await db.collection('solicitudes').deleteMany({ anio_solicitud: '2020' });
+  await db.collection('solicitudes').deleteMany({fecha_servicio_solicitado: 'Invalid date', fecha_servicio_solicitado_termino: 'Invalid date'});
   await db.collection('solicitudes').insertMany(aux)
   conn.close();
   res.json({ msg: 'listo' })

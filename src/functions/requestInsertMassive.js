@@ -79,7 +79,7 @@ const mapRequestsToInsert = (data, companies, naturalPersons) => {
         razon_social_cs: auxCS.razon_social,
         nro_contrato_seleccionado_cp: '',
         faena_seleccionada_cp: '',
-        id_GI_PersonalAsignado: auxProfessionalAssign,
+        id_GI_PersonalAsignado: auxProfessionalAssign._id,
         fecha_solicitud: request.fecha_solicitud !== '' ? request.fecha_solicitud : moment().format(FORMAT_DATE),
         hora_solicitud: '12:00',
         mes_solicitud: getMonth(request.fecha_solicitud || moment()),
