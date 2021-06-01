@@ -38,7 +38,7 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, FORMAT_DATE } from "../../constant/var";
+import { NOT_EXISTS, FORMAT_DATE, SB_TEMPLATE_INSERT_REQUEST_ID } from "../../constant/var";
 import { mapRequestsToInsert, addCodeRequest } from "../../functions/requestInsertMassive";
 
 //SELECT
@@ -58,10 +58,49 @@ router.get("/", async (req, res) => {
       msg: ERROR,
       res: null
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
+
+router.post('/sendmail', async (req, res) => {
+  const conn = await connect();
+  const db = conn.db('asis-db');
+  const data = req.body;
+  try {
+    // console.log(data)
+    const gi = await db
+      .collection("gi")
+      .findOne({ _id: ObjectID(data.id_GI_Principal) });
+    sendinblue(
+      // [
+      //   {
+      //     email: 'mariocasanovaramirez@gmail.com',
+      //     name: gi.razon_social || '',
+      //   }
+      // ],
+      data.emailsArray,
+      SB_TEMPLATE_INSERT_REQUEST_ID,
+      {
+        CODIGO_SOLICITUD: data.codigo,
+        RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
+        FECHA_SOLICITUD: data.fecha_solicitud,
+        HORA_SOLICITUD: data.hora_solicitud,
+        CATEGORIA_SOLICITUD: data.categoria1,
+        NOMBRE_SERVICIO_SOLICITUD: data.nombre_servicio,
+        TIPO_SERVICIO_SOLICITUD: data.tipo_servicio,
+        LUGAR_SERVICIO_SOLICITUD: data.lugar_servicio,
+        SUCURSAL_SOLICITUD: data.sucursal,
+      }
+    );
+    return res.status(200).json({ err: null, msg: 'Email enviado satisfactoriamente', res: [] })
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  } finally {
+    conn.close();
+  }
+})
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
@@ -124,7 +163,7 @@ router.post("/pagination", async (req, res) => {
       solicitudes: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -166,7 +205,7 @@ router.post("/date", async (req, res) => {
       solicitudes: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -269,7 +308,7 @@ router.post("/buscar", async (req, res) => {
       solicitudes: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -294,7 +333,7 @@ router.get('/ingresadas', async (req, res) => {
       msg: 'No se ha podido cargar las solicitudes',
       res: null
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -325,7 +364,7 @@ router.get("/mostrar/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: '', res: resultSol });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: '', res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -339,25 +378,27 @@ router.get("/:id", async (req, res) => {
   try {
     const result = await db.collection("solicitudes").findOne({ _id: ObjectID(id), isActive: true });
     const { observacion_solicitud, ...restOfData } = result;
-    return res.status(200).json({ 
-      err: null, 
-      msg: '', 
-      res: { ...restOfData, observacion_solicitud: !!observacion_solicitud.length ? observacion_solicitud[0].obs : '' } });
+    return res.status(200).json({
+      err: null,
+      msg: '',
+      res: { ...restOfData, observacion_solicitud: !!observacion_solicitud.length ? observacion_solicitud[0].obs : '' }
+    });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: '', res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
 
 //INSERT
 router.post("/", multer.single("archivo"), async (req, res) => {
+
   const conn = await connect();
   const db = conn.db('asis-db');
   let newSolicitud = JSON.parse(req.body.data);
   const nuevaObs = newSolicitud.observacion_solicitud;
-  const token = req.headers['x-access-token'];
+  // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
@@ -397,19 +438,42 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     const result = await db.collection("solicitudes").insertOne(newSolicitud);
 
     //envio correo
-    if (result.result.ok === 1) {
+    if (result.result.ok === 1 && newSolicitud.sendMail) {
+      console.log('entró a envio de mail')
       const gi = await db
         .collection("gi")
         .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
+
+      sendinblue(
+        // [
+        //   {
+        //     email: 'mariocasanovaramirez@gmail.com',
+        //     name: gi.razon_social || '',
+        //   }
+        // ],
+        newSolicitud.emailsArray,
+        SB_TEMPLATE_INSERT_REQUEST_ID,
+        {
+          CODIGO_SOLICITUD: newSolicitud.codigo,
+          RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
+          FECHA_SOLICITUD: newSolicitud.fecha_solicitud,
+          HORA_SOLICITUD: newSolicitud.hora_solicitud,
+          CATEGORIA_SOLICITUD: newSolicitud.categoria1,
+          NOMBRE_SERVICIO_SOLICITUD: newSolicitud.nombre_servicio,
+          TIPO_SERVICIO_SOLICITUD: newSolicitud.tipo_servicio,
+          LUGAR_SERVICIO_SOLICITUD: newSolicitud.lugar_servicio,
+          SUCURSAL_SOLICITUD: newSolicitud.sucursal,
+        }
+      );
     };
 
     return res.status(200).json({ err: null, msg: SUCCESSFULL_INSERT, res: result });
 
   } catch (error) {
-
+    console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
 
-  }finally {
+  } finally {
     conn.close()
   }
 
@@ -459,7 +523,7 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
       msg: ERROR,
       res: null,
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -525,7 +589,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -554,14 +618,6 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
     obs: solicitud.observacion_solicitud,
     fecha: getDate(new Date())
   }
-
-  //verificar si hay archivo o no
-  // if (req.file) archivo = {
-  //   name: req.file.originalname,
-  //   size: req.file.size,
-  //   path: req.file.path,
-  //   type: req.file.mimetype,
-  // };
 
   try {
     //obtener mail del cliente principal
@@ -634,7 +690,7 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
     }
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: '', res: null })
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -754,7 +810,7 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
       msg: ERROR,
       res: null
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -781,7 +837,7 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 router.delete("/", async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
-  const result = await db.collection('solicitudes').find({fecha_servicio_solicitado: 'Invalid date', fecha_servicio_solicitado_termino: 'Invalid date'}).toArray();
+  const result = await db.collection('solicitudes').find({ fecha_servicio_solicitado: 'Invalid date', fecha_servicio_solicitado_termino: 'Invalid date' }).toArray();
   const aux = result.map((element) => {
     return {
       ...element,
@@ -789,7 +845,7 @@ router.delete("/", async (req, res) => {
       fecha_servicio_solicitado_termino: element.fecha_solicitud
     }
   });
-  await db.collection('solicitudes').deleteMany({fecha_servicio_solicitado: 'Invalid date', fecha_servicio_solicitado_termino: 'Invalid date'});
+  await db.collection('solicitudes').deleteMany({ fecha_servicio_solicitado: 'Invalid date', fecha_servicio_solicitado_termino: 'Invalid date' });
   await db.collection('solicitudes').insertMany(aux)
   conn.close();
   res.json({ msg: 'listo' })
@@ -811,7 +867,7 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -835,7 +891,7 @@ router.delete('/deletemany/many', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ msg: 'error', err: String(error) });
-  }finally {
+  } finally {
     conn.close()
   }
 });

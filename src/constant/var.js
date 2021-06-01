@@ -2,6 +2,8 @@ export const AWS_ACCESS_KEY = 'AKIAXNOYZW53QBYZ3JES';
 export const AWS_SECRET_KEY = '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';
 export const AWS_BUCKET_NAME = 'asis-bucket-files-s3-aws';
 
+export const SB_TEMPLATE_INSERT_REQUEST_ID = 4;
+
 export const ALREADY_EXISTS = 'Este registro ya existe en el sistema'; // code 99result
 export const NOT_EXISTS = 'Este registro no existe'; // code 98result
 export const ERROR_PDF = 'Se ha generado un problema al crear el archivo'; // code 97result

@@ -12,7 +12,7 @@ export default function sendMail(toSend, template, info) {
   // var partnerKey = defaultClient.authentications['partner-key'];
   // partnerKey.apiKey = 'YOUR API KEY';
 
-  var apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+  var apiInstance = new SibApiV3Sdk.SMTPApi();
 
   var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); // SendSmtpEmail | Values to send a transactional email
 
