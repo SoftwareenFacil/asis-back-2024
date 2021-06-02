@@ -130,8 +130,8 @@ router.post("/pagination", async (req, res) => {
       .collection("solicitudes")
       .find({ isActive: true })
       .skip(skip_page)
+      .sort({ fecha_solicitud_format: -1, estado: -1 })
       .limit(nPerPage)
-      .sort({ fecha_solicitud_format: -1 })
       // .sort({ anio_solicitud: -1, codigo: -1 })
       .toArray();
 
@@ -140,6 +140,10 @@ router.post("/pagination", async (req, res) => {
     // )
 
     // console.log(result.map(e => `${e.fecha_solicitud}`))
+
+    // const resultSorted = result.sort((a, b) => {
+    //   return a.estado < b.estado ? -1 : a.estado > b.estado ? 1 : 0
+    // })
 
     // const resultSorted = result.sort((a, b) => {
     //   return new Date(moment(a.fecha_solicitud, FORMAT_DATE)).getTime() > new Date(moment(b.fecha_solicitud, FORMAT_DATE)).getTime()
