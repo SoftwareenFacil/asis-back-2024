@@ -131,18 +131,20 @@ router.post("/pagination", async (req, res) => {
       .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
-      // .sort({ anio_solicitud: -1 })
-      .sort({ fecha_system: 1 })
+      .sort({ fecha_solicitud_format: -1 })
+      // .sort({ anio_solicitud: -1, codigo: -1 })
       .toArray();
 
     // console.log(
     //   new Date(moment(result[0].fecha_solicitud, FORMAT_DATE)).getTime()
     // )
 
+    // console.log(result.map(e => `${e.fecha_solicitud}`))
+
     // const resultSorted = result.sort((a, b) => {
     //   return new Date(moment(a.fecha_solicitud, FORMAT_DATE)).getTime() > new Date(moment(b.fecha_solicitud, FORMAT_DATE)).getTime()
-    //     ? 1
-    //     : new Date(moment(a.fecha_solicitud, FORMAT_DATE)).getTime() < new Date(moment(b.fecha_solicitud, FORMAT_DATE)).getTime() ? -1 : 0
+    //     ? -1
+    //     : new Date(moment(a.fecha_solicitud, FORMAT_DATE)).getTime() < new Date(moment(b.fecha_solicitud, FORMAT_DATE)).getTime() ? 1 : 0
     // })
 
     // console.log(a)
@@ -818,15 +820,15 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 // router.delete("/", async (req, res) => {
 //   const conn = await connect();
 //   const db = conn.db('asis-db');
-//   const result = await db.collection('solicitudes').find({ fecha_solicitud: '30-05-2021' }).toArray()
+//   const result = await db.collection('solicitudes').find({anio_solicitud: '2020'}).toArray()
 //   const aux = result.map((element) => {
+//     const a = moment(element.fecha_solicitud, FORMAT_DATE).format('YYYY-MM-DD')
 //     return {
 //       ...element,
-//       fecha_servicio_solicitado: element.fecha_solicitud,
-//       fecha_servicio_solicitado_termino: element.fecha_solicitud,
+//       fecha_solicitud_format: new Date(a)
 //     }
 //   });
-//   await db.collection('solicitudes').deleteMany({ fecha_solicitud: '30-05-2021' })
+//   await db.collection('solicitudes').deleteMany({anio_solicitud: '2020'})
 //   await db.collection('solicitudes').insertMany(aux)
 //   // const requests = await db.collection('solicitudes').deleteMany({ mes_solicitud: 'Mayo' })
 //   res.json({ msg: 'listo' })
@@ -834,23 +836,23 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 //   conn.close();
 // })
 
-router.delete("/", async (req, res) => {
-  const conn = await connect();
-  const db = conn.db('asis-db');
-  const result = await db.collection('solicitudes').find({}).toArray();
-  const filtered = result.filter((element) => element.fecha_solicitud.includes(':'))
+// router.delete("/", async (req, res) => {
+//   const conn = await connect();
+//   const db = conn.db('asis-db');
+//   const result = await db.collection('solicitudes').find({}).toArray();
+//   const filtered = result.filter((element) => element.fecha_solicitud.includes(':'))
 
-  for await (let element of filtered) {
-    await db.collection('solicitudes').findOneAndUpdate({ _id: element._id }, {
-      $set:{
-        fecha_solicitud: moment(element.fecha_solicitud, `${FORMAT_DATE} HH:mm`).format(FORMAT_DATE)
-      }
-    })
-  }
+//   for await (let element of filtered) {
+//     await db.collection('solicitudes').findOneAndUpdate({ _id: element._id }, {
+//       $set:{
+//         fecha_solicitud: moment(element.fecha_solicitud, `${FORMAT_DATE} HH:mm`).format(FORMAT_DATE)
+//       }
+//     })
+//   }
 
-  conn.close();
-  res.json({ msg: 'listo' })
-})
+//   conn.close();
+//   res.json({ msg: 'listo' })
+// })
 
 //DELETE / ANULAR
 router.delete('/:id', async (req, res) => {
