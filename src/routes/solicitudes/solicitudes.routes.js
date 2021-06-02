@@ -132,7 +132,7 @@ router.post("/pagination", async (req, res) => {
       .skip(skip_page)
       .limit(nPerPage)
       // .sort({ anio_solicitud: -1 })
-      .sort({ codigo: -1 })
+      .sort({ fecha_system: 1 })
       .toArray();
 
     // console.log(
@@ -837,16 +837,17 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
 router.delete("/", async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
-  const result = await db.collection('solicitudes').find({ fecha_servicio_solicitado: 'Invalid date', fecha_servicio_solicitado_termino: 'Invalid date' }).toArray();
-  const aux = result.map((element) => {
-    return {
-      ...element,
-      fecha_servicio_solicitado: element.fecha_solicitud,
-      fecha_servicio_solicitado_termino: element.fecha_solicitud
-    }
-  });
-  await db.collection('solicitudes').deleteMany({ fecha_servicio_solicitado: 'Invalid date', fecha_servicio_solicitado_termino: 'Invalid date' });
-  await db.collection('solicitudes').insertMany(aux)
+  const result = await db.collection('solicitudes').find({}).toArray();
+  const filtered = result.filter((element) => element.fecha_solicitud.includes(':'))
+
+  for await (let element of filtered) {
+    await db.collection('solicitudes').findOneAndUpdate({ _id: element._id }, {
+      $set:{
+        fecha_solicitud: moment(element.fecha_solicitud, `${FORMAT_DATE} HH:mm`).format(FORMAT_DATE)
+      }
+    })
+  }
+
   conn.close();
   res.json({ msg: 'listo' })
 })
