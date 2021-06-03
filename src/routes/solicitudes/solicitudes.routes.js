@@ -1,5 +1,5 @@
 import { Router, request } from "express";
-import { calculate } from "../../functions/NewCode";
+import { calculate, generateNewCodeRequest } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import { getDate } from "../../functions/getDateNow";
 import excelToJson from "../../functions/insertManyGis/excelToJson";
@@ -404,6 +404,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   const db = conn.db('asis-db');
   let newSolicitud = JSON.parse(req.body.data);
   const nuevaObs = newSolicitud.observacion_solicitud;
+
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -412,13 +413,15 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  const items = await db.collection("solicitudes").find().toArray();
+  const items = await db.collection("solicitudes").find().sort({ codigo: -1 }).toArray();
+
+  console.log(items[0])
 
   if (!items)
     return res.status(401).json({ err: 98, msg: NOT_EXISTS, res: null });
 
   (items.length > 0)
-    ? newSolicitud.codigo = `ASIS-SOL-${YEAR}-${calculate(items[items.length - 1])}`
+    ? newSolicitud.codigo = generateNewCodeRequest(items[0].codigo || '')
     : newSolicitud.codigo = `ASIS-SOL-${YEAR}-00001`;
 
   newSolicitud.observacion_solicitud = [];
