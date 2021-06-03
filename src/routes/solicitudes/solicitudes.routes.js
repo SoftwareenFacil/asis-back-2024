@@ -413,7 +413,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
-  const items = await db.collection("solicitudes").find().sort({ codigo: -1 }).toArray();
+  const items = await db.collection("solicitudes").find().sort({ codigo: -1 }).limit(1).toArray();
 
   console.log(items[0])
 
