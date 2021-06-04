@@ -1,5 +1,5 @@
 import { Router, request } from "express";
-import { calculate, generateNewCodeRequest } from "../../functions/NewCode";
+import { calculate, generateNewCodeRequest, generateNewCodeRequestWithYear } from "../../functions/NewCode";
 import { getYear } from "../../functions/getYearActual";
 import { getDate } from "../../functions/getDateNow";
 import excelToJson from "../../functions/insertManyGis/excelToJson";
@@ -513,7 +513,22 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
       .limit(1)
       .toArray();
 
-    const requestsWithCode = addCodeRequest(requestsMapped, lastRequest[0], moment().format('YYYY'));
+    let lastCode = '';
+    const requests = await db.collection("solicitudes").find().sort({ codigo: -1 }).limit(1).toArray(); 
+    console.log(requests[0])
+
+    // const requestsWithCode = addCodeRequest(requestsMapped, requests[0] || '', moment().format('YYYY'));
+    let requestsWithCode = [];
+    let currentCode = !!requests[0]?.codigo ? requests[0].codigo : 'ASIS-SOL-2020-00000';
+
+    requestsMapped.forEach(element => {
+      const aux = generateNewCodeRequestWithYear(currentCode, moment(element.anio_solicitud).format('YYYY') || moment().format('YYYY'))
+      requestsWithCode.push({
+        codigo: aux,
+        ...element
+      });
+      currentCode = aux;
+    });
 
     await db.collection('solicitudes').insertMany(requestsWithCode);
 
@@ -824,24 +839,53 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
   }
 });
 
-// router.delete("/", async (req, res) => {
-//   const conn = await connect();
-//   const db = conn.db('asis-db');
-//   const result = await db.collection('solicitudes').find({anio_solicitud: '2020'}).toArray()
-//   const aux = result.map((element) => {
-//     const a = moment(element.fecha_solicitud, FORMAT_DATE).format('YYYY-MM-DD')
-//     return {
-//       ...element,
-//       fecha_solicitud_format: new Date(a)
-//     }
-//   });
-//   await db.collection('solicitudes').deleteMany({anio_solicitud: '2020'})
-//   await db.collection('solicitudes').insertMany(aux)
-//   // const requests = await db.collection('solicitudes').deleteMany({ mes_solicitud: 'Mayo' })
-//   res.json({ msg: 'listo' })
+router.post("/fortesting", async (req, res) => {
+  const conn = await connect();
+  const db = conn.db('asis-db');
+  const result = await db.collection('solicitudes').find({ isActive: true }).toArray();
 
-//   conn.close();
-// })
+  const mapped = result.map((request) => {
+    return {
+      ...request,
+      fecha_solicitud_format: new Date(moment(request.fecha_solicitud, FORMAT_DATE))
+    }
+  });
+
+  await db.collection('solicitudes').deleteMany();
+  await db.collection('solicitudes').insertMany(mapped);
+
+  // let duplicated = [];
+  // let noDuplicated = [];
+  // let DuplicatedCode = [];
+  // let DuplicatedID = [];
+
+  // result.forEach(request => {
+  //   const aux = noDuplicated.length > 0 ? noDuplicated.find(element => element.codigo === request.codigo) : undefined;
+  //   if(!aux){
+  //     noDuplicated.push(request)
+  //   }
+  //   else{
+  //     DuplicatedCode.push(request.codigo)
+  //     DuplicatedID.push(request._id)
+  //     duplicated.push(request)
+  //   }
+  // });
+
+  //veriicar si tiene reserva hecha
+  // const reservations = await db.collection('reservas').find({ anio: '2020', isActive: true }).toArray();
+
+  // for await (let duplicatedRequest of duplicated){
+  //   const aux = reservations.find((reservation) => reservation.codigo === duplicatedRequest.codigo.replace('SOL', 'AGE'));
+  //   if(!aux){
+  //     await db.collection('solicitudes').deleteOne({ _id: ObjectID(duplicatedRequest._id) });
+  //   }
+  // }
+  
+  res.json({ msg: 'listo' })
+  // res.json({ msg: 'listo', countDuplicated: duplicated.length, codes: DuplicatedCode, res: duplicated });
+
+  conn.close();
+})
 
 // router.delete("/", async (req, res) => {
 //   const conn = await connect();

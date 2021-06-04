@@ -1,21 +1,11 @@
 import moment from 'moment';
 import { FORMAT_DATE } from '../constant/var';
-import { calculate } from './NewCode';
+import { calculate, generateNewCodeRequest, generateNewCodeRequestWithYear } from './NewCode';
 
-const addCodeRequest = (data, lastrequest, year) => {
-  let code = {};
-  if (lastrequest) {
-    code = { codigo: lastrequest.codigo }
-  }
-  else {
-    code = { codigo: `ASIS-SOL-${year}-000000` }
-  }
-  let nextCode = ""
+const addCodeRequest = (data, lastcode, year) => {
   let result = data.map(function (obj) {
     const aux = moment(obj.fecha_solicitud, FORMAT_DATE).format('YYYY');
-    nextCode = `ASIS-SOL-${!!aux ? aux : year}-${calculate(code)}`
-    obj.codigo = nextCode
-    code.codigo = nextCode
+    obj.codigo = generateNewCodeRequestWithYear(lastcode, aux || year)
     return obj
   })
 
