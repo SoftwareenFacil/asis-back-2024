@@ -803,8 +803,8 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
         razon_social_cp: element.razon_social_CP,
         rut_cs: element.rut_cs,
         razon_social_cs: element.razon_social_cs,
-        fecha_reserva: dataJson[0].fecha_solicitud,
-        hora_reserva: dataJson[0].hora_solicitud,
+        fecha_reserva: element.fecha_servicio_solicitado,
+        hora_reserva: element.hora_servicio_solicitado,
         fecha_reserva_fin: element.fecha_servicio_solicitado_termino,
         hora_reserva_fin: element.hora_servicio_solicitado_termino,
         jornada: element.jornada,
@@ -844,22 +844,22 @@ router.post("/fortesting", async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
 
-  await db.collection('solicitudes').updateMany({}, {
-    $set: {
-      estado: 'Ingresado'
-    }
-  });
-  // const result = await db.collection('solicitudes').find({ isActive: true }).toArray();
-
-  // const mapped = result.map((request) => {
-  //   return {
-  //     ...request,
-  //     fecha_solicitud_format: new Date(moment(request.fecha_solicitud, FORMAT_DATE))
+  // await db.collection('solicitudes').updateMany({}, {
+  //   $set: {
+  //     estado: 'Ingresado'
   //   }
   // });
+  const result = await db.collection('solicitudes').find({ isActive: true }).toArray();
 
-  // await db.collection('solicitudes').deleteMany();
-  // await db.collection('solicitudes').insertMany(mapped);
+  const mapped = result.map((request) => {
+    return {
+      ...request,
+      fecha_solicitud_format: new Date(moment(request.fecha_solicitud, FORMAT_DATE))
+    }
+  });
+
+  await db.collection('solicitudes').deleteMany();
+  await db.collection('solicitudes').insertMany(mapped);
 
   // let duplicated = [];
   // let noDuplicated = [];
