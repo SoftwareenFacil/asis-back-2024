@@ -430,6 +430,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     fecha: getDate(new Date()),
   });
 
+  newSolicitud.fecha_solicitud_format = new Date(moment(newSolicitud.fecha_solicitud, FORMAT_DATE));
+
   (req.file)
     ? newSolicitud.url_file_adjunto = {
       name: req.file.originalname,
@@ -448,7 +450,6 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
     //envio correo
     if (result.result.ok === 1 && newSolicitud.sendMail) {
-      console.log('entró a envio de mail')
       const gi = await db
         .collection("gi")
         .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
