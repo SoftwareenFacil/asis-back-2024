@@ -38,7 +38,7 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, FORMAT_DATE, SB_TEMPLATE_INSERT_REQUEST_ID } from "../../constant/var";
+import { NOT_EXISTS, FORMAT_DATE, SB_TEMPLATE_INSERT_REQUEST_ID, SB_TEMPLATE_CONFIRM_REQUEST_ID } from "../../constant/var";
 import { mapRequestsToInsert, addCodeRequest } from "../../functions/requestInsertMassive";
 
 //SELECT
@@ -72,27 +72,44 @@ router.post('/sendmail', async (req, res) => {
     const gi = await db
       .collection("gi")
       .findOne({ _id: ObjectID(data.id_GI_Principal) });
-    sendinblue(
-      // [
-      //   {
-      //     email: 'mariocasanovaramirez@gmail.com',
-      //     name: gi.razon_social || '',
-      //   }
-      // ],
-      data.emailsArray,
-      SB_TEMPLATE_INSERT_REQUEST_ID,
-      {
-        CODIGO_SOLICITUD: data.codigo,
-        RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
-        FECHA_SOLICITUD: data.fecha_solicitud,
-        HORA_SOLICITUD: data.hora_solicitud,
-        CATEGORIA_SOLICITUD: data.categoria1,
-        NOMBRE_SERVICIO_SOLICITUD: data.nombre_servicio,
-        TIPO_SERVICIO_SOLICITUD: data.tipo_servicio,
-        LUGAR_SERVICIO_SOLICITUD: data.lugar_servicio,
-        SUCURSAL_SOLICITUD: data.sucursal,
-      }
-    );
+
+    if (data.estado === 'Ingresado') {
+      sendinblue(
+        data.emailsArray,
+        SB_TEMPLATE_INSERT_REQUEST_ID,
+        {
+          CODIGO_SOLICITUD: data.codigo,
+          RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
+          FECHA_SOLICITUD: data.fecha_solicitud,
+          HORA_SOLICITUD: data.hora_solicitud,
+          CATEGORIA_SOLICITUD: data.categoria1,
+          NOMBRE_SERVICIO_SOLICITUD: data.nombre_servicio,
+          TIPO_SERVICIO_SOLICITUD: data.tipo_servicio,
+          LUGAR_SERVICIO_SOLICITUD: data.lugar_servicio,
+          SUCURSAL_SOLICITUD: data.sucursal,
+        }
+      );
+    }
+    if (data.estado === 'Confirmado') {
+      sendinblue(
+        data.emailsArray,
+        SB_TEMPLATE_CONFIRM_REQUEST_ID,
+        {
+          CODIGO_SOLICITUD: data.codigo,
+          RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
+          FECHA_SOLICITUD: data.fecha_solicitud,
+          HORA_SOLICITUD: data.hora_solicitud,
+          CATEGORIA_SOLICITUD: data.categoria1,
+          NOMBRE_SERVICIO_SOLICITUD: data.nombre_servicio,
+          SUCURSAL_SOLICITUD: data.sucursal,
+          FECHA_CONFIRMACION_SOLICITUD: data.fecha_confirmacion,
+          HORA_CONFIRMACION_SOLICITUD: data.hora_confirmacion,
+          MEDIO_CONFIRMACION_SOLICITUD: data.medio_confirmacion,
+          OBSERVACION_CONFIRMACION_SOLICITUD: data.observacion_solicitud[data.observacion_solicitud.length - 1].obs || ''
+        }
+      );
+    }
+
     return res.status(200).json({ err: null, msg: 'Email enviado satisfactoriamente', res: [] })
   } catch (error) {
     console.log(error)
@@ -455,12 +472,6 @@ router.post("/", multer.single("archivo"), async (req, res) => {
         .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
 
       sendinblue(
-        // [
-        //   {
-        //     email: 'mariocasanovaramirez@gmail.com',
-        //     name: gi.razon_social || '',
-        //   }
-        // ],
         newSolicitud.emailsArray,
         SB_TEMPLATE_INSERT_REQUEST_ID,
         {
@@ -515,7 +526,7 @@ router.post("/masivo", multer.single("archivo"), async (req, res) => {
       .toArray();
 
     let lastCode = '';
-    const requests = await db.collection("solicitudes").find().sort({ codigo: -1 }).limit(1).toArray(); 
+    const requests = await db.collection("solicitudes").find().sort({ codigo: -1 }).limit(1).toArray();
     console.log(requests[0])
 
     // const requestsWithCode = addCodeRequest(requestsMapped, requests[0] || '', moment().format('YYYY'));
@@ -710,10 +721,36 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
           .collection("reservas")
           .insertOne(newReserva);
 
+        //envio correo
+        if (solicitud.sendMail) {
+          const gi = await db
+            .collection("gi")
+            .findOne({ _id: ObjectID(resp.id_GI_Principal) });
+
+          sendinblue(
+            solicitud.emailsArray,
+            SB_TEMPLATE_CONFIRM_REQUEST_ID,
+            {
+              CODIGO_SOLICITUD: resp.codigo,
+              RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
+              FECHA_SOLICITUD: resp.fecha_solicitud,
+              HORA_SOLICITUD: resp.hora_solicitud,
+              CATEGORIA_SOLICITUD: resp.categoria1,
+              NOMBRE_SERVICIO_SOLICITUD: resp.nombre_servicio,
+              SUCURSAL_SOLICITUD: resp.sucursal,
+              FECHA_CONFIRMACION_SOLICITUD: solicitud.fecha_solicitud,
+              HORA_CONFIRMACION_SOLICITUD: solicitud.hora_solicitud,
+              MEDIO_CONFIRMACION_SOLICITUD: solicitud.medio_confirmacion,
+              OBSERVACION_CONFIRMACION_SOLICITUD: solicitud.observacion_solicitud
+            }
+          );
+        };
+
         return res.status(200).json({ err: null, msg: 'Solicitud confirmada', res: resulReserva });
       }
     }
   } catch (error) {
+    console.log(error)
     return res.status(500).json({ err: String(error), msg: '', res: null })
   } finally {
     conn.close()
@@ -887,7 +924,7 @@ router.post("/fortesting", async (req, res) => {
   //     await db.collection('solicitudes').deleteOne({ _id: ObjectID(duplicatedRequest._id) });
   //   }
   // }
-  
+
   res.json({ msg: 'listo' })
   // res.json({ msg: 'listo', countDuplicated: duplicated.length, codes: DuplicatedCode, res: duplicated });
 

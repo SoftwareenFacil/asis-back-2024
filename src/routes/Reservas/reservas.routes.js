@@ -27,7 +27,7 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS } from "../../constant/var";
+import { NOT_EXISTS, SB_TEMPLATE_CONFIRM_RESERVATION } from "../../constant/var";
 
 //SELECT
 router.get('/', async (req, res) => {
@@ -46,10 +46,59 @@ router.get('/', async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     res.status(500).json({ msg: ERROR, error });
-  }finally {
+  } finally {
     conn.close()
   }
 
+})
+
+router.post('/sendmail', async (req, res) => {
+  const conn = await connect();
+  const db = conn.db('asis-db');
+  const datos = req.body;
+  try {
+    // console.log(data)
+    const profesionalAsignado = await db
+      .collection("gi")
+      .findOne({ _id: ObjectID(datos.id_GI_personalAsignado) });
+
+    const clienteSecundario = await db
+      .collection("gi")
+      .findOne({ _id: ObjectID(datos.id_GI_Secundario) });
+
+    const gi = await db
+      .collection("gi")
+      .findOne({ _id: ObjectID(datos.id_GI_Principal) });
+
+    sendinblue(
+      datos.emailsArray,
+      SB_TEMPLATE_CONFIRM_RESERVATION,
+      {
+        CODIGO_RESERVA: datos.codigo,
+        RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
+        FECHA_INICIO_RESERVA: datos.fecha_reserva,
+        HORA_INICIO_RESERVA: datos.hora_reserva,
+        FECHA_INICIO_RESERVA_FIN: datos.fecha_reserva_fin,
+        HORA_INICIO_RESERVA_FIN: datos.hora_reserva_fin,
+        NOMBRE_SERVICIO_SOLICITUD: datos.nombre_servicio,
+        SUCURSAL_SOLICITUD: datos.sucursal,
+        JORNADA_RESERVA: datos.jornada,
+        OBSERVACION_CONFIRMACION_RESERVA: datos.observacion[datos.observacion.length - 1].obs,
+        REQUIERE_EVALUACION_RESERVA: datos.reqEvaluacion,
+        RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut || '',
+        NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social || '',
+        RUT_PROFESIONAL_ASIGNADO: profesionalAsignado.rut || '',
+        NOMBRE_PROFESIONAL_ASIGNADO: profesionalAsignado.razon_social || ''
+      }
+    );
+
+    return res.status(200).json({ err: null, msg: 'Email enviado satisfactoriamente', res: [] })
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  } finally {
+    conn.close();
+  }
 })
 
 //SELECT WITH PAGINATION
@@ -99,7 +148,7 @@ router.post("/pagination", async (req, res) => {
       reservas: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -141,7 +190,7 @@ router.post("/date", async (req, res) => {
       reservas: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -166,7 +215,7 @@ router.get('/ingresadas', async (req, res) => {
       msg: 'No se ha podido cargar las reservas',
       res: null
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -189,7 +238,7 @@ router.get("/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: '', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -290,7 +339,7 @@ router.post('/buscar', async (req, res) => {
       reservas: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 })
@@ -350,7 +399,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     return res.status(200).json({ err: null, msg: SUCCESSFULL_UPDATE, res: [] });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 
@@ -504,17 +553,44 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       });
     }
 
-    // const profesionalAsignado = await db
-    //   .collection("gi")
-    //   .findOne({ _id: ObjectID(datos.id_GI_profesional_asignado) });
+    //envio correo
+    if (datos.sendMail) {
 
-    // const clientePrincipal = await db
-    //   .collection("gi")
-    //   .findOne({ _id: ObjectID(reserva.id_GI_Principal) });
+      const profesionalAsignado = await db
+        .collection("gi")
+        .findOne({ _id: ObjectID(datos.id_GI_personalAsignado) });
 
-    // const clienteSecundario = await db
-    //   .collection("gi")
-    //   .findOne({ _id: ObjectID(reserva.id_GI_Secundario) });
+      const clienteSecundario = await db
+        .collection("gi")
+        .findOne({ _id: ObjectID(reserva.id_GI_Secundario) });
+
+      const gi = await db
+        .collection("gi")
+        .findOne({ _id: ObjectID(datos.id_GI_Principal) });
+
+      sendinblue(
+        datos.emailsArray,
+        SB_TEMPLATE_CONFIRM_RESERVATION,
+        {
+          CODIGO_RESERVA: datos.codigo,
+          RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
+          FECHA_INICIO_RESERVA: datos.fecha_reserva,
+          HORA_INICIO_RESERVA: datos.hora_reserva,
+          FECHA_INICIO_RESERVA_FIN: datos.fecha_reserva_fin,
+          HORA_INICIO_RESERVA_FIN: datos.hora_reserva_fin,
+          NOMBRE_SERVICIO_SOLICITUD: datos.nombre_servicio,
+          SUCURSAL_SOLICITUD: datos.sucursal,
+          JORNADA_RESERVA: datos.jornada,
+          OBSERVACION_CONFIRMACION_RESERVA: datos.observacion,
+          REQUIERE_EVALUACION_RESERVA: datos.reqEvaluacion,
+          RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut || '',
+          NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social || '',
+          RUT_PROFESIONAL_ASIGNADO: profesionalAsignado.rut || '',
+          NOMBRE_PROFESIONAL_ASIGNADO: profesionalAsignado.razon_social || ''
+        }
+      );
+    };
+
 
     return res.status(200).json({
       err: null,
@@ -522,12 +598,13 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
       res: []
     });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({
       err: String(error),
       msg: ERROR,
       res: null
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -754,7 +831,7 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });

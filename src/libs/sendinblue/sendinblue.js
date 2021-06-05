@@ -25,6 +25,8 @@ export default function sendMail(toSend, template, info) {
     }
   };
 
+  console.log('Enviado a', toSend)
+
   apiInstance.sendTransacEmail(sendSmtpEmail)
   .then(function (data) {
     console.log('Email enviado correctamente', data);

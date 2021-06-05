@@ -3,6 +3,8 @@ export const AWS_SECRET_KEY = 'dz5b5lllU0dWuBbbNmFQF1uUV+uNCeK9HcBapc+g';
 export const AWS_BUCKET_NAME = 'asis-bucket-files-s3-aws';
 
 export const SB_TEMPLATE_INSERT_REQUEST_ID = 4;
+export const SB_TEMPLATE_CONFIRM_REQUEST_ID = 5;
+export const SB_TEMPLATE_CONFIRM_RESERVATION = 6;
 
 export const ALREADY_EXISTS = 'Este registro ya existe en el sistema'; // code 99result
 export const NOT_EXISTS = 'Este registro no existe'; // code 98result
