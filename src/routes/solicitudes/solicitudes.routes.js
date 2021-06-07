@@ -728,7 +728,8 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
           url_file_adjunto: archivo,
           observacion: [],
           estado: "Ingresado",
-          isActive: true
+          isActive: true,
+          fecha_reserva_format: new Date(moment(resp.fecha_servicio_solicitado, FORMAT_DATE))
         };
 
         const resulReserva = await db
@@ -872,7 +873,8 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
         sucursal: element.sucursal,
         observacion: [],
         estado: "Ingresado",
-        isActive: true
+        isActive: true,
+        fecha_reserva_format: new Date(moment(element.fecha_servicio_solicitado, FORMAT_DATE))
       });
     });
 

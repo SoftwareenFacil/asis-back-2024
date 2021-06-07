@@ -34,11 +34,37 @@ router.post("/fortesting", async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
 
-  await db.collection('reservas').update({}, {
-    $set: {
-      fecha_reserva_system: new Date(moment("$$fecha_reserva", FORMAT_DATE))
-    }
-  })
+  // await db.collection('reservas').aggregate([ 
+  //   {
+  //     $project: {
+  //         date: {
+  //           $dateFromString: {
+  //               dateString: '$fecha_reserva_system'
+  //           }
+  //         }
+  //     }
+  //   } 
+  // ]);
+
+  const collections = await db.collection('reservas').find({}).toArray();
+  
+  for await (let document of collections) {
+    await db.collection('reservas').updateOne({ _id: ObjectID(document._id) }, {
+      $set: {
+        fecha_reserva_format: new Date(moment(document.fecha_reserva, FORMAT_DATE))
+      }
+    })
+  }
+
+  // await db.collection('reservas').updateMany({}, {$unset: {fecha_reserva_system:""}});
+
+  // await db.collection('reservas').updateMany({}, [
+  //   {
+  //     $set: {
+  //       fecha_reserva_system: "$fecha_reserva"
+  //     }
+  //   }
+  // ])
 
   conn.close();
   res.json({ msg: 'listo' })
@@ -163,7 +189,7 @@ router.post("/pagination", async (req, res) => {
       .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
-      .sort({ codigo: -1 })
+      .sort({ fecha_reserva_format: -1, estado: 1 })
       .toArray();
 
     return res.status(200).json({
