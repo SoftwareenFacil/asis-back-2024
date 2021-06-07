@@ -4,7 +4,8 @@ import { getDate } from "../../functions/getDateNow";
 import { getDateEspecific } from "../../functions/getEspecificDate";
 import multer from "../../libs/multer";
 import { uploadFileToS3, getObjectFromS3 } from "../../libs/aws";
-import moment from 'moment'
+import moment from 'moment';
+import sendinblue from "../../libs/sendinblue/sendinblue";
 
 import { verifyToken } from "../../libs/jwt";
 import { v4 as uuid } from "uuid";
@@ -30,7 +31,8 @@ var fs = require("fs");
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE } from "../../constant/var";
+import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE, SB_TEMPLATE_SEND_RESULTS } from "../../constant/var";
+import getCondicionatesString from "../../functions/transformCondicionantes";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -52,8 +54,90 @@ router.get("/", async (req, res) => {
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({ msg: ERROR, error })
-  }finally {
+  } finally {
     conn.close()
+  }
+});
+
+//SEND MAIL WITH RESULTS
+router.post('/sendmail/:id', async (req, res) => {
+  const { id } = req.params;
+  const datos = req.body;
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
+  try {
+    const result = await db.collection('resultados').findOne({ _id: ObjectID(id) });
+
+    if (!result) return { err: 98, msg: 'El Resultado no existe en los registros del sistema', res: null };
+
+    const pathPdf = result.url_file_adjunto_res;
+
+    const clientePrincipal = await db
+      .collection("gi")
+      .findOne({ rut: result.rut_cp, categoria: 'Empresa/Organizacion' });
+
+    const profesionalAsignado = await db
+      .collection("gi")
+      .findOne({ _id: ObjectID(result.id_GI_personalAsignado) });
+
+    const clienteSecundario = await db
+      .collection("gi")
+      .findOne({ rut: result.rut_cs, categoria: 'Persona Natural' });
+
+    const reserva = await db
+      .collection('reservas')
+      .findOne({ codigo: result.codigo.replace('RES', 'AGE') });
+
+    const s3 = new AWS.S3({
+      accessKeyId: AWS_ACCESS_KEY,
+      secretAccessKey: AWS_SECRET_KEY
+    });
+
+    s3.getObject({ Bucket: AWS_BUCKET_NAME, Key: pathPdf }, (error, data) => {
+      if (error) {
+        return res.json({ err: String(error), msg: 'No se ha podido encontrar el archivo', res: null });
+      }
+      else {
+        sendinblue(
+          datos.emailsArray,
+          SB_TEMPLATE_SEND_RESULTS,
+          {
+            RAZON_SOCIAL_CP_SOLICITUD: clientePrincipal.razon_social || '',
+            CODIGO_RESULTADO: result.codigo,
+            NOMBRE_SERVICIO_SOLICITUD: result.nombre_servicio,
+            SUCURSAL_SOLICITUD: result.sucursal,
+            JORNADA_RESERVA: reserva.jornada || '',
+            FECHA_EXAMEN_RESULTADO: result.fecha_resultado,
+            RESULTADO_EXAMEN: result.estado_resultado,
+            RESTRICCIONES_EXAMEN: getCondicionatesString(result.condicionantes),
+            FECHA_VENCIMIENTO_EXAMEN: result.fecha_vencimiento_examen,
+            RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut || '',
+            NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social || '',
+            RUT_PROFESIONAL_ASIGNADO: profesionalAsignado.rut || '',
+            NOMBRE_PROFESIONAL_ASIGNADO: profesionalAsignado.razon_social || ''
+          },
+          [
+            {
+              content: Buffer.from(data.Body).toString('base64'), // Should be publicly available and shouldn't be a local file
+              name: `Resultado_${result.codigo}.pdf`
+            }
+          ]
+        );
+
+        return res.status(200).json({
+          err: null,
+          msg: 'Se ha enviado el resultado correctamente',
+          res: data.Body,
+          filename: pathPdf
+        });
+      };
+    });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  } finally {
+    conn.close();
   }
 });
 
@@ -78,10 +162,49 @@ router.get('/:id', async (req, res) => {
 
   } catch (error) {
     return res.status(200).json({ err: String(error), msg: 'Ha ocurrido un error', res: null })
-  }finally {
+  } finally {
     conn.close()
   }
-})
+});
+
+//GET FILE FROM AWS S3
+router.get('/downloadfile/:id', async (req, res) => {
+  const { id } = req.params;
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
+  try {
+    const evaluacion = await db.collection('resultados').findOne({ _id: ObjectID(id), isActive: true });
+    if (!evaluacion) return res.status(500).json({ err: 98, msg: NOT_EXISTS, res: null });
+
+    const pathPdf = evaluacion.url_file_adjunto_res;
+
+    const s3 = new AWS.S3({
+      accessKeyId: AWS_ACCESS_KEY,
+      secretAccessKey: AWS_SECRET_KEY
+    });
+
+    s3.getObject({ Bucket: AWS_BUCKET_NAME, Key: pathPdf }, (error, data) => {
+      if (error) {
+        return res.status(500).json({ err: String(error), msg: 'error s3 get file', res: null });
+      }
+      else {
+        return res.status(200).json({
+          err: null,
+          msg: 'Archivo descargado',
+          res: data.Body,
+          filename: pathPdf
+        });
+      };
+    });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: 'Error al obtener archivo', res: null });
+  } finally {
+    conn.close()
+  }
+});
 
 //SELECT WITH PAGINATION
 router.post("/pagination", async (req, res) => {
@@ -130,7 +253,7 @@ router.post("/pagination", async (req, res) => {
       resultados: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -235,7 +358,7 @@ router.post('/buscar', async (req, res) => {
       resultados: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 
@@ -322,7 +445,7 @@ router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: null, msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 
@@ -478,46 +601,7 @@ router.post("/confirmar/:id", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
-    conn.close()
-  }
-});
-
-//GET FILE FROM AWS S3
-router.get('/downloadfile/:id', async (req, res) => {
-  const { id } = req.params;
-  const conn = await connect();
-  const db = conn.db('asis-db');
-
-  try {
-    const evaluacion = await db.collection('resultados').findOne({ _id: ObjectID(id), isActive: true });
-    if (!evaluacion) return res.status(500).json({ err: 98, msg: NOT_EXISTS, res: null });
-
-    const pathPdf = evaluacion.url_file_adjunto_res;
-
-    const s3 = new AWS.S3({
-      accessKeyId: AWS_ACCESS_KEY,
-      secretAccessKey: AWS_SECRET_KEY
-    });
-
-    s3.getObject({ Bucket: AWS_BUCKET_NAME, Key: pathPdf }, (error, data) => {
-      if (error) {
-        return res.status(500).json({ err: String(error), msg: 'error s3 get file', res: null });
-      }
-      else {
-        return res.status(200).json({
-          err: null,
-          msg: 'Archivo descargado',
-          res: data.Body,
-          filename: pathPdf
-        });
-      };
-    });
-
-  } catch (error) {
-    console.log(error)
-    return res.status(500).json({ err: String(error), msg: 'Error al obtener archivo', res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -568,7 +652,7 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });

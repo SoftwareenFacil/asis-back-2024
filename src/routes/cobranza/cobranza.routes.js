@@ -7,6 +7,10 @@ const router = Router();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
+import { SB_TEMPLATE_SEND_COLLECTION_LETTER } from "../../constant/var.js";
+import MilesFormat from "../../functions/formattedPesos.js";
+import { ERROR } from "../../constant/text_messages.js";
+import sendinblue from "../../libs/sendinblue/sendinblue";
 
 
 //SELECT
@@ -63,6 +67,63 @@ router.get("/pdf", async (req, res) => {
   }
 });
 
+//SEND MAIL COBRANZA
+router.post('/sendmail/:id', async (req, res) => {
+  const { id } = req.params;
+  const datos = req.body;
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
+  try {
+    const cobranza = await db.collection('cobranza').findOne({ _id: ObjectID(id) });
+
+    if (!cobranza) return { err: 98, msg: 'El registro de cobranza no existe en el sistema', res: null };
+
+    const clientePrincipal = await db
+      .collection("gi")
+      .findOne({ rut: cobranza.rut_cp, categoria: 'Empresa/Organizacion' });
+
+    const clienteSecundario = await db
+      .collection("gi")
+      .findOne({ rut: cobranza.rut_cs, categoria: 'Persona Natural' });
+
+    const reserva = await db
+      .collection('reservas')
+      .findOne({ codigo: cobranza.codigo.replace('COB', 'AGE') });
+
+    const factura = await db
+      .collection('facturaciones')
+      .findOne({ codigo: cobranza.codigo.replace('COB', 'FAC') });
+
+    sendinblue(
+      datos.emailsArray,
+      SB_TEMPLATE_SEND_COLLECTION_LETTER,
+      {
+        RAZON_SOCIAL_CP_SOLICITUD: clientePrincipal.razon_social || '',
+        CODIGO_COBRANZA: cobranza.codigo,
+        NOMBRE_SERVICIO_SOLICITUD: cobranza.nombre_servicio,
+        SUCURSAL_SOLICITUD: cobranza.sucursal,
+        JORNADA_RESERVA: reserva?.jornada || '',
+        FECHA_FACTURACION: cobranza.fecha_facturacion,
+        NRO_FACTURA: factura?.nro_factura || '',
+        DIAS_CREDITO_CP: clientePrincipal.dias_credito,
+        VALOR_SERVICIO: `$ ${MilesFormat(cobranza.valor_servicio || 0)}`,
+        VALOR_PAGADO: `$ ${MilesFormat(cobranza.valor_cancelado || 0)}`,
+        VALOR_DEUDA: `$ ${MilesFormat(cobranza.valor_deuda || 0)}`,
+        RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut || '',
+        NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social || '',
+      }
+    );
+
+    return res.status(200).json({ err: null, msg: 'Cobranza enviada satisfactoriamente', res: [] })
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  } finally {
+    conn.close();
+  }
+});
 
 //SELECT WITH PAGINATION
 router.post('/pagination', async (req, res) => {
@@ -179,7 +240,7 @@ router.post('/buscar', async (req, res) => {
       cobranzas: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 })

@@ -1,6 +1,6 @@
 import { API_KEY_SENDINBLUE } from "../../constant/var";
 
-export default function sendMail(toSend, template, info) {
+export default function sendMail(toSend, template, info, attachment) {
   var SibApiV3Sdk = require('sib-api-v3-sdk');
   var defaultClient = SibApiV3Sdk.ApiClient.instance;
 
@@ -16,14 +16,27 @@ export default function sendMail(toSend, template, info) {
 
   var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); // SendSmtpEmail | Values to send a transactional email
 
-  sendSmtpEmail = {
-    to: toSend,
-    templateId: template,
-    params: info,
-    headers: {
-      'X-Mailin-custom': 'custom_header_1:custom_value_1|custom_header_2:custom_value_2'
-    }
-  };
+  if(attachment){
+    sendSmtpEmail = {
+      to: toSend,
+      templateId: template,
+      params: info,
+      attachment: attachment,
+      headers: {
+        'X-Mailin-custom': 'custom_header_1:custom_value_1|custom_header_2:custom_value_2'
+      }
+    };
+  }
+  else{
+    sendSmtpEmail = {
+      to: toSend,
+      templateId: template,
+      params: info,
+      headers: {
+        'X-Mailin-custom': 'custom_header_1:custom_value_1|custom_header_2:custom_value_2'
+      }
+    };
+  }
 
   console.log('Enviado a', toSend)
 
