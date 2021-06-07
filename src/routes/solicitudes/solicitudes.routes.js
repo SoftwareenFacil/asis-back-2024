@@ -73,6 +73,10 @@ router.post('/sendmail', async (req, res) => {
       .collection("gi")
       .findOne({ _id: ObjectID(data.id_GI_Principal) });
 
+    const clienteSecundario = await db
+      .collection("gi")
+      .findOne({ _id: ObjectID(data.id_GI_Secundario) });
+
     if (data.estado === 'Ingresado') {
       sendinblue(
         data.emailsArray,
@@ -87,6 +91,8 @@ router.post('/sendmail', async (req, res) => {
           TIPO_SERVICIO_SOLICITUD: data.tipo_servicio,
           LUGAR_SERVICIO_SOLICITUD: data.lugar_servicio,
           SUCURSAL_SOLICITUD: data.sucursal,
+          RUT_CLIENTE_SECUNDARIO: clienteSecundario?.rut || '',
+          NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario?.razon_social || ''
         }
       );
     }
@@ -105,7 +111,9 @@ router.post('/sendmail', async (req, res) => {
           FECHA_CONFIRMACION_SOLICITUD: data.fecha_confirmacion,
           HORA_CONFIRMACION_SOLICITUD: data.hora_confirmacion,
           MEDIO_CONFIRMACION_SOLICITUD: data.medio_confirmacion,
-          OBSERVACION_CONFIRMACION_SOLICITUD: data.observacion_solicitud[data.observacion_solicitud.length - 1].obs || ''
+          OBSERVACION_CONFIRMACION_SOLICITUD: data.observacion_solicitud[data.observacion_solicitud.length - 1].obs || '',
+          RUT_CLIENTE_SECUNDARIO: clienteSecundario?.rut || '',
+          NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario?.razon_social || ''
         }
       );
     }
@@ -471,6 +479,10 @@ router.post("/", multer.single("archivo"), async (req, res) => {
         .collection("gi")
         .findOne({ _id: ObjectID(result.ops[0].id_GI_Principal) });
 
+      const clienteSecundario = await db
+        .collection("gi")
+        .findOne({ _id: ObjectID(result.ops[0].id_GI_Secundario) });
+
       sendinblue(
         newSolicitud.emailsArray,
         SB_TEMPLATE_INSERT_REQUEST_ID,
@@ -484,6 +496,8 @@ router.post("/", multer.single("archivo"), async (req, res) => {
           TIPO_SERVICIO_SOLICITUD: newSolicitud.tipo_servicio,
           LUGAR_SERVICIO_SOLICITUD: newSolicitud.lugar_servicio,
           SUCURSAL_SOLICITUD: newSolicitud.sucursal,
+          RUT_CLIENTE_SECUNDARIO: clienteSecundario?.rut || '',
+          NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario?.razon_social || ''
         }
       );
     };
@@ -727,6 +741,10 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
             .collection("gi")
             .findOne({ _id: ObjectID(resp.id_GI_Principal) });
 
+          const clienteSecundario = await db
+            .collection("gi")
+            .findOne({ _id: ObjectID(resp.id_GI_Secundario) });
+
           sendinblue(
             solicitud.emailsArray,
             SB_TEMPLATE_CONFIRM_REQUEST_ID,
@@ -741,7 +759,9 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
               FECHA_CONFIRMACION_SOLICITUD: solicitud.fecha_solicitud,
               HORA_CONFIRMACION_SOLICITUD: solicitud.hora_solicitud,
               MEDIO_CONFIRMACION_SOLICITUD: solicitud.medio_confirmacion,
-              OBSERVACION_CONFIRMACION_SOLICITUD: solicitud.observacion_solicitud
+              OBSERVACION_CONFIRMACION_SOLICITUD: solicitud.observacion_solicitud,
+              RUT_CLIENTE_SECUNDARIO: clienteSecundario?.rut || '',
+              NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario?.razon_social || '',
             }
           );
         };

@@ -6,6 +6,7 @@ import { getDate } from "../../functions/getDateNow";
 import multer from "../../libs/multer";
 import sendinblue from "../../libs/sendinblue/sendinblue";
 import { isRolReservas } from "../../functions/isRol";
+import moment from "moment";
 
 import { verifyToken } from "../../libs/jwt";
 
@@ -27,7 +28,39 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, SB_TEMPLATE_CONFIRM_RESERVATION } from "../../constant/var";
+import { NOT_EXISTS, SB_TEMPLATE_CONFIRM_RESERVATION, FORMAT_DATE } from "../../constant/var";
+
+router.post("/fortesting", async (req, res) => {
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
+  await db.collection('reservas').update({}, {
+    $set: {
+      fecha_reserva_system: new Date(moment("$$fecha_reserva", FORMAT_DATE))
+    }
+  })
+
+  conn.close();
+  res.json({ msg: 'listo' })
+})
+
+// router.delete("/", async (req, res) => {
+//   const conn = await connect();
+//   const db = conn.db('asis-db');
+//   const result = await db.collection('solicitudes').find({}).toArray();
+//   const filtered = result.filter((element) => element.fecha_solicitud.includes(':'))
+
+//   for await (let element of filtered) {
+//     await db.collection('solicitudes').findOneAndUpdate({ _id: element._id }, {
+//       $set:{
+//         fecha_solicitud: moment(element.fecha_solicitud, `${FORMAT_DATE} HH:mm`).format(FORMAT_DATE)
+//       }
+//     })
+//   }
+
+//   conn.close();
+//   res.json({ msg: 'listo' })
+// })
 
 //SELECT
 router.get('/', async (req, res) => {
