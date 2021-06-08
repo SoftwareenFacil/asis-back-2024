@@ -354,7 +354,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   }
 });
 
-//INSERTAR DATOS DE FACTURACION
+//INSERTAR/GENERAR FACTURA
 router.post("/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;
   const conn = await connect();
@@ -399,7 +399,7 @@ router.post("/:id", multer.single("archivo"), async (req, res) => {
     };
 
     result = await db.collection("facturaciones").updateOne(
-      { _id: ObjectID(id) },
+      { _id: ObjectID(id), isActive: true },
       {
         $set: {
           fecha_facturacion: datos.fecha_facturacion,
@@ -839,7 +839,7 @@ router.post("/validar/:id", async (req, res) => {
       : (estado = "Facturado");
 
     let result = await db.collection("facturaciones").findOneAndUpdate(
-      { _id: ObjectID(id) },
+      { _id: ObjectID(id), isActive: true },
       {
         $set: {
           estado: estado,
@@ -1109,6 +1109,40 @@ router.post("/validar/factura/asis/many", async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Facturas confirmadas satisfactoriamente', res: [] })
   } catch (error) {
     console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }finally {
+    conn.close()
+  }
+});
+
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
+  try {
+    const invoice = await db.collection('facturaciones').findOneAndUpdate({ _id: ObjectID(id), isActive: true }, {
+      $set: {
+        isActive: false
+      },
+    }, {returnNewDocument: true });
+
+    if(!invoice?.value?.codigo) return res.status(200).json({ err: null, msg: 'Factura eliminada correctamente', res: [] })
+
+    await db.collection('pagos').updateOne({ codigo: invoice.value.codigo.replace('FAC', 'PAG'), isActive: true }, {
+      $set: {
+        isActive: false
+      }
+    });
+
+    await db.collection('cobranza').updateOne({ codigo: invoice.value.codigo.replace('FAC', 'COB'), isActive: true }, {
+      $set: {
+        isActive: false
+      }
+    });
+
+    return res.status(200).json({ err: null, msg: 'Factura eliminada correctamente', res: [] })
+  } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
   }finally {
     conn.close()

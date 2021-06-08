@@ -27,16 +27,16 @@ router.get("/", async (req, res) => {
 
 //GET PENDING PAYMENTS
 router.get("/pending", async (req, res) => {
+  const conn = await connect();
+  const db = conn.db('asis-db');
   try {
-    const conn = await connect();
-    const db = conn.db('asis-db');
     const result = await db.collection('pagos').find({}).toArray();
     const filtered = result.filter((payment) => payment.estado !== 'Pagado');
     return res.status(200).json({ err: null, msg: 'Pagos encontrados', res: filtered })
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
-  }finally {
+  } finally {
     conn.close()
   }
 })
@@ -101,7 +101,7 @@ router.post("/pagination", async (req, res) => {
       pagos: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -220,7 +220,7 @@ router.post("/buscar", async (req, res) => {
       pagos: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -246,8 +246,6 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
   //   path: req.file.path,
   //   type: req.file.mimetype,
   // };
-
-  console.log(datos)
 
   try {
     let archivo = '';
@@ -287,7 +285,7 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
     };
 
     let result = await db.collection("pagos").findOneAndUpdate(
-      { _id: ObjectID(id) },
+      { _id: ObjectID(id), isActive: true },
       {
         $inc: {
           valor_cancelado: obj.total,
@@ -309,7 +307,7 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
       result.value.valor_cancelado < result.value.valor_servicio
     ) {
       result = await db.collection("pagos").updateOne(
-        { _id: ObjectID(id) },
+        { _id: ObjectID(id), isActive: true },
         {
           $set: {
             estado: "Pago Parcial",
@@ -318,7 +316,7 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
       );
     } else if (result.value.valor_cancelado === result.value.valor_servicio) {
       result = await db.collection("pagos").updateOne(
-        { _id: ObjectID(id) },
+        { _id: ObjectID(id), isActive: true },
         {
           $set: {
             estado: "Pagado",
@@ -329,7 +327,7 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
 
     //descontar de la deuda en cobranza si existe
     result = await db.collection("cobranza").findOneAndUpdate(
-      { codigo: codigoCOB },
+      { codigo: codigoCOB, isActive: true },
       {
         $inc: {
           valor_deuda: -obj.total,
@@ -342,7 +340,7 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
     // y si la deuda se salda, pasar al estado al dia
     if (result && result.value?.valor_deuda === 0) {
       result = await db.collection("cobranza").updateOne(
-        { codigo: codigoCOB },
+        { codigo: codigoCOB, isActive: true },
         {
           $set: {
             estado: "Al Dia",
@@ -355,9 +353,130 @@ router.post("/nuevo/:id", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
+});
+
+//DELETE ONE PAYMENT
+router.post("/pagos/onepayment/:id", async (req, res) => {
+  const { id } = req.params;
+  const pago = req.body;
+  const conn = await connect();
+  const db = conn.db('asis-db');
+  // const token = req.headers['x-access-token'];
+
+  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
+
+  // const dataToken = await verifyToken(token);
+
+  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
+
+  //1.- traigo la coleccion
+  try {
+    const coleccionPago = await db
+      .collection("pagos")
+      .findOne({ _id: ObjectID(id) });
+
+    let pagos = coleccionPago.pagos;
+
+    if (coleccionPago) {
+      for (let index = 0; index < pagos.length; index++) {
+        const element = pagos[index];
+        if (element.id === pago.id) {
+          pagos.splice(index, 1);
+        }
+      }
+    }
+
+    //sumo los totales de los pagos nuevamente
+    const sumPrices = (sumador, nextItem) => sumador + nextItem.total;
+    let total = pagos.reduce(sumPrices, 0);
+    let deuda = coleccionPago.valor_servicio - total;
+
+    //edito la coleccion de pagos
+    let result = await db.collection("pagos").findOneAndUpdate(
+      { _id: ObjectID(id), isActive: true },
+      {
+        $set: {
+          valor_cancelado: total,
+          pagos: pagos,
+        },
+      },
+      { returnOriginal: false }
+    );
+
+    //-- sacamos el codigo de pagos y lo transformamos a cobranza para buscar si existe
+    let codigoPAG = result.value.codigo;
+    let codigoCOB = codigoPAG.replace("PAG", "COB");
+    //--
+
+    if (
+      result.value.valor_cancelado > 0 &&
+      result.value.valor_cancelado < result.value.valor_servicio
+    ) {
+      result = await db.collection("pagos").updateOne(
+        { _id: ObjectID(id), isActive: true },
+        {
+          $set: {
+            estado: "Pago Parcial",
+          },
+        }
+      );
+    } else if (result.value.valor_cancelado === result.value.valor_servicio) {
+      result = await db.collection("pagos").updateOne(
+        { _id: ObjectID(id), isActive: true },
+        {
+          $set: {
+            estado: "Pagado",
+          },
+        }
+      );
+    }
+
+    //descontar de la deuda en cobranza si existe
+    result = await db.collection("cobranza").findOneAndUpdate(
+      { codigo: codigoCOB, isActive: true },
+      {
+        $set: {
+          valor_deuda: deuda,
+          valor_cancelado: total,
+        },
+      },
+      { returnOriginal: false }
+    );
+
+    // y si la deuda se salda, pasar al estado al dia
+    if (result.value.valor_deuda === 0) {
+      result = await db.collection("cobranza").updateOne(
+        { codigo: codigoCOB, isActive: true },
+        {
+          $set: {
+            estado: "Al Dia",
+          },
+        }
+      );
+    }else{
+      result = await db.collection("cobranza").updateOne(
+        { codigo: codigoCOB, isActive: true },
+        {
+          $set: {
+            estado: "Vencido",
+          },
+        }
+      );
+    }
+
+    return res.status(200).json({ err: null, msg: 'Pago eliminado correctamente', res: [] });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  }
+  finally {
+    conn.close();
+  }
+
 });
 
 //INGRESO MASIVO DE PAGOS
@@ -464,7 +583,7 @@ router.post("/many", multer.single("archivo"), async (req, res) => {
       msg: ERROR,
       res: null
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -603,107 +722,41 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
   }
 });
 
-//DELETE PAGO
-router.delete("/:id", async (req, res) => {
+//DELETE GENERAL PAYMENT
+router.delete('/:id', async (req, res) => {
   const { id } = req.params;
-  const pago = JSON.parse(req.query.data);
   const conn = await connect();
   const db = conn.db('asis-db');
-  const token = req.headers['x-access-token'];
 
-  if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
-
-  const dataToken = await verifyToken(token);
-
-  if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
-
-  //1.- traigo la coleccion
-  const coleccionPago = await db
-    .collection("pagos")
-    .findOne({ _id: ObjectID(id) });
-
-  let pagos = coleccionPago.pagos;
-
-  if (coleccionPago) {
-    for (let index = 0; index < pagos.length; index++) {
-      const element = pagos[index];
-      if (element.id === pago.id) {
-        pagos.splice(index, 1);
-      }
-    }
-  }
-
-  //sumo los totales de los pagos nuevamente
-  const sumPrices = (sumador, nextItem) => sumador + nextItem.total;
-  let total = pagos.reduce(sumPrices, 0);
-  let deuda = coleccionPago.valor_servicio - total;
-
-  //edito la coleccion de pagos
-  let result = await db.collection("pagos").findOneAndUpdate(
-    { _id: ObjectID(id) },
-    {
+  try {
+    const payment = await db.collection('pagos').findOneAndUpdate({ _id: ObjectID(id) }, {
       $set: {
-        valor_cancelado: total,
-        pagos: pagos,
-      },
-    },
-    { returnOriginal: false }
-  );
-
-  //-- sacamos el codigo de pagos y lo transformamos a cobranza para buscar si existe
-  let codigoPAG = result.value.codigo;
-  let codigoCOB = codigoPAG.replace("PAG", "COB");
-  //--
-
-  if (
-    result.value.valor_cancelado > 0 &&
-    result.value.valor_cancelado < result.value.valor_servicio
-  ) {
-    result = await db.collection("pagos").updateOne(
-      { _id: ObjectID(id) },
-      {
-        $set: {
-          estado: "Pago Parcial",
-        },
+        isActive: false
       }
-    );
-  } else if (result.value.valor_cancelado === result.value.valor_servicio) {
-    result = await db.collection("pagos").updateOne(
-      { _id: ObjectID(id) },
-      {
-        $set: {
-          estado: "Pagado",
-        },
-      }
-    );
-  }
+    }, { returnOriginal: true });
 
-  //descontar de la deuda en cobranza si existe
-  result = await db.collection("cobranza").findOneAndUpdate(
-    { codigo: codigoCOB },
-    {
+    if (!payment?.value?.codigo) return res.status(200).json({ err: null, msg: 'Pagos general eliminado correctamente', res: [] })
+
+    await db.collection('cobranza').updateOne({ codigo: payment.value.codigo.replace('PAG', 'COB') }, {
       $set: {
-        valor_deuda: deuda,
-        valor_cancelado: total,
-      },
-    },
-    { returnOriginal: false }
-  );
-
-  // y si la deuda se salda, pasar al estado al dia
-  if (result.value.valor_deuda === 0) {
-    result = await db.collection("cobranza").updateOne(
-      { codigo: codigoCOB },
-      {
-        $set: {
-          estado: "Al Dia",
-        },
+        isActive: false
       }
-    );
-  };
+    });
 
-  conn.close();
-  return res.json(result);
+    await db.collection('facturaciones').updateOne({ codigo: payment.value.codigo.replace('PAG', 'FAC') }, {
+      $set: {
+        estado: 'En Facturacion',
+        estado_archivo: 'Sin Documento'
+      }
+    });
+
+    return res.status(200).json({ err: null, msg: 'Pagos general eliminado correctamente', res: [] })
+
+  } catch (error) {
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  } finally {
+    conn.close()
+  }
 });
 
 // ADD IsActive
