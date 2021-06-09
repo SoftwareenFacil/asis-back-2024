@@ -990,6 +990,7 @@ router.post("/evaluado/:id", async (req, res) => {
         rut_cp: result.value.rut_cp,
         razon_social_cp: result.value.razon_social_cp,
         rut_cs: result.value.rut_cs,
+        fecha_resultado: datos.fecha_confirmacion_examen,
         razon_social_cs: result.value.razon_social_cs,
         lugar_servicio: result.value.lugar_servicio,
         sucursal: result.value.sucursal,
@@ -1005,7 +1006,7 @@ router.post("/evaluado/:id", async (req, res) => {
         estado_archivo: 'Cargado',
         estado_resultado: '',
         isActive: true,
-        fecha_resultado_format: new Date(moment(document.fecha_resultado, FORMAT_DATE))
+        fecha_resultado_format: new Date(moment(datos.fecha_confirmacion_examen, FORMAT_DATE))
       });
 
       result = resultinsert;
