@@ -46,12 +46,12 @@ router.post("/fortesting", async (req, res) => {
   //   } 
   // ]);
 
-  const collections = await db.collection('reservas').find({}).toArray();
+  const collections = await db.collection('resultados').find({}).toArray();
   
   for await (let document of collections) {
-    await db.collection('reservas').updateOne({ _id: ObjectID(document._id) }, {
+    await db.collection('resultados').updateOne({ _id: ObjectID(document._id) }, {
       $set: {
-        fecha_reserva_format: new Date(moment(document.fecha_reserva, FORMAT_DATE))
+        fecha_resultado_format: new Date(moment(document.fecha_resultado, FORMAT_DATE))
       }
     })
   }
@@ -380,6 +380,7 @@ router.post('/buscar', async (req, res) => {
     result = await db
       .collection("reservas")
       .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .sort({ fecha_reserva_format: -1, estado: 1 })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -550,7 +551,8 @@ router.post("/confirmar/:id", multer.single("archivo"), async (req, res) => {
         observaciones: [],
         estado_archivo: "Sin Documento",
         estado: "Ingresado",
-        isActive: true
+        isActive: true,
+        fecha_evaluacion_format: new Date(moment(reserva.fecha_reserva, FORMAT_DATE))
       });
     } else {
       //verificar si tiene OC o no el GI
@@ -760,7 +762,8 @@ router.post("/confirmar", multer.single("archivo"), async (req, res) => {
         observaciones: [],
         estado_archivo: "Sin Documento",
         estado: "Ingresado",
-        isActive: true
+        isActive: true,
+        fecha_evaluacion_format: new Date(moment(element.fecha_reserva, FORMAT_DATE))
       });
     });
 

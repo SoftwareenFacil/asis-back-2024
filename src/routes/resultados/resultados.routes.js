@@ -236,7 +236,7 @@ router.post("/pagination", async (req, res) => {
       .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
-      .sort({ codigo: -1 })
+      .sort({ fecha_resultado_format: -1, estado: 1 })
       .toArray();
 
     return res.json({
@@ -338,6 +338,7 @@ router.post('/buscar', async (req, res) => {
     result = await db
       .collection("resultados")
       .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .sort({ fecha_resultado_format: -1, estado: 1 })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();

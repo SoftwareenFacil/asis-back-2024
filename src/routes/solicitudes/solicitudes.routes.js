@@ -320,6 +320,7 @@ router.post("/buscar", async (req, res) => {
     result = await db
       .collection("solicitudes")
       .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .sort({ fecha_solicitud_format: -1, estado: -1 })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();

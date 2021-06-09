@@ -656,7 +656,7 @@ router.post("/pagination", async (req, res) => {
     ]
     ).toArray();
 
-    console.log('agregate', mergedEvaluaciones);
+    // console.log('agregate', mergedEvaluaciones);
 
     // const countEva = await db.collection("evaluaciones").find({ ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }).count();
     // const result = await db
@@ -673,7 +673,7 @@ router.post("/pagination", async (req, res) => {
       .find({ isActive: true })
       .skip(skip_page)
       .limit(nPerPage)
-      .sort({ codigo: -1 })
+      .sort({ fecha_evaluacion_format: -1, estado: -1 })
       .toArray();
 
     return res.json({
@@ -777,6 +777,7 @@ router.post("/buscar", async (req, res) => {
     result = await db
       .collection("evaluaciones")
       .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .sort({ fecha_evaluacion_format: -1, estado: -1 })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -929,7 +930,6 @@ router.post("/evaluado/:id", async (req, res) => {
   const db = conn.db('asis-db');
   const datos = req.body;
 
-  console.log(datos)
   // const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
@@ -1004,7 +1004,8 @@ router.post("/evaluado/:id", async (req, res) => {
         // estado_archivo: 'Sin Documento',
         estado_archivo: 'Cargado',
         estado_resultado: '',
-        isActive: true
+        isActive: true,
+        fecha_resultado_format: new Date(moment(document.fecha_resultado, FORMAT_DATE))
       });
 
       result = resultinsert;
