@@ -82,6 +82,7 @@ router.post("/pagination", async (req, res) => {
     const result = await db
       .collection("pagos")
       .find({ isActive: true })
+      .sort({ codigo: -1, estado: -1 })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -202,6 +203,7 @@ router.post("/buscar", async (req, res) => {
     result = await db
       .collection("pagos")
       .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .sort({ codigo: -1, estado: -1 })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();

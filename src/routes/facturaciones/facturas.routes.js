@@ -159,6 +159,7 @@ router.post("/pagination", async (req, res) => {
     const result = await db
       .collection("facturaciones")
       .find({ isActive: true })
+      .sort({ codigo: -1, estado: 1 })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
@@ -279,6 +280,7 @@ router.post("/buscar", async (req, res) => {
     result = await db
       .collection("facturaciones")
       .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+      .sort({ codigo: -1, estado: 1 })
       .skip(skip_page)
       .limit(nPerPage)
       .toArray();
