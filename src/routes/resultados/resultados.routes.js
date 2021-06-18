@@ -31,7 +31,7 @@ var fs = require("fs");
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE, SB_TEMPLATE_SEND_RESULTS } from "../../constant/var";
+import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE, SB_TEMPLATE_SEND_RESULTS, CURRENT_ROL, COLABORATION_ROL } from "../../constant/var";
 import getCondicionatesString from "../../functions/transformCondicionantes";
 
 //SELECT
@@ -212,11 +212,11 @@ router.post("/pagination", async (req, res) => {
   const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
@@ -230,14 +230,39 @@ router.post("/pagination", async (req, res) => {
     //   .sort({ codigo: -1 })
     //   .toArray();
 
-    const countRes = await db.collection("resultados").find({ isActive: true }).count();
-    const result = await db
-      .collection("resultados")
-      .find({ isActive: true })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .sort({ fecha_resultado_format: -1, estado: 1 })
-      .toArray();
+    let countRes;
+    let result;
+
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countRes = await db.collection("resultados").find({ rut_cp: dataToken.rut, isActive: true }).count();
+      result = await db
+        .collection("resultados")
+        .find({ rut_cp: dataToken.rut, isActive: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .sort({ fecha_resultado_format: -1, estado: 1 })
+        .toArray();
+    }
+    else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
+      countRes = await db.collection("resultados").find({ id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true }).count();
+      result = await db
+        .collection("resultados")
+        .find({ id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .sort({ fecha_resultado_format: -1, estado: 1 })
+        .toArray();
+    }
+    else {
+      countRes = await db.collection("resultados").find({ isActive: true }).count();
+      result = await db
+        .collection("resultados")
+        .find({ isActive: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .sort({ fecha_resultado_format: -1, estado: 1 })
+        .toArray();
+    }
 
     return res.json({
       total_items: countRes,
@@ -264,11 +289,11 @@ router.post('/buscar', async (req, res) => {
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const conn = await connect();
   const db = conn.db('asis-db');
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
@@ -330,18 +355,48 @@ router.post('/buscar', async (req, res) => {
     //     .toArray();
     // }
 
-    countRes = await db
-      .collection("resultados")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .count();
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countRes = await db
+        .collection("resultados")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .count();
 
-    result = await db
-      .collection("resultados")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .sort({ fecha_resultado_format: -1, estado: 1 })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
+      result = await db
+        .collection("resultados")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .sort({ fecha_resultado_format: -1, estado: 1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
+      countRes = await db
+        .collection("resultados")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .count();
+
+      result = await db
+        .collection("resultados")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .sort({ fecha_resultado_format: -1, estado: 1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else {
+      countRes = await db
+        .collection("resultados")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .count();
+
+      result = await db
+        .collection("resultados")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .sort({ fecha_resultado_format: -1, estado: 1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
 
     return res.status(200).json({
       total_items: countRes,

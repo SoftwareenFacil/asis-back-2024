@@ -44,12 +44,14 @@ router.post('/', async (req, res) => {
     const result = await db.collection('roles').find().toArray();
     let roles = (result, rol = '') => {
       switch (rol) {
-        case 'Clientes':
+        case 'clientes':
           return result[0].clientes
-        case 'Empleados':
+        case 'cmpleados':
           return result[0].empleados
-        case 'Colaboradores':
+        case 'colaboradores':
           return result[0].colaboradores
+        case 'supervisor':
+          return result[0].supervisor
         case 'admin':
           return result[0].admin
         default:
@@ -71,6 +73,7 @@ router.post('/', async (req, res) => {
           rol,
           gi,
           permisos: Object.keys(clienteRoles).filter(el => clienteRoles[el] === 1) || []
+          // permisos: clienteRoles
         }
       }
     );

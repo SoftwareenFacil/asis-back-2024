@@ -28,7 +28,7 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, SB_TEMPLATE_CONFIRM_RESERVATION, FORMAT_DATE } from "../../constant/var";
+import { NOT_EXISTS, SB_TEMPLATE_CONFIRM_RESERVATION, FORMAT_DATE, CURRENT_ROL, COLABORATION_ROL } from "../../constant/var";
 
 router.post("/fortesting", async (req, res) => {
   const conn = await connect();
@@ -47,7 +47,7 @@ router.post("/fortesting", async (req, res) => {
   // ]);
 
   const collections = await db.collection('resultados').find({}).toArray();
-  
+
   for await (let document of collections) {
     await db.collection('resultados').updateOne({ _id: ObjectID(document._id) }, {
       $set: {
@@ -166,17 +166,48 @@ router.post("/pagination", async (req, res) => {
   const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED, ERROR });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
+    let countRes;
+    let result;
     // const countRes = await db.collection("reservas").find({...isRolReservas(dataToken.rol, dataToken.id), isActive: true}).count();
-    const countRes = await db.collection("reservas").find({ isActive: true }).count();
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countRes = await db.collection("reservas").find({ rut_cp: dataToken.rut, isActive: true }).count();
+      result = await db
+        .collection("reservas")
+        .find({ rut_cp: dataToken.rut, isActive: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .sort({ fecha_reserva_format: -1, estado: 1 })
+        .toArray();
+    }
+    else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
+      countRes = await db.collection("reservas").find({ id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true }).count();
+      result = await db
+        .collection("reservas")
+        .find({ id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .sort({ fecha_reserva_format: -1, estado: 1 })
+        .toArray();
+    }
+    else {
+      countRes = await db.collection("reservas").find({ isActive: true }).count();
+      result = await db
+        .collection("reservas")
+        .find({ isActive: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .sort({ fecha_reserva_format: -1, estado: 1 })
+        .toArray();
+    }
     // const result = await db
     //   .collection("reservas")
     //   .find({...isRolReservas(dataToken.rol, dataToken.id), isActive: true})
@@ -184,13 +215,6 @@ router.post("/pagination", async (req, res) => {
     //   .limit(nPerPage)
     //   .sort({ codigo: -1 })
     //   .toArray();
-    const result = await db
-      .collection("reservas")
-      .find({ isActive: true })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .sort({ fecha_reserva_format: -1, estado: 1 })
-      .toArray();
 
     return res.status(200).json({
       // auth: AUTHORIZED,
@@ -217,18 +241,44 @@ router.post("/date", async (req, res) => {
   const { month = null, year = null } = req.body;
   const conn = await connect();
   const db = conn.db('asis-db');
+  const token = req.headers['x-access-token'];
 
   try {
     let result = []
+    const dataToken = await verifyToken(token);
 
-    if (!!month && !!year) {
-      result = await db.collection('reservas').find({ mes: month, anio: year, isActive: true }).toArray();
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      if (!!month && !!year) {
+        result = await db.collection('reservas').find({ rut_cp: dataToken.rut, mes: month, anio: year, isActive: true }).toArray();
+      }
+      if (!!month && !year) {
+        result = await db.collection('reservas').find({ rut_cp: dataToken.rut, mes: month, isActive: true }).toArray();
+      }
+      if (!month && !!year) {
+        result = await db.collection('reservas').find({ rut_cp: dataToken.rut, anio: year, isActive: true }).toArray();
+      }
     }
-    if (!!month && !year) {
-      result = await db.collection('reservas').find({ mes: month, isActive: true }).toArray();
+    else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
+      if (!!month && !!year) {
+        result = await db.collection('reservas').find({ id_GI_personalAsignado: ObjectID(dataToken.id), mes: month, anio: year, isActive: true }).toArray();
+      }
+      if (!!month && !year) {
+        result = await db.collection('reservas').find({ id_GI_personalAsignado: ObjectID(dataToken.id), mes: month, isActive: true }).toArray();
+      }
+      if (!month && !!year) {
+        result = await db.collection('reservas').find({ id_GI_personalAsignado: ObjectID(dataToken.id), anio: year, isActive: true }).toArray();
+      }
     }
-    if (!month && !!year) {
-      result = await db.collection('reservas').find({ anio: year, isActive: true }).toArray();
+    else {
+      if (!!month && !!year) {
+        result = await db.collection('reservas').find({ mes: month, anio: year, isActive: true }).toArray();
+      }
+      if (!!month && !year) {
+        result = await db.collection('reservas').find({ mes: month, isActive: true }).toArray();
+      }
+      if (!month && !!year) {
+        result = await db.collection('reservas').find({ anio: year, isActive: true }).toArray();
+      }
     }
 
     console.log([month, year, result.length])
@@ -309,11 +359,11 @@ router.post('/buscar', async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
   let rutFiltrado;
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
@@ -372,18 +422,48 @@ router.post('/buscar', async (req, res) => {
     //     .toArray();
     // };
 
-    countRes = await db
-      .collection("reservas")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .count();
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countRes = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .count();
 
-    result = await db
-      .collection("reservas")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .sort({ fecha_reserva_format: -1, estado: 1 })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
+      result = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .sort({ fecha_reserva_format: -1, estado: 1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
+      countRes = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .count();
+
+      result = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .sort({ fecha_reserva_format: -1, estado: 1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else {
+      countRes = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .count();
+
+      result = await db
+        .collection("reservas")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .sort({ fecha_reserva_format: -1, estado: 1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
 
     return res.status(200).json({
       total_items: countRes,

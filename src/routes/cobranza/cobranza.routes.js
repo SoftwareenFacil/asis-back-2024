@@ -7,10 +7,11 @@ const router = Router();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { SB_TEMPLATE_SEND_COLLECTION_LETTER } from "../../constant/var.js";
+import { SB_TEMPLATE_SEND_COLLECTION_LETTER, CURRENT_ROL } from "../../constant/var.js";
 import MilesFormat from "../../functions/formattedPesos.js";
 import { ERROR } from "../../constant/text_messages.js";
 import sendinblue from "../../libs/sendinblue/sendinblue";
+import { verifyToken } from "../../libs/jwt.js";
 
 
 //SELECT
@@ -131,16 +132,34 @@ router.post('/pagination', async (req, res) => {
   const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
+  const token = req.headers['x-access-token'];
+
+  const dataToken = await verifyToken(token);
 
   try {
-    const countCobranza = await db.collection("cobranza").find({ isActive: true }).count();
-    const result = await db
-      .collection("cobranza")
-      .find({ isActive: true })
-      .sort({ codigo: -1, estado: -1 })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
+    let countCobranza;
+    let result;
+
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countCobranza = await db.collection("cobranza").find({ rut_cp: dataToken.rut, isActive: true }).count();
+      result = await db
+        .collection("cobranza")
+        .find({ rut_cp: dataToken.rut, isActive: true })
+        .sort({ codigo: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else {
+      countCobranza = await db.collection("cobranza").find({ isActive: true }).count();
+      result = await db
+        .collection("cobranza")
+        .find({ isActive: true })
+        .sort({ codigo: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
 
     return res.status(200).json({
       total_items: countCobranza,
@@ -166,6 +185,9 @@ router.post('/buscar', async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
 
+  const token = req.headers['x-access-token'];
+
+  const dataToken = await verifyToken(token);
   // let rutFiltrado;
 
   // if (identificador === 1 && filtro.includes("k")) {
@@ -216,17 +238,33 @@ router.post('/buscar', async (req, res) => {
     //     .toArray();
     // }
 
-    countCobranza = await db
-      .collection("cobranza")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .count();
-    result = await db
-      .collection("cobranza")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .sort({ codigo: -1, estado: -1 })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countCobranza = await db
+        .collection("cobranza")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .count();
+      result = await db
+        .collection("cobranza")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .sort({ codigo: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else{
+      countCobranza = await db
+        .collection("cobranza")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .count();
+      result = await db
+        .collection("cobranza")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .sort({ codigo: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+
 
     return res.status(200).json({
       total_items: countCobranza,

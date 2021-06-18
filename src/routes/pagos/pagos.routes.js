@@ -14,7 +14,7 @@ import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZ
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { AWS_BUCKET_NAME, OTHER_NAME_PDF } from "../../constant/var";
+import { AWS_BUCKET_NAME, OTHER_NAME_PDF, CURRENT_ROL } from "../../constant/var";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -59,11 +59,11 @@ router.post("/pagination", async (req, res) => {
   const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
@@ -77,15 +77,31 @@ router.post("/pagination", async (req, res) => {
     //   .limit(nPerPage)
     //   .toArray();
 
-    const countPagos = await db.collection("pagos")
-      .find({ isActive: true }).count();
-    const result = await db
-      .collection("pagos")
-      .find({ isActive: true })
-      .sort({ codigo: -1, estado: -1 })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
+    let countPagos;
+    let result;
+
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countPagos = await db.collection("pagos")
+        .find({ rut_cp: dataToken.rut, isActive: true }).count();
+      result = await db
+        .collection("pagos")
+        .find({ rut_cp: dataToken.rut, isActive: true })
+        .sort({ codigo: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else {
+      countPagos = await db.collection("pagos")
+        .find({ isActive: true }).count();
+      result = await db
+        .collection("pagos")
+        .find({ isActive: true })
+        .sort({ codigo: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
 
     return res.status(200).json({
       // auth: AUTHORIZED,
@@ -113,11 +129,11 @@ router.post("/buscar", async (req, res) => {
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const conn = await connect();
   const db = conn.db('asis-db');
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
@@ -196,17 +212,33 @@ router.post("/buscar", async (req, res) => {
     //   }
     // }
 
-    countPagos = await db
-      .collection("pagos")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .count();
-    result = await db
-      .collection("pagos")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .sort({ codigo: -1, estado: -1 })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countPagos = await db
+        .collection("pagos")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .count();
+      result = await db
+        .collection("pagos")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .sort({ codigo: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else{
+      countPagos = await db
+        .collection("pagos")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .count();
+      result = await db
+        .collection("pagos")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .sort({ codigo: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+
 
     return res.status(200).json({
       total_items: countPagos,
@@ -458,7 +490,7 @@ router.post("/pagos/onepayment/:id", async (req, res) => {
           },
         }
       );
-    }else{
+    } else {
       result = await db.collection("cobranza").updateOne(
         { codigo: codigoCOB, isActive: true },
         {

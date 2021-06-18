@@ -20,7 +20,7 @@ var fs = require("fs");
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE } from "../../constant/var";
+import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE, CURRENT_ROL } from "../../constant/var";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -50,7 +50,7 @@ router.get('/asis', async (req, res) => {
       empresa: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -65,7 +65,7 @@ router.get("/getoc", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -79,7 +79,7 @@ router.get("/getconfirmoc", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -93,7 +93,7 @@ router.get("/getinvoices", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -122,7 +122,7 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ msg: ERROR, error });
-  }finally {
+  } finally {
     conn.close()
   }
 })
@@ -135,11 +135,11 @@ router.post("/pagination", async (req, res) => {
   const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
@@ -154,15 +154,31 @@ router.post("/pagination", async (req, res) => {
     //   .limit(nPerPage)
     //   .toArray();
 
-    const countFac = await db.collection("facturaciones").find({ isActive: true }).count();
     const empresa = await db.collection("empresa").findOne({});
-    const result = await db
-      .collection("facturaciones")
-      .find({ isActive: true })
-      .sort({ codigo: -1, estado: 1 })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
+
+    let countFac;
+    let result;
+
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countFac = await db.collection("facturaciones").find({ rut_cp: dataToken.rut, isActive: true }).count();
+      result = await db
+        .collection("facturaciones")
+        .find({ rut_cp: dataToken.rut, isActive: true })
+        .sort({ codigo: -1, estado: 1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else {
+      countFac = await db.collection("facturaciones").find({ isActive: true }).count();
+      result = await db
+        .collection("facturaciones")
+        .find({ isActive: true })
+        .sort({ codigo: -1, estado: 1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
 
     return res.status(200).json({
       // auth: AUTHORIZED,
@@ -180,7 +196,7 @@ router.post("/pagination", async (req, res) => {
       facturaciones: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -191,11 +207,11 @@ router.post("/buscar", async (req, res) => {
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const conn = await connect();
   const db = conn.db('asis-db');
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
@@ -273,17 +289,32 @@ router.post("/buscar", async (req, res) => {
     //   }
     // }
 
-    countFac = await db
-      .collection("facturaciones")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .count();
-    result = await db
-      .collection("facturaciones")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .sort({ codigo: -1, estado: 1 })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countFac = await db
+        .collection("facturaciones")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .count();
+      result = await db
+        .collection("facturaciones")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .sort({ codigo: -1, estado: 1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else {
+      countFac = await db
+        .collection("facturaciones")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .count();
+      result = await db
+        .collection("facturaciones")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .sort({ codigo: -1, estado: 1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
 
     return res.status(200).json({
       total_items: countFac,
@@ -298,7 +329,7 @@ router.post("/buscar", async (req, res) => {
       nro_paginas: 0,
       facturaciones: null,
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -351,7 +382,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ msg: ERROR, error });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -428,7 +459,7 @@ router.post("/:id", multer.single("archivo"), async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Factura cargada exitosamente', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
-  }finally {
+  } finally {
     conn.close()
   }
 
@@ -511,7 +542,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -588,7 +619,7 @@ router.post("/subiroc/:id", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -627,7 +658,7 @@ router.get('/downloadfile/:id/:type', async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: 'Error al obtener archivo', res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -697,7 +728,7 @@ router.post("/oc/subiroc/many", multer.single("archivo"), async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -744,7 +775,7 @@ router.post("/confirmaroc/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Orden de compra confirmada', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -798,7 +829,7 @@ router.post("/oc/confirmaroc/many", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -926,7 +957,7 @@ router.post("/validar/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Factura confirmada', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -1112,7 +1143,7 @@ router.post("/validar/factura/asis/many", async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -1127,9 +1158,9 @@ router.delete('/:id', async (req, res) => {
       $set: {
         isActive: false
       },
-    }, {returnNewDocument: true });
+    }, { returnNewDocument: true });
 
-    if(!invoice?.value?.codigo) return res.status(200).json({ err: null, msg: 'Factura eliminada correctamente', res: [] })
+    if (!invoice?.value?.codigo) return res.status(200).json({ err: null, msg: 'Factura eliminada correctamente', res: [] })
 
     await db.collection('pagos').updateOne({ codigo: invoice.value.codigo.replace('FAC', 'PAG'), isActive: true }, {
       $set: {
@@ -1146,7 +1177,7 @@ router.delete('/:id', async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Factura eliminada correctamente', res: [] })
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
-  }finally {
+  } finally {
     conn.close()
   }
 });

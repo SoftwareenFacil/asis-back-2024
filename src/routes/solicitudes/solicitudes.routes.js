@@ -38,7 +38,7 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, FORMAT_DATE, SB_TEMPLATE_INSERT_REQUEST_ID, SB_TEMPLATE_CONFIRM_REQUEST_ID } from "../../constant/var";
+import { NOT_EXISTS, FORMAT_DATE, SB_TEMPLATE_INSERT_REQUEST_ID, SB_TEMPLATE_CONFIRM_REQUEST_ID, CURRENT_ROL, COLABORATION_ROL } from "../../constant/var";
 import { mapRequestsToInsert, addCodeRequest } from "../../functions/requestInsertMassive";
 
 //SELECT
@@ -133,7 +133,7 @@ router.post("/pagination", async (req, res) => {
   const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
@@ -143,7 +143,18 @@ router.post("/pagination", async (req, res) => {
 
   try {
     // const countSol = await db.collection("solicitudes").find({...isRolSolicitudes(dataToken.rol, dataToken.id), isActive: true}).count();
-    const countSol = await db.collection("solicitudes").find({ isActive: true }).count();
+    let countSol;
+    const dataToken = await verifyToken(token);
+
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countSol = await db.collection("solicitudes").find({ rut_CP: dataToken.rut, isActive: true }).count();
+    }
+    else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
+      countSol = await db.collection("solicitudes").find({ id_GI_PersonalAsignado: ObjectID(dataToken.id), isActive: true }).count();
+    }
+    else {
+      countSol = await db.collection("solicitudes").find({ isActive: true }).count();
+    }
     // const result = await db
     //   .collection("solicitudes")
     //   .find({...isRolSolicitudes(dataToken.rol, dataToken.id), isActive: true})
@@ -151,14 +162,37 @@ router.post("/pagination", async (req, res) => {
     //   .limit(nPerPage)
     //   .sort({ codigo: -1 })
     //   .toArray();
-    const result = await db
-      .collection("solicitudes")
-      .find({ isActive: true })
-      .skip(skip_page)
-      .sort({ fecha_solicitud_format: -1, estado: -1 })
-      .limit(nPerPage)
-      // .sort({ anio_solicitud: -1, codigo: -1 })
-      .toArray();
+    let result;
+
+    console.log(dataToken)
+
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      result = await db
+        .collection("solicitudes")
+        .find({ rut_CP: dataToken.rut, isActive: true })
+        .skip(skip_page)
+        .sort({ fecha_solicitud_format: -1, estado: -1 })
+        .limit(nPerPage)
+        .toArray();
+    }
+    else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
+      result = await db
+        .collection("solicitudes")
+        .find({ id_GI_PersonalAsignado: ObjectID(dataToken.id), isActive: true })
+        .skip(skip_page)
+        .sort({ fecha_solicitud_format: -1, estado: -1 })
+        .limit(nPerPage)
+        .toArray();
+    }
+    else {
+      result = await db
+        .collection("solicitudes")
+        .find({ isActive: true })
+        .skip(skip_page)
+        .sort({ fecha_solicitud_format: -1, estado: -1 })
+        .limit(nPerPage)
+        .toArray();
+    }
 
     // console.log(
     //   new Date(moment(result[0].fecha_solicitud, FORMAT_DATE)).getTime()
@@ -204,18 +238,44 @@ router.post("/date", async (req, res) => {
   const { month = null, year = null } = req.body;
   const conn = await connect();
   const db = conn.db('asis-db');
+  const token = req.headers['x-access-token'];
 
   try {
     let result = []
+    const dataToken = await verifyToken(token);
 
-    if (!!month && !!year) {
-      result = await db.collection('solicitudes').find({ mes_solicitud: month, anio_solicitud: year, isActive: true }).toArray();
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      if (!!month && !!year) {
+        result = await db.collection('solicitudes').find({ rut_CP: dataToken.rut, mes_solicitud: month, anio_solicitud: year, isActive: true }).toArray();
+      }
+      if (!!month && !year) {
+        result = await db.collection('solicitudes').find({ rut_CP: dataToken.rut, mes_solicitud: month, isActive: true }).toArray();
+      }
+      if (!month && !!year) {
+        result = await db.collection('solicitudes').find({ rut_CP: dataToken.rut, anio_solicitud: year, isActive: true }).toArray();
+      }
     }
-    if (!!month && !year) {
-      result = await db.collection('solicitudes').find({ mes_solicitud: month, isActive: true }).toArray();
+    else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
+      if (!!month && !!year) {
+        result = await db.collection('solicitudes').find({ id_GI_PersonalAsignado: ObjectID(dataToken.id), mes_solicitud: month, anio_solicitud: year, isActive: true }).toArray();
+      }
+      if (!!month && !year) {
+        result = await db.collection('solicitudes').find({ id_GI_PersonalAsignado: ObjectID(dataToken.id), mes_solicitud: month, isActive: true }).toArray();
+      }
+      if (!month && !!year) {
+        result = await db.collection('solicitudes').find({ id_GI_PersonalAsignado: ObjectID(dataToken.id), anio_solicitud: year, isActive: true }).toArray();
+      }
     }
-    if (!month && !!year) {
-      result = await db.collection('solicitudes').find({ anio_solicitud: year, isActive: true }).toArray();
+    else {
+      if (!!month && !!year) {
+        result = await db.collection('solicitudes').find({ mes_solicitud: month, anio_solicitud: year, isActive: true }).toArray();
+      }
+      if (!!month && !year) {
+        result = await db.collection('solicitudes').find({ mes_solicitud: month, isActive: true }).toArray();
+      }
+      if (!month && !!year) {
+        result = await db.collection('solicitudes').find({ anio_solicitud: year, isActive: true }).toArray();
+      }
     }
 
     // console.log([month, year, result.length])
@@ -249,11 +309,11 @@ router.post("/buscar", async (req, res) => {
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
 
   console.log([identificador, filtro, headFilter, pageNumber, nPerPage])
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
@@ -312,18 +372,49 @@ router.post("/buscar", async (req, res) => {
     //     .toArray();
     // }
 
-    countSol = await db
-      .collection("solicitudes")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .count();
+    if(token && !!dataToken && dataToken.rol === CURRENT_ROL){
+      countSol = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, rut_CP: dataToken.rut, isActive: true })
+        .count();
+  
+      result = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, rut_CP: dataToken.rut, isActive: true })
+        .sort({ fecha_solicitud_format: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else if(token && !!dataToken && dataToken.rol === COLABORATION_ROL){
+      countSol = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: ObjectID(dataToken.id), isActive: true })
+        .count();
+  
+      result = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: ObjectID(dataToken.id), isActive: true })
+        .sort({ fecha_solicitud_format: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else{
+      countSol = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .count();
+  
+      result = await db
+        .collection("solicitudes")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .sort({ fecha_solicitud_format: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
 
-    result = await db
-      .collection("solicitudes")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .sort({ fecha_solicitud_format: -1, estado: -1 })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
 
     return res.status(200).json({
       total_items: countSol,
@@ -904,22 +995,45 @@ router.post("/fortesting", async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
 
+  const evaluactions = await db.collection('evaluaciones').find({ estado: 'Evaluado' }).toArray();
+  console.log(evaluactions.length)
+
+  let cantEvaluationsIncompletate = [];
+
+  for await (let evaluation of evaluactions) {
+    const aux = await db.collection('resultados').findOne({ codigo: evaluation.codigo.replace('EVA', 'RES') });
+    if (!aux) {
+      cantEvaluationsIncompletate.push(evaluation);
+    }
+  }
+
+  console.log(cantEvaluationsIncompletate.length);
+
+  for await (let eva of cantEvaluationsIncompletate) {
+    await db.collection('evaluaciones').updateOne({ codigo: eva.codigo }, {
+      $set: {
+        estado_archivo: "Sin Documento",
+        estado: "Ingresado",
+      }
+    });
+  }
+
   // await db.collection('solicitudes').updateMany({}, {
   //   $set: {
   //     estado: 'Ingresado'
   //   }
   // });
-  const result = await db.collection('solicitudes').find({ isActive: true }).toArray();
+  // const result = await db.collection('solicitudes').find({ isActive: true }).toArray();
 
-  const mapped = result.map((request) => {
-    return {
-      ...request,
-      fecha_solicitud_format: new Date(moment(request.fecha_solicitud, FORMAT_DATE))
-    }
-  });
+  // const mapped = result.map((request) => {
+  //   return {
+  //     ...request,
+  //     fecha_solicitud_format: new Date(moment(request.fecha_solicitud, FORMAT_DATE))
+  //   }
+  // });
 
-  await db.collection('solicitudes').deleteMany();
-  await db.collection('solicitudes').insertMany(mapped);
+  // await db.collection('solicitudes').deleteMany();
+  // await db.collection('solicitudes').insertMany(mapped);
 
   // let duplicated = [];
   // let noDuplicated = [];
@@ -952,7 +1066,7 @@ router.post("/fortesting", async (req, res) => {
   // res.json({ msg: 'listo', countDuplicated: duplicated.length, codes: DuplicatedCode, res: duplicated });
 
   conn.close();
-})
+});
 
 // router.delete("/", async (req, res) => {
 //   const conn = await connect();

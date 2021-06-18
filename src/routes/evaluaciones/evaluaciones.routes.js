@@ -30,7 +30,7 @@ const router = Router();
 import { connect } from "../../database";
 import { ObjectID, ObjectId } from "mongodb";
 import { upperRutWithLetter } from "../../functions/uppercaseRutWithLetter";
-import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, NOT_EXISTS, NAME_PSICO_PDF, NAME_AVERSION_PDF, ERROR_PDF, OTHER_NAME_PDF, FORMAT_DATE } from "../../constant/var";
+import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, NOT_EXISTS, NAME_PSICO_PDF, NAME_AVERSION_PDF, ERROR_PDF, OTHER_NAME_PDF, FORMAT_DATE, CURRENT_ROL, COLABORATION_ROL } from "../../constant/var";
 import { uploadFileToS3, getObjectFromS3 } from "../../libs/aws";
 import { pipe } from "pdfkit";
 
@@ -69,7 +69,7 @@ router.get('/:id', async (req, res) => {
     return res.status(200).json({ err: null, msg: '', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 
@@ -342,7 +342,7 @@ router.post('/evaluacionpsico', async (req, res) => {
   } catch (error) {
     console.log(error)
     return res.json({ err: String(error), msg: 'Error al crear el examen', res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -545,7 +545,7 @@ router.post('/evaluacionaversion', async (req, res) => {
     } catch (error) {
       console.log(error)
       return res.json({ err: 97, msg: ERROR_PDF, res: null })
-    }finally {
+    } finally {
       conn.close()
     }
   }
@@ -589,7 +589,7 @@ router.get('/downloadfile/:id', async (req, res) => {
 
   } catch (error) {
     return res.json({ err: String(error), msg: 'Error al obtener archivo', res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -600,61 +600,61 @@ router.post("/pagination", async (req, res) => {
   const db = conn.db('asis-db');
   const { pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
 
-    const mergedEvaluaciones = await db.collection('evaluaciones').aggregate([
-      {
-        $lookup:
-        {
-          from: "gi",
-          localField: "id_GI_personalAsignado",
-          foreignField: "ObjectId(_id)",
-          as: "evaluador"
-        }
-      },
-      {
-        $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ["$evaluador", 0] }, "$$ROOT"] } }
-      },
-      {
-        $project: {
-          id_GI_personalAsignado: 1,
-          valor_servicio: 1,
-          faena_seleccionada_cp: 1,
-          fecha_evaluacion: 1,
-          fecha_evaluacion_fin: 1,
-          hora_inicio_evaluacion: 1,
-          hora_termino_evaluacion: 1,
-          mes: 1,
-          anio: 1,
-          nombre_servicio: 1,
-          rut_cp: 1,
-          razon_social_cp: 1,
-          rut_cs: 1,
-          razon_social_cs: 1,
-          lugar_servicio: 1,
-          sucursal: 1,
-          observaciones: 1,
-          estado_archivo: 1,
-          estado: 1,
-          razon_social: 1,
-        }
-      },
-      {
-        $match: { isActive: true }
-      },
-      // {
-      //   $match: { ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }
-      // },
-    ]
-    ).toArray();
+    // const mergedEvaluaciones = await db.collection('evaluaciones').aggregate([
+    //   {
+    //     $lookup:
+    //     {
+    //       from: "gi",
+    //       localField: "id_GI_personalAsignado",
+    //       foreignField: "ObjectId(_id)",
+    //       as: "evaluador"
+    //     }
+    //   },
+    //   {
+    //     $replaceRoot: { newRoot: { $mergeObjects: [{ $arrayElemAt: ["$evaluador", 0] }, "$$ROOT"] } }
+    //   },
+    //   {
+    //     $project: {
+    //       id_GI_personalAsignado: 1,
+    //       valor_servicio: 1,
+    //       faena_seleccionada_cp: 1,
+    //       fecha_evaluacion: 1,
+    //       fecha_evaluacion_fin: 1,
+    //       hora_inicio_evaluacion: 1,
+    //       hora_termino_evaluacion: 1,
+    //       mes: 1,
+    //       anio: 1,
+    //       nombre_servicio: 1,
+    //       rut_cp: 1,
+    //       razon_social_cp: 1,
+    //       rut_cs: 1,
+    //       razon_social_cs: 1,
+    //       lugar_servicio: 1,
+    //       sucursal: 1,
+    //       observaciones: 1,
+    //       estado_archivo: 1,
+    //       estado: 1,
+    //       razon_social: 1,
+    //     }
+    //   },
+    //   {
+    //     $match: { isActive: true }
+    //   },
+    //   {
+    //     $match: { ...isRolEvaluaciones(dataToken.rol, dataToken.rut, dataToken.id), isActive: true }
+    //   },
+    // ]
+    // ).toArray();
 
     // console.log('agregate', mergedEvaluaciones);
 
@@ -667,14 +667,39 @@ router.post("/pagination", async (req, res) => {
     //   .sort({ codigo: -1 })
     //   .toArray();
 
-    const countEva = await db.collection("evaluaciones").find({ isActive: true }).count();
-    const result = await db
-      .collection("evaluaciones")
-      .find({ isActive: true })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .sort({ fecha_evaluacion_format: -1, estado: -1 })
-      .toArray();
+    let countEva;
+    let result;
+
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countEva = await db.collection("evaluaciones").find({ rut_cp: dataToken.rut, isActive: true }).count();
+      result = await db
+        .collection("evaluaciones")
+        .find({ rut_cp: dataToken.rut, isActive: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .sort({ fecha_evaluacion_format: -1, estado: -1 })
+        .toArray();
+    } 
+    else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
+      countEva = await db.collection("evaluaciones").find({ id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true }).count();
+      result = await db
+        .collection("evaluaciones")
+        .find({ id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .sort({ fecha_evaluacion_format: -1, estado: -1 })
+        .toArray();
+    }
+    else {
+      countEva = await db.collection("evaluaciones").find({ isActive: true }).count();
+      result = await db
+        .collection("evaluaciones")
+        .find({ isActive: true })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .sort({ fecha_evaluacion_format: -1, estado: -1 })
+        .toArray();
+    }
 
     return res.json({
       // auth: AUTHORIZED,
@@ -692,7 +717,7 @@ router.post("/pagination", async (req, res) => {
       evaluaciones: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -703,11 +728,11 @@ router.post("/buscar", async (req, res) => {
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
   const conn = await connect();
   const db = conn.db('asis-db');
-  // const token = req.headers['x-access-token'];
+  const token = req.headers['x-access-token'];
 
   // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
 
-  // const dataToken = await verifyToken(token);
+  const dataToken = await verifyToken(token);
 
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
@@ -769,18 +794,48 @@ router.post("/buscar", async (req, res) => {
     //     .toArray();
     // };
 
-    countEva = await db
-      .collection("evaluaciones")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .count();
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
+      countEva = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .count();
 
-    result = await db
-      .collection("evaluaciones")
-      .find({ [headFilter]: rexExpresionFiltro, isActive: true })
-      .sort({ fecha_evaluacion_format: -1, estado: -1 })
-      .skip(skip_page)
-      .limit(nPerPage)
-      .toArray();
+      result = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro, rut_cp: dataToken.rut, isActive: true })
+        .sort({ fecha_evaluacion_format: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
+      countEva = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .count();
+
+      result = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .sort({ fecha_evaluacion_format: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
+    else {
+      countEva = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .count();
+
+      result = await db
+        .collection("evaluaciones")
+        .find({ [headFilter]: rexExpresionFiltro, isActive: true })
+        .sort({ fecha_evaluacion_format: -1, estado: -1 })
+        .skip(skip_page)
+        .limit(nPerPage)
+        .toArray();
+    }
 
     return res.status(200).json({
       total_items: countEva,
@@ -796,7 +851,7 @@ router.post("/buscar", async (req, res) => {
       evaluaciones: null,
       err: String(error)
     });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -837,7 +892,7 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
     return res.status(201).json({ message: "Evaluacion modificada correctamente" });
   } catch (error) {
     return res.status(501).json({ message: "ha ocurrido un error", error });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -918,7 +973,7 @@ router.post("/evaluar/:id", multer.single("archivo"), async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Examen cargado', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -1015,7 +1070,7 @@ router.post("/evaluado/:id", async (req, res) => {
     return res.status(200).json({ err: null, msg: 'Evaluacion realizada', res: result });
   } catch (error) {
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });
@@ -1057,7 +1112,7 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.log(error);
     return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  }finally {
+  } finally {
     conn.close()
   }
 });

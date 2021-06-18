@@ -32,3 +32,6 @@ export const COMPANY_CATEGORY = [
   'Mediana Empresa',
   'Gran Empresa'
 ];
+
+export const CURRENT_ROL = 'clientes';
+export const COLABORATION_ROL = 'colaboradores'
