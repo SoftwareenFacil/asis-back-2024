@@ -145,12 +145,12 @@ router.post("/pagination", async (req, res) => {
     // const countSol = await db.collection("solicitudes").find({...isRolSolicitudes(dataToken.rol, dataToken.id), isActive: true}).count();
     let countSol;
     const dataToken = await verifyToken(token);
-
     if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
       countSol = await db.collection("solicitudes").find({ rut_CP: dataToken.rut, isActive: true }).count();
     }
     else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
-      countSol = await db.collection("solicitudes").find({ id_GI_PersonalAsignado: ObjectID(dataToken.id), isActive: true }).count();
+      console.log('herer')
+      countSol = await db.collection("solicitudes").find({ id_GI_PersonalAsignado: dataToken.id, isActive: true }).count();
     }
     else {
       countSol = await db.collection("solicitudes").find({ isActive: true }).count();

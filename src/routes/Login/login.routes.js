@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
     id: gi._id,
     rut: gi.rut,
     razon_social: gi.razon_social,
-    rol: gi.rol || '',
+    rol: gi.rol.toLowerCase() || '',
   });
 
 
@@ -71,7 +71,7 @@ router.post('/', async (req, res) => {
         msg: 'Usuario logeado correctamente',
         res: {
           token,
-          rol,
+          rol: rol.toLowerCase(),
           gi,
           permisos: Object.keys(clienteRoles).filter(el => clienteRoles[el] === 1) || []
           // permisos: clienteRoles
