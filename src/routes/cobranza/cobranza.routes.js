@@ -2,6 +2,8 @@ import { Router } from "express";
 import textoPdf from "../../libs/html-pdf/carta_cobranza.js";
 import QRCode from "qrcode";
 
+var fs = require("fs");
+
 const router = Router();
 
 //database connection
@@ -12,6 +14,8 @@ import MilesFormat from "../../functions/formattedPesos.js";
 import { ERROR } from "../../constant/text_messages.js";
 import sendinblue from "../../libs/sendinblue/sendinblue";
 import { verifyToken } from "../../libs/jwt.js";
+import createPdfCobranza from '../../functions/createPdf/cobranza/createPdfCobranza';
+import createPdfConsolidado from '../../functions/createPdf/cobranza/createPdfConsolidado';
 
 
 //SELECT
@@ -23,20 +27,41 @@ router.get("/", async (req, res) => {
   conn.close();
 });
 
-//SELECT ONE
-router.get('/:id', async (req, res) => {
+//GENERAR PDF COBRANZA
+router.get("/pdfcobranza/:id", async (req, res) => {
   const { id } = req.params;
   const conn = await connect();
   const db = conn.db('asis-db');
 
-  const result = await db.collection('cobranza').findOne({ _id: ObjectID(id) });
+  try {
+    const cobranza = await db.collection('cobranza').findOne({ _id: ObjectID(id) });
+    if (!cobranza) return { err: 98, msg: 'cobranza no existe en los registros', res: null }
 
-  res.json(result);
+    const giCP = await db.collection('gi').findOne({ rut: cobranza.rut_cp, categoria: 'Empresa/Organizacion' });
+    const giCS = await db.collection('gi').findOne({ rut: cobranza.rut_cs, categoria: 'Persona Natural' });
+    const solicitud = await db.collection('solicitudes').findOne({ codigo: cobranza.codigo.replace('COB', 'SOL') });
+    if (!solicitud) return { err: 98, msg: 'solicitud no existe en los registros', res: null }
 
-  conn.close();
-})
+    const profesionalAsignado = await db.collection('gi').findOne({ _id: solicitud.id_GI_PersonalAsignado });
 
-//TEST CREACION DE PDF PARA ENVIO POR CORREO
+    const evaluacion = await db.collection('evaluaciones').findOne({ codigo: cobranza.codigo.replace('COB', 'EVA') });
+    console.log(evaluacion)
+
+    createPdfCobranza('cobranza_ejemplo.pdf', giCP, giCS, solicitud, profesionalAsignado, evaluacion, cobranza);
+
+    setTimeout(() => {
+
+    }, 2000);
+
+    return res.json('ok');
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
+  } finally {
+    conn.close()
+  }
+});
+
 router.get("/pdf", async (req, res) => {
   var fs = require("fs");
   var pdf = require("html-pdf");
@@ -96,25 +121,43 @@ router.post('/sendmail/:id', async (req, res) => {
       .collection('facturaciones')
       .findOne({ codigo: cobranza.codigo.replace('COB', 'FAC') });
 
-    sendinblue(
-      datos.emailsArray,
-      SB_TEMPLATE_SEND_COLLECTION_LETTER,
-      {
-        RAZON_SOCIAL_CP_SOLICITUD: clientePrincipal.razon_social || '',
-        CODIGO_COBRANZA: cobranza.codigo,
-        NOMBRE_SERVICIO_SOLICITUD: cobranza.nombre_servicio,
-        SUCURSAL_SOLICITUD: cobranza.sucursal,
-        JORNADA_RESERVA: reserva?.jornada || '',
-        FECHA_FACTURACION: cobranza.fecha_facturacion,
-        NRO_FACTURA: factura?.nro_factura || '',
-        DIAS_CREDITO_CP: clientePrincipal.dias_credito,
-        VALOR_SERVICIO: `$ ${MilesFormat(cobranza.valor_servicio || 0)}`,
-        VALOR_PAGADO: `$ ${MilesFormat(cobranza.valor_cancelado || 0)}`,
-        VALOR_DEUDA: `$ ${MilesFormat(cobranza.valor_deuda || 0)}`,
-        RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut || '',
-        NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social || '',
-      }
-    );
+    console.log(cobranza.codigo.replace('COB', 'EVA'))
+    const evaluacion = await db.collection('evaluaciones').findOne({ codigo: cobranza.codigo.replace('COB', 'EVA') });
+    console.log(evaluacion)
+
+    const profesionalAsignado = await db.collection('gi').findOne({ _id: reserva.id_GI_personalAsignado });
+
+    createPdfCobranza('cobranza_ejemplo.pdf', clientePrincipal, clienteSecundario, reserva, profesionalAsignado, evaluacion, cobranza);
+
+    setTimeout(() => {
+      const fileContent = fs.readFileSync(`uploads/cobranza_ejemplo.pdf`);
+
+      sendinblue(
+        datos.emailsArray,
+        SB_TEMPLATE_SEND_COLLECTION_LETTER,
+        {
+          RAZON_SOCIAL_CP_SOLICITUD: clientePrincipal.razon_social || '',
+          CODIGO_COBRANZA: cobranza.codigo,
+          NOMBRE_SERVICIO_SOLICITUD: cobranza.nombre_servicio,
+          SUCURSAL_SOLICITUD: cobranza.sucursal,
+          JORNADA_RESERVA: reserva?.jornada || '',
+          FECHA_FACTURACION: cobranza.fecha_facturacion,
+          NRO_FACTURA: factura?.nro_factura || '',
+          DIAS_CREDITO_CP: clientePrincipal.dias_credito,
+          VALOR_SERVICIO: `$ ${MilesFormat(cobranza.valor_servicio || 0)}`,
+          VALOR_PAGADO: `$ ${MilesFormat(cobranza.valor_cancelado || 0)}`,
+          VALOR_DEUDA: `$ ${MilesFormat(cobranza.valor_deuda || 0)}`,
+          RUT_CLIENTE_SECUNDARIO: clienteSecundario.rut || '',
+          NOMBRE_CLIENTE_SECUNDARIO: clienteSecundario.razon_social || '',
+        },
+        [
+          {
+            content: Buffer.from(fileContent).toString('base64'), // Should be publicly available and shouldn't be a local file
+            name: `ASISCONSULTORES_${cobranza.codigo}.pdf`
+          }
+        ]
+      );
+    }, 2000);
 
     return res.status(200).json({ err: null, msg: 'Cobranza enviada satisfactoriamente', res: [] })
 
@@ -251,7 +294,7 @@ router.post('/buscar', async (req, res) => {
         .limit(nPerPage)
         .toArray();
     }
-    else{
+    else {
       countCobranza = await db
         .collection("cobranza")
         .find({ [headFilter]: rexExpresionFiltro, isActive: true })
@@ -283,7 +326,8 @@ router.post('/buscar', async (req, res) => {
   } finally {
     conn.close()
   }
-})
+});
+
 // router.post("/buscar", async (req, res) => {
 //   const { rutcp, tipocliente } = req.body;
 //   const db = await connect();
