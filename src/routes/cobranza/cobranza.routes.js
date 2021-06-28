@@ -2,6 +2,7 @@ import { Router } from "express";
 import textoPdf from "../../libs/html-pdf/carta_cobranza.js";
 import QRCode from "qrcode";
 
+import { v4 as uuid } from "uuid";
 var fs = require("fs");
 
 const router = Router();
@@ -9,13 +10,15 @@ const router = Router();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { SB_TEMPLATE_SEND_COLLECTION_LETTER, CURRENT_ROL } from "../../constant/var.js";
+import { SB_TEMPLATE_SEND_COLLECTION_LETTER, CURRENT_ROL, CONSOLIDATED_REPORT_PDF, AWS_BUCKET_NAME, SB_TEMPLATE_SEND_CONSOLIDATED_REPORT } from "../../constant/var.js";
 import MilesFormat from "../../functions/formattedPesos.js";
 import { ERROR } from "../../constant/text_messages.js";
 import sendinblue from "../../libs/sendinblue/sendinblue";
 import { verifyToken } from "../../libs/jwt.js";
 import createPdfCobranza from '../../functions/createPdf/cobranza/createPdfCobranza';
 import createPdfConsolidado from '../../functions/createPdf/cobranza/createPdfConsolidado';
+
+import { uploadFileToS3 } from "../../libs/aws";
 
 
 //SELECT
@@ -27,38 +30,23 @@ router.get("/", async (req, res) => {
   conn.close();
 });
 
-//GENERAR PDF COBRANZA
-router.get("/pdfcobranza/:id", async (req, res) => {
-  const { id } = req.params;
+//SELECT FILTER
+router.get('/gifilter/:rut', async (req, res) => {
+  const { rut } = req.params;
   const conn = await connect();
   const db = conn.db('asis-db');
 
   try {
-    const cobranza = await db.collection('cobranza').findOne({ _id: ObjectID(id) });
-    if (!cobranza) return { err: 98, msg: 'cobranza no existe en los registros', res: null }
+    const cobranzas = await db.collection('cobranza').find({ rut_cp: rut }).toArray();
+    if(!cobranzas) return { err: 98, msg: 'No se encontraron cobranzas para el GI seleccionado', res: null };
 
-    const giCP = await db.collection('gi').findOne({ rut: cobranza.rut_cp, categoria: 'Empresa/Organizacion' });
-    const giCS = await db.collection('gi').findOne({ rut: cobranza.rut_cs, categoria: 'Persona Natural' });
-    const solicitud = await db.collection('solicitudes').findOne({ codigo: cobranza.codigo.replace('COB', 'SOL') });
-    if (!solicitud) return { err: 98, msg: 'solicitud no existe en los registros', res: null }
-
-    const profesionalAsignado = await db.collection('gi').findOne({ _id: solicitud.id_GI_PersonalAsignado });
-
-    const evaluacion = await db.collection('evaluaciones').findOne({ codigo: cobranza.codigo.replace('COB', 'EVA') });
-    console.log(evaluacion)
-
-    createPdfCobranza('cobranza_ejemplo.pdf', giCP, giCS, solicitud, profesionalAsignado, evaluacion, cobranza);
-
-    setTimeout(() => {
-
-    }, 2000);
-
-    return res.json('ok');
+    return res.status(200).json({ err: null, msg: 'Cobranzas encontradas', res: cobranzas })
   } catch (error) {
     console.log(error)
-    return res.status(500).json({ err: String(error), msg: ERROR, res: null });
-  } finally {
-    conn.close()
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  }
+  finally{
+    conn.close();
   }
 });
 
@@ -90,6 +78,63 @@ router.get("/pdf", async (req, res) => {
     });
   } catch (error) {
     return res.status(400).json({ msg: error });
+  }
+});
+
+router.post("/pdfconsolidado", async (req, res) => {
+  const { gi, cobranzas, emails } = req.body;
+  // const conn = await connect();
+  // const db = conn.db('asis-db');
+  try {
+    const nameFIle = `informe_consolidado_${gi.razon_social}_${uuid()}`;
+    //sacar los distintos tipos de examenes que hay
+    let listExam = [];
+    if(!!cobranzas && !!cobranzas.length){
+      listExam = cobranzas.reduce((acc, current) => {
+        const aux = acc.find((element) => element === current.nombre_servicio);
+        if(!aux){
+          acc.push(current.nombre_servicio)
+        }
+        return acc;
+      }, []);
+    }
+
+    createPdfConsolidado(CONSOLIDATED_REPORT_PDF, gi, listExam, cobranzas);
+
+    setTimeout(() => {
+      const fileContent = fs.readFileSync(`uploads/${CONSOLIDATED_REPORT_PDF}`);
+
+      const params = {
+        Bucket: AWS_BUCKET_NAME,
+        Body: fileContent,
+        Key: nameFIle,
+        ContentType: 'application/pdf'
+      };
+
+      uploadFileToS3(params);
+
+      sendinblue(
+        emails,
+        SB_TEMPLATE_SEND_CONSOLIDATED_REPORT,
+        {
+          RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
+        },
+        [
+          {
+            content: Buffer.from(fileContent).toString('base64'), // Should be publicly available and shouldn't be a local file
+            name: `${nameFIle}.pdf`
+          }
+        ]
+      );
+
+    }, 2000);
+
+    return res.status(200).json({ err: null, msg: 'Informe enviado correctamente', res: [] })
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(err), msg: ERROR, res: null });
+  } finally {
+    // conn.close();
   }
 });
 
@@ -221,7 +266,7 @@ router.post('/pagination', async (req, res) => {
   }
 })
 
-//SELECT POR RUT Y RAZONS SOCIAL
+//SELECT POR RUT Y RAZON SOCIAL
 router.post('/buscar', async (req, res) => {
   const { identificador, filtro, headFilter, pageNumber, nPerPage } = req.body;
   const skip_page = pageNumber > 0 ? (pageNumber - 1) * nPerPage : 0;
@@ -327,6 +372,7 @@ router.post('/buscar', async (req, res) => {
     conn.close()
   }
 });
+
 
 // router.post("/buscar", async (req, res) => {
 //   const { rutcp, tipocliente } = req.body;

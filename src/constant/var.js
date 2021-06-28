@@ -7,6 +7,7 @@ export const SB_TEMPLATE_CONFIRM_REQUEST_ID = 5;
 export const SB_TEMPLATE_CONFIRM_RESERVATION = 6;
 export const SB_TEMPLATE_SEND_RESULTS = 13;
 export const SB_TEMPLATE_SEND_COLLECTION_LETTER = 14;
+export const SB_TEMPLATE_SEND_CONSOLIDATED_REPORT = 15;
 
 export const ALREADY_EXISTS = 'Este registro ya existe en el sistema'; // code 99result
 export const NOT_EXISTS = 'Este registro no existe'; // code 98result
@@ -15,6 +16,7 @@ export const ERROR_PDF = 'Se ha generado un problema al crear el archivo'; // co
 export const NAME_PSICO_PDF = 'EXAMEN_PSICO.pdf';
 export const NAME_AVERSION_PDF = 'EXAMEN_AVERSION.pdf';
 export const OTHER_NAME_PDF = 'EXAMEN.pdf'
+export const CONSOLIDATED_REPORT_PDF = 'REPORTE_CONSOLIDADO.pdf';
 
 export const API_KEY_SENDINBLUE = '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';
 
