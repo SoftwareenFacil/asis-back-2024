@@ -182,9 +182,14 @@ router.post("/pdfconsolidado", async (req, res) => {
     }
 
     //para no crear otro pdf
-    const cobranzas = results;
+    const cobranzas = results.map((result) => {
+      return {
+        ...result,
+        fecha_cobranza: result?.fecha_resultado ? moment(result.fecha_resultado, FORMAT_DATE).toDate() : ''
+      }
+    });
 
-    createPdfConsolidado(CONSOLIDATED_REPORT_RESULTS_PDF, gi, listExam, cobranzas);
+    createPdfConsolidado(CONSOLIDATED_REPORT_RESULTS_PDF, gi, listExam, cobranzas, 'resultados');
 
     setTimeout(() => {
       const fileContent = fs.readFileSync(`uploads/${CONSOLIDATED_REPORT_RESULTS_PDF}`);

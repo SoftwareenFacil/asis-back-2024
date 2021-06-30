@@ -10,7 +10,8 @@ export default function createPdfConsolidado(
   nombrePdf,
   CP,
   listExams,
-  cobranzas
+  cobranzas,
+  type = null
 ) {
   const doc = new PDF();
   let generalSpace = 30;
@@ -405,7 +406,7 @@ export default function createPdfConsolidado(
     doc.fillColor('#000', 1);
     doc
       .font("Helvetica")
-      .text("FECHA EV.", 148, generalSpace + 16, { align: "left" })
+      .text(!!type && type === 'cobranzas' ? 'FECHA EV.' : 'FECHA RES.', 146, generalSpace + 16, { align: "left" })
       .rect(142, generalSpace + 10, 52, 17)
       .fillColor('grey', 0.14)
       .fillAndStroke();
@@ -577,6 +578,46 @@ export default function createPdfConsolidado(
     // doc.addPage();
     generalSpace += 40;
   });
+
+  const TGservicio = cobranzas.reduce((acc, current) => acc + current.valor_servicio, 0);
+  const TGcancelado = cobranzas.reduce((acc, current) => acc + current.valor_cancelado, 0);
+  const TGdeuda = cobranzas.reduce((acc, current) => acc + current.valor_deuda, 0);
+
+  doc.fontSize(8);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica-Bold")
+    .text('T. GENERAL', 364, generalSpace + 16, { align: "left" })
+    .rect(358, generalSpace + 10, 60, 17)
+    .fillColor('grey', 0)
+    .fillAndStroke();
+
+  doc.fontSize(8);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica-Bold")
+    .text(`$${MilesFormat(TGservicio)}`, 426, generalSpace + 16, { align: "left" })
+    .rect(420, generalSpace + 10, 57, 17)
+    .fillColor('grey', 0)
+    .fillAndStroke();
+
+  doc.fontSize(8);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica-Bold")
+    .text(`$${MilesFormat(TGcancelado)}`, 485, generalSpace + 16, { align: "left", width: 200, lineBreak: false })
+    .rect(479, generalSpace + 10, 54, 17)
+    .fillColor('grey', 0.04)
+    .fillAndStroke();
+
+  doc.fontSize(8);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica-Bold")
+    .text(`$${MilesFormat(TGdeuda)}`, 538, generalSpace + 16, { align: "left", width: 200, lineBreak: false })
+    .rect(535, generalSpace + 10, 40, 17)
+    .fillColor('grey', 0.04)
+    .fillAndStroke();
 
   //--FOOTER
   // if (listExams.length === 1 && cobranzas.length <= 15) {

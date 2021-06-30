@@ -99,7 +99,7 @@ router.post("/pdfconsolidado", async (req, res) => {
       }, []);
     }
 
-    createPdfConsolidado(CONSOLIDATED_REPORT_PDF, gi, listExam, cobranzas);
+    createPdfConsolidado(CONSOLIDATED_REPORT_PDF, gi, listExam, cobranzas, 'cobranzas');
 
     setTimeout(() => {
       const fileContent = fs.readFileSync(`uploads/${CONSOLIDATED_REPORT_PDF}`);
