@@ -11,7 +11,10 @@ export default function createPdfConsolidado(
   CP,
   listExams,
   cobranzas,
-  type = null
+  type = null,
+  filtrofecha,
+  filtrocontrato,
+  filtrofaena
 ) {
   const doc = new PDF();
   let generalSpace = 30;
@@ -327,13 +330,55 @@ export default function createPdfConsolidado(
     .text(!!CP ? CP.rut : '', 140, generalSpace, { align: "left" })
     .fillColor('grey', 0.14)
 
+  generalSpace += 15;
+
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica-Bold")
+    .text("PERIODO", 70, generalSpace, { align: "left" })
+    .fillColor('grey', 0.14)
+
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica")
+    .text(!!filtrofecha ? filtrofecha : 'Sin Filtro', 140, generalSpace, { align: "left" })
+    .fillColor('grey', 0.14)
+
+  generalSpace += 15;
+
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica-Bold")
+    .text("CONTRACTO", 70, generalSpace, { align: "left" })
+    .fillColor('grey', 0.14)
+
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica")
+    .text(!!filtrocontrato ? filtrocontrato : 'Sin Filtro', 140, generalSpace, { align: "left" })
+    .fillColor('grey', 0.14)
+
+  generalSpace += 15;
+
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica-Bold")
+    .text("FAENA", 70, generalSpace, { align: "left" })
+    .fillColor('grey', 0.14)
+
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica")
+    .text(!!filtrofaena ? filtrofaena : 'Sin Filtro', 140, generalSpace, { align: "left" })
+    .fillColor('grey', 0.14)
+
   generalSpace += 40;
 
   doc.fontSize(20);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica")
-    .text("DETALLE COBRANZA CONSOLIDADA CLIENTE", 70, generalSpace, { align: "center" })
+    .text(type === 'cobranzas' ? "DETALLE COBRANZA CONSOLIDADA CLIENTE" : "DETALLE GESTION SERVICIOS CONSOLIDADO CLIENTE", 70, generalSpace, { align: "center" })
     .fillColor('grey', 0.14);
 
   //-----TITULO
@@ -523,7 +568,7 @@ export default function createPdfConsolidado(
       doc.fillColor('#000', 1);
       doc
         .font("Helvetica")
-        .text(`$${MilesFormat(element.valor_deuda)}`, 538, generalSpace + 16, { align: "left", width: 200, lineBreak: false })
+        .text(type === 'cobranzas' ? `$${MilesFormat(element.valor_deuda)}` : `$${MilesFormat(element.valor_servicio)}`, 538, generalSpace + 16, { align: "left", width: 200, lineBreak: false })
         .rect(535, generalSpace + 10, 40, 17)
         .fillColor('grey', 0.04)
         .fillAndStroke();
