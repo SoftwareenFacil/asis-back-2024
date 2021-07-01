@@ -681,10 +681,10 @@ router.post("/pagination", async (req, res) => {
         .toArray();
     } 
     else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
-      countEva = await db.collection("evaluaciones").find({ id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true }).count();
+      countEva = await db.collection("evaluaciones").find({ id_GI_personalAsignado: dataToken.id, isActive: true }).count();
       result = await db
         .collection("evaluaciones")
-        .find({ id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .find({ id_GI_personalAsignado: dataToken.id, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .sort({ fecha_evaluacion_format: -1, estado: -1 })

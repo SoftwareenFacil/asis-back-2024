@@ -38,15 +38,17 @@ router.post('/', async (req, res) => {
     rol: gi.rol.toLowerCase() || '',
   });
 
+  console.log(rol)
 
   //le paso la data de los roles
   try {
     const result = await db.collection('roles').find().toArray();
     let roles = (result, rol = '') => {
+      console.log(rol)
       switch (rol.toLowerCase()) {
         case 'clientes':
           return result[0].clientes
-        case 'cmpleados':
+        case 'empleados':
           return result[0].empleados
         case 'colaboradores':
           return result[0].colaboradores

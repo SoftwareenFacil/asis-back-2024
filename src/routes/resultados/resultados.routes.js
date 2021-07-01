@@ -331,10 +331,10 @@ router.post("/pagination", async (req, res) => {
         .toArray();
     }
     else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
-      countRes = await db.collection("resultados").find({ id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true }).count();
+      countRes = await db.collection("resultados").find({ id_GI_personalAsignado: dataToken.id, isActive: true }).count();
       result = await db
         .collection("resultados")
-        .find({ id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .find({ id_GI_personalAsignado: dataToken.id, isActive: true })
         .skip(skip_page)
         .limit(nPerPage)
         .sort({ fecha_resultado_format: -1, estado: 1 })
