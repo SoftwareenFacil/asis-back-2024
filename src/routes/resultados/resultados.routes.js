@@ -163,7 +163,7 @@ router.post('/sendmail/:id', async (req, res) => {
 });
 
 router.post("/pdfconsolidado", async (req, res) => {
-  const { gi, results, emails } = req.body;
+  const { gi, results, emails, filtrofecha = null, filtrocontrato = null, filtrofaena = null } = req.body;
   console.log(results)
   // const conn = await connect();
   // const db = conn.db('asis-db');
@@ -189,7 +189,7 @@ router.post("/pdfconsolidado", async (req, res) => {
       }
     });
 
-    createPdfConsolidado(CONSOLIDATED_REPORT_RESULTS_PDF, gi, listExam, cobranzas, 'resultados');
+    createPdfConsolidado(CONSOLIDATED_REPORT_RESULTS_PDF, gi, listExam, cobranzas, 'resultados', filtrofecha, filtrocontrato, filtrofaena);
 
     setTimeout(() => {
       const fileContent = fs.readFileSync(`uploads/${CONSOLIDATED_REPORT_RESULTS_PDF}`);
