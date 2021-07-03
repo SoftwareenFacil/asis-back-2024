@@ -61,7 +61,7 @@ export default function createPdfConsolidado(
   doc.fontSize(10);
   doc.fillColor('#000', 0.75);
   doc
-    .font("Helvetica")
+    .font("Helvetica-Bold")
     .text(`Estimado (a) ${!!CP ? CP.razon_social : ''}`, 40, generalSpace, { align: "left" })
     .fillColor('grey', 0.24)
 
@@ -70,7 +70,7 @@ export default function createPdfConsolidado(
   doc.fontSize(10);
   doc.fillColor('#000', 0.75);
   doc
-    .font("Helvetica")
+    .font("Helvetica-Bold")
     .text("ASIS Consultores SPA quiere compartir con ud. información importante sobre nuestros servicios y formas de pago y gestión.", 40, generalSpace, { align: "left", width: 520 })
     .fillColor('grey', 0.24);
 
@@ -88,7 +88,7 @@ export default function createPdfConsolidado(
 
   doc.fillColor('#000', 1);
   doc.image(path.resolve("./") + "/src/assets/img/consolidado_1.png", 140, generalSpace, {
-    fit: [350, 350],
+    fit: [300, 300],
     align: "center",
     valign: "start",
   });
@@ -97,13 +97,13 @@ export default function createPdfConsolidado(
 
   doc.fillColor('#000', 1);
   doc.image(path.resolve("./") + "/src/assets/img/consolidado_2.png", 140, generalSpace, {
-    fit: [350, 350],
+    fit: [300, 300],
     align: "center",
     valign: "start",
   });
 
   //--FORMAS DE PAGO
-  generalSpace += 121;
+  generalSpace += 106;
 
   doc.fontSize(10);
   doc.fillColor('#000', 1);
@@ -112,7 +112,7 @@ export default function createPdfConsolidado(
     .text("NUESTRAS FORMAS DE PAGO Y GESTIÓN", 40, generalSpace, { align: "left" })
     .fillColor('grey', 0.24)
 
-  generalSpace += 14;
+  generalSpace += 7;
 
   doc.fontSize(10);
   doc.fillColor('#000', 1);
@@ -123,7 +123,7 @@ export default function createPdfConsolidado(
     .fillColor('grey', 0.2)
     .fillAndStroke();
 
-  generalSpace += 30;
+  generalSpace += 27;
 
   doc.fontSize(8);
   doc.fillColor('#000', 1);
@@ -132,7 +132,7 @@ export default function createPdfConsolidado(
     .text("PARA EFECTO DE PAGOS DE SERVICIOS, LA CUENTA CORRIENTE ASOCIADA AL RUT A LA QUE DEBE REALIZAR TRANSFERENCIAS Y DEPOSITOS ES:", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
     .fillColor('grey', 0.04)
 
-  generalSpace += 40;
+  generalSpace += 33;
 
   doc.fontSize(8);
   doc.fillColor('#000', 1);
@@ -168,34 +168,44 @@ export default function createPdfConsolidado(
     .text("RUT 77.249.223-5", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
     .fillColor('grey', 0.04)
 
-  generalSpace += 25;
+  generalSpace += 18;
 
   doc.fontSize(8);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica-Bold")
-    .text("ENVIAR COMPROBANTE DE PAGO A", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
-    .fillColor('grey', 0.04)
+    .text("IMPORTANTE:", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04);
 
   generalSpace += 12;
 
-  doc.fontSize(9);
+  doc.fontSize(8);
   doc.fillColor('#000', 1);
   doc
-    .font("Helvetica")
-    .text("finanzas@asisconsultores.cl", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
-    .fillColor('grey', 0.04)
+    .font("Helvetica-Bold")
+    .text("Si su factura se encuentra emitida con el Rut 12.398.638-5 Karla Valeska Nuñez Collado, favor pagar al mismo Nombre y Rut, en la cuenta: ", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04);
+
+  generalSpace += 30;
+
+  doc.fontSize(8);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica-Bold")
+    .text("Cta. Cte. Banco Chile 1020047801 o", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04);
 
   generalSpace += 10;
 
-  doc.fontSize(9);
+  doc.fontSize(8);
   doc.fillColor('#000', 1);
   doc
-    .font("Helvetica")
-    .text("knunez@asisconsultores.cl", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
-    .fillColor('grey', 0.04)
+    .font("Helvetica-Bold")
+    .text("Cta. Cte. Banco Estado 13700051662", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04);
 
-  generalSpace -= 147;
+  //---------------------------------------------------------------------RIGHT SIDE
+  generalSpace -= 160;
 
   doc.fontSize(10);
   doc.fillColor('#000', 1);
@@ -249,39 +259,66 @@ export default function createPdfConsolidado(
   doc
     .font("Helvetica")
     .text("Av. Ignacio Silva 98, Oficinas 02 y 03, Illapel, Fono: +569 991283495 / 053-2521964", 362, generalSpace + 16, { align: "left", width: 200, lineBreak: false })
-    .fillColor('grey', 0.04)
+    .fillColor('grey', 0.04);
 
-  //--FOOTER
-  generalSpace += 96;
+  generalSpace += 32;
 
   doc.fontSize(8);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica-Bold")
+    .text("ENVIAR COMPROBANTE DE PAGO A", 321, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04)
+
+  generalSpace += 12;
+
+  doc.fontSize(9);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica")
+    .text("finanzas@asisconsultores.cl", 321, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04)
+
+  generalSpace += 10;
+
+  doc.fontSize(9);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica")
+    .text("knunez@asisconsultores.cl", 321, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04)
+
+  //------------------------------------------------FOOTER
+  generalSpace += 70;
+
+  doc.fontSize(7);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica")
     .text("EMPRESA CERTIFICADA NORMA DE CALIDAD ISO 9001-2015", 40, generalSpace + 16, { align: "center", width: 545, lineBreak: false })
     .fillColor('grey', 0.04)
 
-  generalSpace += 11;
+  generalSpace += 9;
 
-  doc.fontSize(8);
+  doc.fontSize(7);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica")
     .text("BLAS VIAL N°320, SALAMANCA, FONO: 053-2551499 / AV. IGNACIO SILVA N°98 OF. 02 Y 03", 40, generalSpace + 16, { align: "center", width: 545, lineBreak: false })
     .fillColor('grey', 0.04)
 
-  generalSpace += 11;
+  generalSpace += 9;
 
-  doc.fontSize(8);
+  doc.fontSize(7);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica")
     .text("EDIFICIO MARAY, ILLAPEL FONO: 53-2521964 CEL 09-1283495", 40, generalSpace + 16, { align: "center", width: 545, lineBreak: false })
     .fillColor('grey', 0.04)
 
-  generalSpace += 10;
+  generalSpace += 9;
 
-  doc.fontSize(8);
+  doc.fontSize(7);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica")

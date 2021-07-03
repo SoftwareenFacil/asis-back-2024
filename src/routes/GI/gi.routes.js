@@ -37,6 +37,7 @@ import { verifyToken } from "../../libs/jwt";
 
 const router = Router();
 
+var AWS = require('aws-sdk');
 var fs = require("fs");
 
 const YEAR = getYear();
@@ -44,7 +45,7 @@ const YEAR = getYear();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { ALREADY_EXISTS, NOT_EXISTS, OTHER_NAME_PDF, AWS_BUCKET_NAME } from "../../constant/var";
+import { ALREADY_EXISTS, NOT_EXISTS, OTHER_NAME_PDF, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY } from "../../constant/var";
 import { mapDataToInsertManyNaturalPersons } from "../../functions/naturalPersonsInsert";
 
 // SELECT
@@ -79,6 +80,45 @@ router.get("/", async (req, res) => {
       gis: [],
     })
   }finally{
+    conn.close()
+  }
+});
+
+//GET FILE FROM AWS S3
+router.get("/downloadfile/:id", async (req, res) => {
+  const { id } = req.params;
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
+  try {
+    const gi = await db.collection('gi').findOne({ _id: ObjectID(id), activo_inactivo: true });
+    if (!gi) return res.status(404).json({ err: 98, msg: NOT_EXISTS, res: null });
+
+    const pathPdf = gi.url_file_adjunto || '';
+
+    const s3 = new AWS.S3({
+      accessKeyId: AWS_ACCESS_KEY,
+      secretAccessKey: AWS_SECRET_KEY
+    });
+
+    s3.getObject({ Bucket: AWS_BUCKET_NAME, Key: pathPdf }, (error, data) => {
+      if (error) {
+        return res.status(500).json({ err: String(error), msg: 'error s3 get file', res: null });
+      }
+      else {
+        return res.status(200).json({
+          err: null,
+          msg: 'Archivo descargado',
+          res: data.Body,
+          filename: pathPdf
+        });
+      };
+    });
+
+  } catch (error) {
+    console.log(error)
+    return res.status(400).json({ err: String(error), res: null });
+  } finally{
     conn.close()
   }
 });
