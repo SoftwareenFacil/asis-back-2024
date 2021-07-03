@@ -606,7 +606,7 @@ export default function createPdfConsolidado(
       doc
         .font("Helvetica")
         .text(type === 'cobranzas' ? `$${MilesFormat(element.valor_deuda)}` : `$${MilesFormat(element.valor_servicio)}`, 538, generalSpace + 16, { align: "left", width: 200, lineBreak: false })
-        .rect(535, generalSpace + 10, 40, 17)
+        .rect(535, generalSpace + 10, 45, 17)
         .fillColor('grey', 0.04)
         .fillAndStroke();
 
@@ -653,7 +653,7 @@ export default function createPdfConsolidado(
     doc
       .font("Helvetica-Bold")
       .text(type === 'cobranzas' ? `$${MilesFormat(totalDeuda)}` : `$${MilesFormat(totalServicio)}`, 538, generalSpace + 16, { align: "left", width: 200, lineBreak: false })
-      .rect(535, generalSpace + 10, 40, 17)
+      .rect(535, generalSpace + 10, 45, 17)
       .fillColor('grey', 0.04)
       .fillAndStroke();
 
@@ -697,7 +697,7 @@ export default function createPdfConsolidado(
   doc
     .font("Helvetica-Bold")
     .text(type === 'cobranzas' ? `$${MilesFormat(TGdeuda)}` : `$${MilesFormat(TGservicio)}`, 538, generalSpace + 16, { align: "left", width: 200, lineBreak: false })
-    .rect(535, generalSpace + 10, 40, 17)
+    .rect(535, generalSpace + 10, 45, 17)
     .fillColor('grey', 0.04)
     .fillAndStroke();
 

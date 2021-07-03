@@ -367,6 +367,7 @@ router.put('/:id', multer.single("archivo"), async (req, res) => {
   let updatedGI = JSON.parse(req.body.data);
   const conn = await connect();
   const db = conn.db('asis-db');
+  let archivo;
 
   if (req.file) {
     updatedGI.url_file_adjunto = {
@@ -388,12 +389,30 @@ router.put('/:id', multer.single("archivo"), async (req, res) => {
       return res.status(400).json({ err: 98, res: NOT_EXISTS });
     };
 
+    if(req.file){
+      archivo = `GI_${updatedGI.razon_social || ''}_${exitstGI.codigo}_${uuid()}`;
+      updatedGI.url_file_adjunto = archivo;
+
+      setTimeout(() => {
+        const fileContent = fs.readFileSync(`uploads/${OTHER_NAME_PDF}`);
+        const params = {
+          Bucket: AWS_BUCKET_NAME,
+          Body: fileContent,
+          Key: archivo,
+          ContentType: 'application/pdf'
+        };
+
+        uploadFileToS3(params);
+      }, 2000);
+    }
+
     await db.collection('gi').updateOne({ _id: ObjectID(id) }, {
       $set: {
         ...exitstGI,
         ...updatedGI
       }
     });
+    
     return res.status(200).json({ err: null, res: "GI modificado correctamente" });
   } catch (error) {
     console.log(error)
@@ -671,8 +690,6 @@ router.post("/", multer.single("archivo"), async (req, res) => {
     } else {
       newGi.codigo = `ASIS-GI-${YEAR}-00001`;
     }
-
-    console.log(req.file)
 
     if (req.file) {
       archivo = `GI_${newGi.razon_social || ''}_${newGi.codigo}_${uuid()}`;
