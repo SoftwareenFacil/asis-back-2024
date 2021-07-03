@@ -411,7 +411,7 @@ export default function createPdfConsolidado(
 
   generalSpace += 40;
 
-  doc.fontSize(20);
+  type === 'cobranzas' ? doc.fontSize(20) : doc.fontSize(14);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica")
@@ -546,7 +546,7 @@ export default function createPdfConsolidado(
     const totalPagado = totalRegisters.reduce((acc, current) => acc + current.valor_cancelado, 0);
     const totalDeuda = totalRegisters.reduce((acc, current) => acc + current.valor_deuda, 0);
 
-    totalRegisters.forEach(element => {
+    totalRegisters.forEach((element) => {
       doc.fontSize(8);
       doc.fillColor('#000', 0.9);
       doc
@@ -612,7 +612,7 @@ export default function createPdfConsolidado(
 
       numberByPage++;
 
-      if (numberByPage === 19) {
+      if (numberByPage === 18) {
         doc.addPage();
         numberByPage = 0;
         generalSpace = 30;
