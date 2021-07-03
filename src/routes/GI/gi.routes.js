@@ -17,6 +17,8 @@ import verificateDiasCredito from "../../functions/insertManyGis/verificateDiasC
 import verificateOrdenCompra from "../../functions/insertManyGis/verificateOrdenCompra";
 import createJsonGIs from "../../functions/insertManyGis/createJsonGiForInsert";
 import addCodeGI from "../../functions/insertManyGis/addCodeGI";
+import { uploadFileToS3 } from "../../libs/aws";
+import { v4 as uuid } from "uuid";
 
 import {
   verificateGrupoInteres,
@@ -26,7 +28,7 @@ import {
   mapDataToInsertManyGIs
 } from '../../functions/companiesInsert';
 
-import { MESSAGE_UNAUTHORIZED_TOKEN, UNAUTHOTIZED, ERROR_MESSAGE_TOKEN, AUTHORIZED, ERROR } from "../../constant/text_messages";
+import { ERROR } from "../../constant/text_messages";
 
 import multer from "../../libs/multer";
 
@@ -35,12 +37,14 @@ import { verifyToken } from "../../libs/jwt";
 
 const router = Router();
 
+var fs = require("fs");
+
 const YEAR = getYear();
 
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { ALREADY_EXISTS, NOT_EXISTS } from "../../constant/var";
+import { ALREADY_EXISTS, NOT_EXISTS, OTHER_NAME_PDF, AWS_BUCKET_NAME } from "../../constant/var";
 import { mapDataToInsertManyNaturalPersons } from "../../functions/naturalPersonsInsert";
 
 // SELECT
@@ -613,6 +617,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   const db = conn.db('asis-db');
   let newGi = JSON.parse(req.body.data);
   const items = await db.collection("gi").find({}).toArray();
+  let archivo;
 
   try {
 
@@ -627,15 +632,28 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       newGi.codigo = `ASIS-GI-${YEAR}-00001`;
     }
 
+    console.log(req.file)
+
     if (req.file) {
-      newGi.url_file_adjunto = {
-        name: req.file.originalname,
-        size: req.file.size,
-        path: req.file.path,
-        type: req.file.mimetype,
-      };
+      archivo = `GI_${newGi.razon_social || ''}_${newGi.codigo}_${uuid()}`;
+      newGi.url_file_adjunto = archivo;
+
+      setTimeout(() => {
+        const fileContent = fs.readFileSync(`uploads/${OTHER_NAME_PDF}`);
+
+        console.log('FILE CONTENT', fileContent)
+        console.log('ARCHIVO', archivo)
+        const params = {
+          Bucket: AWS_BUCKET_NAME,
+          Body: fileContent,
+          Key: archivo,
+          ContentType: 'application/pdf'
+        };
+
+        uploadFileToS3(params);
+      }, 2000);
     } else {
-      newGi.url_file_adjunto = {};
+      newGi.url_file_adjunto = '';
     }
 
     if (newGi.rut !== '' && newGi.rut.split('-')[1] === 'k') {
