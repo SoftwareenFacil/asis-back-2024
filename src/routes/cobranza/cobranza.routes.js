@@ -101,33 +101,33 @@ router.post("/pdfconsolidado", async (req, res) => {
 
     createPdfConsolidado(CONSOLIDATED_REPORT_PDF, gi, listExam, cobranzas, 'cobranzas', filtrofecha, filtrocontrato, filtrofaena);
 
-    // setTimeout(() => {
-    //   const fileContent = fs.readFileSync(`uploads/${CONSOLIDATED_REPORT_PDF}`);
+    setTimeout(() => {
+      const fileContent = fs.readFileSync(`uploads/${CONSOLIDATED_REPORT_PDF}`);
 
-    //   const params = {
-    //     Bucket: AWS_BUCKET_NAME,
-    //     Body: fileContent,
-    //     Key: nameFIle,
-    //     ContentType: 'application/pdf'
-    //   };
+      const params = {
+        Bucket: AWS_BUCKET_NAME,
+        Body: fileContent,
+        Key: nameFIle,
+        ContentType: 'application/pdf'
+      };
 
-    //   uploadFileToS3(params);
+      uploadFileToS3(params);
 
-    //   sendinblue(
-    //     emails,
-    //     SB_TEMPLATE_SEND_CONSOLIDATED_REPORT,
-    //     {
-    //       RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
-    //     },
-    //     [
-    //       {
-    //         content: Buffer.from(fileContent).toString('base64'), // Should be publicly available and shouldn't be a local file
-    //         name: `${nameFIle}.pdf`
-    //       }
-    //     ]
-    //   );
+      sendinblue(
+        emails,
+        SB_TEMPLATE_SEND_CONSOLIDATED_REPORT,
+        {
+          RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
+        },
+        [
+          {
+            content: Buffer.from(fileContent).toString('base64'), // Should be publicly available and shouldn't be a local file
+            name: `${nameFIle}.pdf`
+          }
+        ]
+      );
 
-    // }, 2000);
+    }, 2000);
 
     return res.status(200).json({ err: null, msg: 'Informe enviado correctamente', res: [] })
   } catch (error) {
