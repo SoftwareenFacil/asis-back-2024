@@ -279,7 +279,7 @@ router.post('/evaluacionpsico', async (req, res) => {
         // fecha_examen: moment().format(FORMAT_DATE),
         resultado: resultado || '',
         restricciones: restricciones || '',
-        vencimiento: vencimiento || '',
+        vencimiento: !!eva && !!eva.fecha_evaluacion ? moment(eva.fecha_evaluacion, FORMAT_DATE).add(data.meses_vigencia, 'M').format(FORMAT_DATE) : '',
         codigo: data.codigo || '',
         nameFile: nameFIle
       };
