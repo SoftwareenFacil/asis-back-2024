@@ -57,9 +57,9 @@ router.get('/asis', async (req, res) => {
 
 //-------------------------------------------------------MASSIVE LOAD
 router.get("/getoc", async (req, res) => {
+  const conn = await connect();
+  const db = conn.db('asis-db');
   try {
-    const conn = await connect();
-    const db = conn.db('asis-db');
     const result = await db.collection('facturaciones').find({ oc: 'Si', estado: 'Ingresado' }).toArray();
     return res.status(200).json({ err: null, msg: 'Facturaciones cargadas', res: result });
   } catch (error) {
@@ -71,9 +71,10 @@ router.get("/getoc", async (req, res) => {
 });
 
 router.get("/getconfirmoc", async (req, res) => {
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
   try {
-    const conn = await connect();
-    const db = conn.db('asis-db');
     const result = await db.collection('facturaciones').find({ oc: 'Si', estado: 'En Revisión' }).toArray();
     return res.status(200).json({ err: null, msg: 'Facturaciones cargadas', res: result });
   } catch (error) {
@@ -85,9 +86,9 @@ router.get("/getconfirmoc", async (req, res) => {
 });
 
 router.get("/getinvoices", async (req, res) => {
+  const conn = await connect();
+  const db = conn.db('asis-db');
   try {
-    const conn = await connect();
-    const db = conn.db('asis-db');
     const result = await db.collection('facturaciones').find({ estado: 'En Facturacion' }).toArray();
     return res.status(200).json({ err: null, msg: 'Facturaciones cargadas', res: result });
   } catch (error) {
