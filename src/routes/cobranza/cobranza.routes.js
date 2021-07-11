@@ -170,7 +170,7 @@ router.post('/sendmail/:id', async (req, res) => {
     const evaluacion = await db.collection('evaluaciones').findOne({ codigo: cobranza.codigo.replace('COB', 'EVA') });
     console.log(evaluacion)
 
-    const profesionalAsignado = await db.collection('gi').findOne({ _id: reserva.id_GI_personalAsignado });
+    const profesionalAsignado = await db.collection('gi').findOne({ _id: ObjectID(reserva.id_GI_personalAsignado) });
 
     createPdfCobranza('cobranza_ejemplo.pdf', clientePrincipal, clienteSecundario, reserva, profesionalAsignado, evaluacion, cobranza);
 

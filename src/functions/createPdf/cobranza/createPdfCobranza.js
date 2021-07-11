@@ -329,34 +329,45 @@ export default function createPdfCobranza(
     .text("RUT 77.249.223-5", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
     .fillColor('grey', 0.04)
 
-  generalSpace += 25;
+  generalSpace += 18;
 
   doc.fontSize(8);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica-Bold")
-    .text("ENVIAR COMPROBANTE DE PAGO A", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
-    .fillColor('grey', 0.04)
+    .text("IMPORTANTE:", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04);
 
   generalSpace += 12;
 
-  doc.fontSize(9);
+  doc.fontSize(8);
   doc.fillColor('#000', 1);
   doc
-    .font("Helvetica")
-    .text("finanzas@asisconsultores.cl", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
-    .fillColor('grey', 0.04)
+    .font("Helvetica-Bold")
+    .text("Si su factura se encuentra emitida con el Rut 12.398.638-5 Karla Valeska Nuñez Collado, favor pagar al mismo Nombre y Rut, en la cuenta: ", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04);
+
+  generalSpace += 30;
+
+  doc.fontSize(8);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica-Bold")
+    .text("Cta. Cte. Banco Chile 1020047801 o", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04);
 
   generalSpace += 10;
 
-  doc.fontSize(9);
+  doc.fontSize(8);
   doc.fillColor('#000', 1);
   doc
-    .font("Helvetica")
-    .text("knunez@asisconsultores.cl", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
-    .fillColor('grey', 0.04)
+    .font("Helvetica-Bold")
+    .text("Cta. Cte. Banco Estado 13700051662", 40, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04);
 
-  generalSpace -= 147;
+  //---------------------------------------------------------------------------------------------------------------RIGHT SIDE
+
+  generalSpace -= 170;
 
   doc.fontSize(10);
   doc.fillColor('#000', 1);
@@ -412,37 +423,64 @@ export default function createPdfCobranza(
     .text("Av. Ignacio Silva 98, Oficinas 02 y 03, Illapel, Fono: +569 991283495 / 053-2521964", 362, generalSpace + 16, { align: "left", width: 200, lineBreak: false })
     .fillColor('grey', 0.04)
 
-  //-- FOOTER
-  generalSpace += 140;
+  generalSpace += 30;
+
+  doc.fontSize(8);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica-Bold")
+    .text("ENVIAR COMPROBANTE DE PAGO A", 321, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04)
+
+  generalSpace += 12;
 
   doc.fontSize(9);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica")
+    .text("finanzas@asisconsultores.cl", 321, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04)
+
+  generalSpace += 10;
+
+  doc.fontSize(9);
+  doc.fillColor('#000', 1);
+  doc
+    .font("Helvetica")
+    .text("knunez@asisconsultores.cl", 321, generalSpace + 16, { align: "left", width: 260, lineBreak: false })
+    .fillColor('grey', 0.04)
+
+  //----------------------------------------------------------- FOOTER
+  generalSpace += 100;
+
+  doc.fontSize(8);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica")
     .text("EMPRESA CERTIFICADA NORMA DE CALIDAD ISO 9001-2015", 40, generalSpace + 16, { align: "center", width: 545, lineBreak: false })
     .fillColor('grey', 0.04)
 
-  generalSpace += 12;
+  generalSpace += 8;
 
-  doc.fontSize(9);
+  doc.fontSize(8);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica")
     .text("BLAS VIAL N°320, SALAMANCA, FONO: 053-2551499 / AV. IGNACIO SILVA N°98 OF. 02 Y 03", 40, generalSpace + 16, { align: "center", width: 545, lineBreak: false })
     .fillColor('grey', 0.04)
 
-  generalSpace += 12;
+  generalSpace += 8;
 
-  doc.fontSize(9);
+  doc.fontSize(8);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica")
     .text("EDIFICIO MARAY, ILLAPEL FONO: 53-2521964 CEL 09-1283495", 40, generalSpace + 16, { align: "center", width: 545, lineBreak: false })
     .fillColor('grey', 0.04)
 
-  generalSpace += 12;
+  generalSpace += 8;
 
-  doc.fontSize(9);
+  doc.fontSize(8);
   doc.fillColor('#000', 1);
   doc
     .font("Helvetica")

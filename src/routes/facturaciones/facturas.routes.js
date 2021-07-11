@@ -317,10 +317,13 @@ router.post("/buscar", async (req, res) => {
         .toArray();
     }
 
+    const empresa = await db.collection("empresa").findOne({});
+
     return res.status(200).json({
       total_items: countFac,
       pagina_actual: pageNumber,
       nro_paginas: parseInt(countFac / nPerPage + 1),
+      empresa,
       facturaciones: result,
     });
   } catch (error) {
