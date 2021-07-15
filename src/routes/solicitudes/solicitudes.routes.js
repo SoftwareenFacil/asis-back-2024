@@ -389,12 +389,12 @@ router.post("/buscar", async (req, res) => {
     else if(token && !!dataToken && dataToken.rol === COLABORATION_ROL){
       countSol = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: ObjectID(dataToken.id), isActive: true })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id, isActive: true })
         .count();
   
       result = await db
         .collection("solicitudes")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: ObjectID(dataToken.id), isActive: true })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id, isActive: true })
         .sort({ fecha_solicitud_format: -1, estado: -1 })
         .skip(skip_page)
         .limit(nPerPage)

@@ -812,12 +812,12 @@ router.post("/buscar", async (req, res) => {
     else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
       countEva = await db
         .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
         .count();
 
       result = await db
         .collection("evaluaciones")
-        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: ObjectID(dataToken.id), isActive: true })
+        .find({ [headFilter]: rexExpresionFiltro, id_GI_personalAsignado: dataToken.id, isActive: true })
         .sort({ fecha_evaluacion_format: -1, estado: -1 })
         .skip(skip_page)
         .limit(nPerPage)
