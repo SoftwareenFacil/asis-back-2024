@@ -593,7 +593,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
         .text(e_psicotecnicos[2].resultado, horizontalSpace + 12, generalSpace, { align: "center" });
     doc
         .font("Helvetica")
-        .text(e_psicotecnicos[2].promedio > 0 ? e_psicotecnicos[2].promedio > 0 : '', horizontalSpace + 12, generalSpace + 9, { align: "center" });
+        .text(e_psicotecnicos[2].promedio > 0 ? e_psicotecnicos[2].promedio : '', horizontalSpace + 12, generalSpace + 9, { align: "center" });
 
     generalSpace += 52;
     const isRequired = (permision) => permision ? true : false;
