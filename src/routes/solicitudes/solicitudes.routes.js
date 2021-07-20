@@ -504,7 +504,7 @@ router.get("/:id", async (req, res) => {
     return res.status(200).json({
       err: null,
       msg: '',
-      res: { ...restOfData, observacion_solicitud: !!observacion_solicitud.length ? observacion_solicitud[0].obs : '' }
+      res: { ...restOfData, observacion_solicitud: !!observacion_solicitud.length ? observacion_solicitud[observacion_solicitud.length - 1].obs : '' }
     });
   } catch (error) {
     console.log(error)

@@ -178,7 +178,7 @@ export default function createPdf(
   doc.font("Helvetica").text(informacionPersonal.rut, 260, generalSpace + 20, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.educacion, 260, generalSpace + 35, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.cargo, 260, generalSpace + 50, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.maquinarias_conducir, 260, generalSpace + 65, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.maquinarias_conducir !== '' ? informacionPersonal.maquinarias_conducir : 'Información no requerida', 260, generalSpace + 65, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.ciudad, 260, generalSpace + 80, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.evaluador, 260, generalSpace + 95, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.fecha_evaluacion, 260, generalSpace + 110, { align: "left" });
@@ -814,7 +814,7 @@ export default function createPdf(
       doc
         .font("Helvetica-Bold")
         .text("X", 393, generalSpace + 5, { align: "left" });
-      areas_mejorar[2].items.push(`Grado de ansiedad: ${elecciones[0]} - ${paraPhrases[9].descriptions[0]}`);
+      fortalezas[2].items.push(`Grado de ansiedad: ${elecciones[0]} - ${paraPhrases[9].descriptions[2]}`);
       results.push(1);
       break;
     case 'promedio':
@@ -828,7 +828,7 @@ export default function createPdf(
       doc
         .font("Helvetica-Bold")
         .text("X", 525, generalSpace + 5, { align: "left" });
-      fortalezas[2].items.push(`Grado de ansiedad: ${elecciones[2]} - ${paraPhrases[9].descriptions[2]}`);
+      areas_mejorar[2].items.push(`Grado de ansiedad: ${elecciones[2]} - ${paraPhrases[9].descriptions[0]}`);
       results.push(3);
       break;
   }
