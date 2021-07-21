@@ -436,7 +436,7 @@ router.post('/evaluacionaversion', async (req, res) => {
   const nombrePdf = OTHER_NAME_PDF;
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_aversionriesgo.png`;
   const nameFIle = `aversion_${data.codigo}_${uuid()}`;
-  const fecha_vigencia = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
+  const fecha_vigencia = moment(data.fecha_evaluacion, FORMAT_DATE).add(data.meses_vigencia, 'M').format(FORMAT_DATE) || 'Sin Información';
 
   let resultado = '';
   if (conclusionRiesgos === 1) {
@@ -469,7 +469,7 @@ router.post('/evaluacionaversion', async (req, res) => {
       cargo: cs.cargo,
       ciudad: cs.localidad,
       maquinarias_conducir: maquinariasConducir,
-      fecha_evaluacion: data.fecha_actual_examen || moment().format('DD-MM-YYYY'),
+      fecha_evaluacion: data.fecha_evaluacion || moment().format('DD-MM-YYYY'),
     };
 
     try {
