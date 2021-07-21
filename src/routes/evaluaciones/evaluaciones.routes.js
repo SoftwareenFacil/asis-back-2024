@@ -254,12 +254,12 @@ router.post('/evaluacionpsico', async (req, res) => {
   try {
     let objFile = {};
 
-    const cp = await db.collection('gi').findOne({ rut: upperRutWithLetter(rutClientePrincipal), categoria: 'Empresa/Organizacion' });
-    const cs = await db.collection('gi').findOne({ rut: upperRutWithLetter(rutClienteSecundario), categoria: 'Persona Natural' });
-    const pa = await db.collection('gi').findOne({ _id: ObjectId(idProfesionalAsignado) });
+    const cp = await db.collection('gi').findOne({ rut: upperRutWithLetter(rutClientePrincipal), categoria: 'Empresa/Organizacion', activo_inactivo: true });
+    const cs = await db.collection('gi').findOne({ rut: upperRutWithLetter(rutClienteSecundario), categoria: 'Persona Natural', activo_inactivo: true });
+    const pa = await db.collection('gi').findOne({ _id: ObjectId(idProfesionalAsignado), activo_inactivo: true });
     const eva = await db.collection('evaluaciones').findOne({ codigo: data.codigo });
 
-    console.log(eva)
+    console.log('cs------', cs)
 
     if (cp && cs) {
       const informacionPersonal = {
@@ -284,7 +284,7 @@ router.post('/evaluacionpsico', async (req, res) => {
         nameFile: nameFIle
       };
 
-      // console.log(informacionPersonal);
+      console.log('informacion personal--------', informacionPersonal);
 
       const signPerson = await db.collection('gi').findOne({ rut: '12398638-5', categoria: 'Persona Natural' });
 
