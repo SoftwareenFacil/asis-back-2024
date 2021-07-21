@@ -675,7 +675,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
   let newGi = JSON.parse(req.body.data);
-  const items = await db.collection("gi").find({}).toArray();
+  const items = await db.collection("gi").find({ activo_inactivo: true }).toArray();
   let archivo;
 
   try {
