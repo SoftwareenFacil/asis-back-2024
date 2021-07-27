@@ -10,13 +10,14 @@ const router = Router();
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { SB_TEMPLATE_SEND_COLLECTION_LETTER, CURRENT_ROL, CONSOLIDATED_REPORT_PDF, AWS_BUCKET_NAME, SB_TEMPLATE_SEND_CONSOLIDATED_REPORT } from "../../constant/var.js";
+import { SB_TEMPLATE_SEND_COLLECTION_LETTER, CURRENT_ROL, CONSOLIDATED_REPORT_PDF, AWS_BUCKET_NAME, SB_TEMPLATE_SEND_CONSOLIDATED_REPORT, CONSOLIDATED_EXCEL_REQUESTPAYMENT } from "../../constant/var.js";
 import MilesFormat from "../../functions/formattedPesos.js";
 import { ERROR } from "../../constant/text_messages.js";
 import sendinblue from "../../libs/sendinblue/sendinblue";
 import { verifyToken } from "../../libs/jwt.js";
 import createPdfCobranza from '../../functions/createPdf/cobranza/createPdfCobranza';
 import createPdfConsolidado from '../../functions/createPdf/cobranza/createPdfConsolidado';
+import createExcelConsolidado from '../../functions/createExcel/createExcelConsolidado';
 
 import { uploadFileToS3 } from "../../libs/aws";
 
@@ -37,7 +38,7 @@ router.get('/gifilter/:rut', async (req, res) => {
   const db = conn.db('asis-db');
 
   try {
-    const cobranzas = await db.collection('cobranza').find({ rut_cp: rut }).toArray();
+    const cobranzas = await db.collection('cobranza').find({ rut_cp: rut, isActive: true }).toArray();
     if(!cobranzas) return { err: 98, msg: 'No se encontraron cobranzas para el GI seleccionado', res: null };
 
     return res.status(200).json({ err: null, msg: 'Cobranzas encontradas', res: cobranzas })
@@ -87,6 +88,7 @@ router.post("/pdfconsolidado", async (req, res) => {
   // const db = conn.db('asis-db');
   try {
     const nameFIle = `informe_consolidado_${gi.razon_social}_${uuid()}`;
+    const nameExcelFile = `excel_informe_consolidado_${gi.razon_social}_${uuid()}`;
     //sacar los distintos tipos de examenes que hay
     let listExam = [];
     if(!!cobranzas && !!cobranzas.length){
@@ -100,9 +102,11 @@ router.post("/pdfconsolidado", async (req, res) => {
     }
 
     createPdfConsolidado(CONSOLIDATED_REPORT_PDF, gi, listExam, cobranzas, 'cobranzas', filtrofecha, filtrocontrato, filtrofaena);
+    createExcelConsolidado(CONSOLIDATED_EXCEL_REQUESTPAYMENT, cobranzas);
 
     setTimeout(() => {
       const fileContent = fs.readFileSync(`uploads/${CONSOLIDATED_REPORT_PDF}`);
+      const excelContent = fs.readFileSync(`uploads/${CONSOLIDATED_EXCEL_REQUESTPAYMENT}`);
 
       const params = {
         Bucket: AWS_BUCKET_NAME,
@@ -111,7 +115,15 @@ router.post("/pdfconsolidado", async (req, res) => {
         ContentType: 'application/pdf'
       };
 
+      const excelParams = {
+        Bucket: AWS_BUCKET_NAME,
+        Body: fileContent,
+        Key: nameFIle,
+        ContentType: 'application/vnd.ms-excel'
+      }
+
       uploadFileToS3(params);
+      uploadFileToS3(excelParams);
 
       sendinblue(
         emails,
@@ -123,6 +135,10 @@ router.post("/pdfconsolidado", async (req, res) => {
           {
             content: Buffer.from(fileContent).toString('base64'), // Should be publicly available and shouldn't be a local file
             name: `${nameFIle}.pdf`
+          },
+          {
+            content: Buffer.from(excelContent).toString('base64'), // Should be publicly available and shouldn't be a local file
+            name: `${nameExcelFile}.xlsx`
           }
         ]
       );

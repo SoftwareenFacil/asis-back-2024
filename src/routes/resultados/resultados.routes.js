@@ -34,6 +34,7 @@ import { ObjectID } from "mongodb";
 import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE, SB_TEMPLATE_SEND_RESULTS, CURRENT_ROL, COLABORATION_ROL, SB_TEMPLATE_SEND_CONSOLIDATED_RESULTS, CONSOLIDATED_REPORT_RESULTS_PDF } from "../../constant/var";
 import getCondicionatesString from "../../functions/transformCondicionantes";
 import createPdfConsolidado from "../../functions/createPdf/cobranza/createPdfConsolidado";
+import createExcel from "../../functions/createExcel/createExcelConsolidado";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -68,14 +69,14 @@ router.get('/gifilter/:rut', async (req, res) => {
 
   try {
     const results = await db.collection('resultados').find({ rut_cp: rut }).toArray();
-    if(!results) return { err: 98, msg: 'No se encontraron resultados para el GI seleccionado', res: null };
+    if (!results) return { err: 98, msg: 'No se encontraron resultados para el GI seleccionado', res: null };
 
     return res.status(200).json({ err: null, msg: 'Resultados encontrados encontradas', res: results })
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
   }
-  finally{
+  finally {
     conn.close();
   }
 });
@@ -162,6 +163,7 @@ router.post('/sendmail/:id', async (req, res) => {
   }
 });
 
+//pdf consolidado
 router.post("/pdfconsolidado", async (req, res) => {
   const { gi, results, emails, filtrofecha = null, filtrocontrato = null, filtrofaena = null } = req.body;
   console.log(results)
@@ -171,10 +173,10 @@ router.post("/pdfconsolidado", async (req, res) => {
     const nameFIle = `informe_resultados_${gi.razon_social}_${uuid()}`;
     //sacar los distintos tipos de examenes que hay
     let listExam = [];
-    if(!!results && !!results.length){
+    if (!!results && !!results.length) {
       listExam = results.reduce((acc, current) => {
         const aux = acc.find((element) => element === current.nombre_servicio);
-        if(!aux){
+        if (!aux) {
           acc.push(current.nombre_servicio)
         }
         return acc;
@@ -225,6 +227,21 @@ router.post("/pdfconsolidado", async (req, res) => {
     return res.status(500).json({ err: String(err), msg: ERROR, res: null });
   } finally {
     // conn.close();
+  }
+});
+
+router.get("/excelconsolidado", async (req, res) => {
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
+  try {
+    createExcel("Excel_consolidado_resultados.xlsx");
+    return res.json({ msg: 'Ok' })
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+  } finally {
+    conn.close();
   }
 });
 
