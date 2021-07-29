@@ -31,10 +31,11 @@ var fs = require("fs");
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE, SB_TEMPLATE_SEND_RESULTS, CURRENT_ROL, COLABORATION_ROL, SB_TEMPLATE_SEND_CONSOLIDATED_RESULTS, CONSOLIDATED_REPORT_RESULTS_PDF } from "../../constant/var";
+import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE, SB_TEMPLATE_SEND_RESULTS, CURRENT_ROL, COLABORATION_ROL, SB_TEMPLATE_SEND_CONSOLIDATED_RESULTS, CONSOLIDATED_REPORT_RESULTS_PDF, CONSOLIDATED_EXCEL_RESULTS } from "../../constant/var";
 import getCondicionatesString from "../../functions/transformCondicionantes";
 import createPdfConsolidado from "../../functions/createPdf/cobranza/createPdfConsolidado";
-import createExcel from "../../functions/createExcel/createExcelConsolidado";
+// import createExcel from "../../functions/createExcel/createExcelConsolidado";
+import createExcelConsolidadoResults from '../../functions/createExcel/createExcelConsolidadoResults';
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -171,6 +172,7 @@ router.post("/pdfconsolidado", async (req, res) => {
   // const db = conn.db('asis-db');
   try {
     const nameFIle = `informe_resultados_${gi.razon_social}_${uuid()}`;
+    const nameExcelFile = `excel_informe_consolidado_resultados_${gi.razon_social}_${uuid()}`;
     //sacar los distintos tipos de examenes que hay
     let listExam = [];
     if (!!results && !!results.length) {
@@ -192,9 +194,11 @@ router.post("/pdfconsolidado", async (req, res) => {
     });
 
     createPdfConsolidado(CONSOLIDATED_REPORT_RESULTS_PDF, gi, listExam, cobranzas, 'resultados', filtrofecha, filtrocontrato, filtrofaena);
+    createExcelConsolidadoResults(CONSOLIDATED_EXCEL_RESULTS, cobranzas);
 
     setTimeout(() => {
       const fileContent = fs.readFileSync(`uploads/${CONSOLIDATED_REPORT_RESULTS_PDF}`);
+      const excelContent = fs.readFileSync(`uploads/${CONSOLIDATED_EXCEL_RESULTS}`);
 
       const params = {
         Bucket: AWS_BUCKET_NAME,
@@ -203,7 +207,15 @@ router.post("/pdfconsolidado", async (req, res) => {
         ContentType: 'application/pdf'
       };
 
+      const excelParams = {
+        Bucket: AWS_BUCKET_NAME,
+        Body: fileContent,
+        Key: nameFIle,
+        ContentType: 'application/vnd.ms-excel'
+      }
+
       uploadFileToS3(params);
+      uploadFileToS3(excelParams);
 
       sendinblue(
         emails,
@@ -215,6 +227,10 @@ router.post("/pdfconsolidado", async (req, res) => {
           {
             content: Buffer.from(fileContent).toString('base64'), // Should be publicly available and shouldn't be a local file
             name: `${nameFIle}.pdf`
+          },
+          {
+            content: Buffer.from(excelContent).toString('base64'), // Should be publicly available and shouldn't be a local file
+            name: `${nameExcelFile}.xlsx`
           }
         ]
       );
@@ -230,20 +246,20 @@ router.post("/pdfconsolidado", async (req, res) => {
   }
 });
 
-router.get("/excelconsolidado", async (req, res) => {
-  const conn = await connect();
-  const db = conn.db('asis-db');
+// router.get("/excelconsolidado", async (req, res) => {
+//   const conn = await connect();
+//   const db = conn.db('asis-db');
 
-  try {
-    createExcel("Excel_consolidado_resultados.xlsx");
-    return res.json({ msg: 'Ok' })
-  } catch (error) {
-    console.log(error)
-    return res.status(500).json({ err: String(error), msg: ERROR, res: null })
-  } finally {
-    conn.close();
-  }
-});
+//   try {
+//     createExcel("Excel_consolidado_resultados.xlsx");
+//     return res.json({ msg: 'Ok' })
+//   } catch (error) {
+//     console.log(error)
+//     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
+//   } finally {
+//     conn.close();
+//   }
+// });
 
 //SELECT ONE 
 router.get('/:id', async (req, res) => {

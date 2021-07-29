@@ -13,7 +13,7 @@ var wb = new xl.Workbook();
 // Add Worksheets to the workbook
 var ws = wb.addWorksheet('Consolidado');
 
-export default function createExcel(nombrePdf, cobranzas) {
+export default function createExcel(nombrePdf, resultados) {
   // Create a reusable style
   // var style = wb.createStyle({
   //   font: {
@@ -23,7 +23,7 @@ export default function createExcel(nombrePdf, cobranzas) {
   //   numberFormat: '$#,##0.00; ($#,##0.00); -',
   // });
 
-  const totalRegisters = cobranzas;
+  const totalRegisters = resultados;
 
   var headerStyle = wb.createStyle({
     fill: {
@@ -60,7 +60,7 @@ export default function createExcel(nombrePdf, cobranzas) {
 
   ws.column(2).setWidth(11)
   ws.cell(1, 2)
-    .string('FECHA EV.')
+    .string('FECHA RES.')
     .style(headerStyle);
 
   ws.column(3).setWidth(25)
