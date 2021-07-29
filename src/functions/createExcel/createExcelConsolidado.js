@@ -73,18 +73,23 @@ export default function createExcel(nombrePdf, cobranzas) {
     .string('RUT EVA.')
     .style(headerStyle);
 
-  ws.column(5).setWidth(11)
+  ws.column(5).setWidth(40)
   ws.cell(1, 5)
-    .string('V.SERVICIO')
+    .string('NOMBRE SERVICIO')
     .style(headerStyle);
 
   ws.column(6).setWidth(11)
   ws.cell(1, 6)
-    .string('V.PAGADO')
+    .string('V.SERVICIO')
     .style(headerStyle);
 
   ws.column(7).setWidth(11)
   ws.cell(1, 7)
+    .string('V.PAGADO')
+    .style(headerStyle);
+
+  ws.column(8).setWidth(11)
+  ws.cell(1, 8)
     .string('SALDO')
     .style(headerStyle);
 
@@ -115,32 +120,36 @@ export default function createExcel(nombrePdf, cobranzas) {
       .style(cellStyle);
 
     ws.cell(index + 2, 5)
-      .string(`$${MilesFormat(element.valor_servicio)}`)
+      .string(element.nombre_servicio)
       .style(cellStyle);
 
     ws.cell(index + 2, 6)
-      .string(`$${MilesFormat(element.valor_cancelado)}`)
+      .string(`$${MilesFormat(element.valor_servicio)}`)
       .style(cellStyle);
 
     ws.cell(index + 2, 7)
+      .string(`$${MilesFormat(element.valor_cancelado)}`)
+      .style(cellStyle);
+
+    ws.cell(index + 2, 8)
       .string(`$${MilesFormat(element.valor_deuda)}`)
       .style(cellStyle);
   });
 
   //totales
-  ws.cell(totalRegisters.length + 2, 4)
+  ws.cell(totalRegisters.length + 2, 5)
     .string('Total')
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 5)
+  ws.cell(totalRegisters.length + 2, 6)
     .string(`$${MilesFormat(totals.service)}`)
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 6)
+  ws.cell(totalRegisters.length + 2, 7)
     .string(`$${MilesFormat(totals.payed)}`)
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 7)
+  ws.cell(totalRegisters.length + 2, 8)
     .string(`$${MilesFormat(totals.balance)}`)
     .style(headerStyle);
 
