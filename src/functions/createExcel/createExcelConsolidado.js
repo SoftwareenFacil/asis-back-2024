@@ -63,33 +63,48 @@ export default function createExcel(nombrePdf, cobranzas) {
     .string('FECHA EV.')
     .style(headerStyle);
 
-  ws.column(3).setWidth(25)
+  ws.column(3).setWidth(11)
   ws.cell(1, 3)
+    .string('FECHA RES.')
+    .style(headerStyle);
+
+  ws.column(4).setWidth(25)
+  ws.cell(1, 4)
     .string('NOMBRE EVALUADO')
     .style(headerStyle);
 
-  ws.column(4).setWidth(11)
-  ws.cell(1, 4)
-    .string('RUT EVA.')
+  ws.column(5).setWidth(18)
+  ws.cell(1, 5)
+    .string('RUT EVALUADO')
     .style(headerStyle);
 
-  ws.column(5).setWidth(40)
-  ws.cell(1, 5)
+  ws.column(6).setWidth(32)
+  ws.cell(1, 6)
+    .string('NOMBRE EVALUADOR')
+    .style(headerStyle);
+
+  ws.column(7).setWidth(18)
+  ws.cell(1, 7)
+    .string('RUT EVALUADOR')
+    .style(headerStyle);
+
+  ws.column(8).setWidth(40)
+  ws.cell(1, 8)
     .string('NOMBRE SERVICIO')
     .style(headerStyle);
 
-  ws.column(6).setWidth(11)
-  ws.cell(1, 6)
+  ws.column(9).setWidth(11)
+  ws.cell(1, 9)
     .string('V.SERVICIO')
     .style(headerStyle);
 
-  ws.column(7).setWidth(11)
-  ws.cell(1, 7)
+  ws.column(10).setWidth(11)
+  ws.cell(1, 10)
     .string('V.PAGADO')
     .style(headerStyle);
 
-  ws.column(8).setWidth(11)
-  ws.cell(1, 8)
+  ws.column(11).setWidth(11)
+  ws.cell(1, 11)
     .string('SALDO')
     .style(headerStyle);
 
@@ -112,44 +127,56 @@ export default function createExcel(nombrePdf, cobranzas) {
       .style(cellStyle);
 
     ws.cell(index + 2, 3)
-      .string(element.razon_social_cs)
+      .string(element.fecha_resultado)
       .style(cellStyle);
 
     ws.cell(index + 2, 4)
-      .string(element.rut_cs)
+      .string(element.razon_social_cs)
       .style(cellStyle);
 
     ws.cell(index + 2, 5)
-      .string(element.nombre_servicio)
+      .string(element.rut_cs)
       .style(cellStyle);
 
     ws.cell(index + 2, 6)
-      .string(`$${MilesFormat(element.valor_servicio)}`)
+      .string(element.nombre_evaluador)
       .style(cellStyle);
 
     ws.cell(index + 2, 7)
-      .string(`$${MilesFormat(element.valor_cancelado)}`)
+      .string(element.rut_evaluador)
       .style(cellStyle);
 
     ws.cell(index + 2, 8)
+      .string(element.nombre_servicio)
+      .style(cellStyle);
+
+    ws.cell(index + 2, 9)
+      .string(`$${MilesFormat(element.valor_servicio)}`)
+      .style(cellStyle);
+
+    ws.cell(index + 2, 10)
+      .string(`$${MilesFormat(element.valor_cancelado)}`)
+      .style(cellStyle);
+
+    ws.cell(index + 2, 11)
       .string(`$${MilesFormat(element.valor_deuda)}`)
       .style(cellStyle);
   });
 
   //totales
-  ws.cell(totalRegisters.length + 2, 5)
+  ws.cell(totalRegisters.length + 2, 8)
     .string('Total')
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 6)
+  ws.cell(totalRegisters.length + 2, 9)
     .string(`$${MilesFormat(totals.service)}`)
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 7)
+  ws.cell(totalRegisters.length + 2, 10)
     .string(`$${MilesFormat(totals.payed)}`)
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 8)
+  ws.cell(totalRegisters.length + 2, 11)
     .string(`$${MilesFormat(totals.balance)}`)
     .style(headerStyle);
 

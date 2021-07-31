@@ -68,28 +68,38 @@ export default function createExcel(nombrePdf, resultados) {
     .string('NOMBRE EVALUADO')
     .style(headerStyle);
 
-  ws.column(4).setWidth(11)
+  ws.column(4).setWidth(17)
   ws.cell(1, 4)
-    .string('RUT EVA.')
+    .string('RUT EVALUADO')
     .style(headerStyle);
 
-  ws.column(5).setWidth(40)
+  ws.column(5).setWidth(32)
   ws.cell(1, 5)
-    .string('NOMBRE SERVICIO')
+    .string('NOMBRE EVALUADOR')
     .style(headerStyle);
 
-  ws.column(6).setWidth(11)
+  ws.column(6).setWidth(17)
   ws.cell(1, 6)
-    .string('V.SERVICIO')
+    .string('RUT EVALUADOR')
     .style(headerStyle);
 
-  ws.column(7).setWidth(11)
+  ws.column(7).setWidth(40)
   ws.cell(1, 7)
-    .string('V.PAGADO')
+    .string('NOMBRE SERVICIO')
     .style(headerStyle);
 
   ws.column(8).setWidth(11)
   ws.cell(1, 8)
+    .string('V.SERVICIO')
+    .style(headerStyle);
+
+  ws.column(9).setWidth(11)
+  ws.cell(1, 9)
+    .string('V.PAGADO')
+    .style(headerStyle);
+
+  ws.column(10).setWidth(11)
+  ws.cell(1, 10)
     .string('SALDO')
     .style(headerStyle);
 
@@ -120,36 +130,44 @@ export default function createExcel(nombrePdf, resultados) {
       .style(cellStyle);
 
     ws.cell(index + 2, 5)
-      .string(element.nombre_servicio)
+      .string(element.nombre_evaluador)
       .style(cellStyle);
 
     ws.cell(index + 2, 6)
-      .string(`$${MilesFormat(element.valor_servicio)}`)
+      .string(element.rut_evaluador)
       .style(cellStyle);
 
     ws.cell(index + 2, 7)
-      .string(`$${MilesFormat(element.valor_cancelado)}`)
+      .string(element.nombre_servicio)
       .style(cellStyle);
 
     ws.cell(index + 2, 8)
+      .string(`$${MilesFormat(element.valor_servicio)}`)
+      .style(cellStyle);
+
+    ws.cell(index + 2, 9)
+      .string(`$${MilesFormat(element.valor_cancelado)}`)
+      .style(cellStyle);
+
+    ws.cell(index + 2, 10)
       .string(`$${MilesFormat(element.valor_deuda)}`)
       .style(cellStyle);
   });
 
   //totales
-  ws.cell(totalRegisters.length + 2, 5)
+  ws.cell(totalRegisters.length + 2, 7)
     .string('Total')
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 6)
+  ws.cell(totalRegisters.length + 2, 8)
     .string(`$${MilesFormat(totals.service)}`)
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 7)
+  ws.cell(totalRegisters.length + 2, 9)
     .string(`$${MilesFormat(totals.payed)}`)
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 8)
+  ws.cell(totalRegisters.length + 2, 10)
     .string(`$${MilesFormat(totals.balance)}`)
     .style(headerStyle);
 

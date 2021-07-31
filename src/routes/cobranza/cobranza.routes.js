@@ -84,8 +84,8 @@ router.get("/pdf", async (req, res) => {
 
 router.post("/pdfconsolidado", async (req, res) => {
   const { gi, cobranzas, emails, filtrofecha = null, filtrocontrato = null, filtrofaena = null } = req.body;
-  // const conn = await connect();
-  // const db = conn.db('asis-db');
+  const conn = await connect();
+  const db = conn.db('asis-db');
   try {
     const nameFIle = `informe_consolidado_${gi.razon_social}_${uuid()}`;
     const nameExcelFile = `excel_informe_consolidado_${gi.razon_social}_${uuid()}`;
@@ -99,10 +99,26 @@ router.post("/pdfconsolidado", async (req, res) => {
         }
         return acc;
       }, []);
+    };
+
+    let cobranzasMapped = [];
+
+    for await (let element of cobranzas){
+      const aux = await db.collection('resultados').findOne({ codigo: element.codigo.replace('COB', 'RES') });
+      const auxGi = !!aux && aux?.id_GI_personalAsignado
+        ? await db.collection('gi').findOne({ _id: ObjectID(aux.id_GI_personalAsignado) })
+        : undefined
+
+      cobranzasMapped.push({
+        ...element,
+        fecha_resultado: !!aux ? aux.fecha_resultado : '',
+        nombre_evaluador: !!auxGi ? auxGi.razon_social : '',
+        rut_evaluador: !!auxGi ? auxGi.rut : ''
+      });
     }
 
     createPdfConsolidado(CONSOLIDATED_REPORT_PDF, gi, listExam, cobranzas, 'cobranzas', filtrofecha, filtrocontrato, filtrofaena);
-    createExcelConsolidado(CONSOLIDATED_EXCEL_REQUESTPAYMENT, cobranzas);
+    createExcelConsolidado(CONSOLIDATED_EXCEL_REQUESTPAYMENT, cobranzasMapped);
 
     setTimeout(() => {
       const fileContent = fs.readFileSync(`uploads/${CONSOLIDATED_REPORT_PDF}`);
@@ -150,7 +166,7 @@ router.post("/pdfconsolidado", async (req, res) => {
     console.log(error)
     return res.status(500).json({ err: String(err), msg: ERROR, res: null });
   } finally {
-    // conn.close();
+    conn.close();
   }
 });
 

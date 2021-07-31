@@ -168,8 +168,9 @@ router.post('/sendmail/:id', async (req, res) => {
 router.post("/pdfconsolidado", async (req, res) => {
   const { gi, results, emails, filtrofecha = null, filtrocontrato = null, filtrofaena = null } = req.body;
   console.log(results)
-  // const conn = await connect();
-  // const db = conn.db('asis-db');
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
   try {
     const nameFIle = `informe_resultados_${gi.razon_social}_${uuid()}`;
     const nameExcelFile = `excel_informe_consolidado_resultados_${gi.razon_social}_${uuid()}`;
@@ -193,56 +194,71 @@ router.post("/pdfconsolidado", async (req, res) => {
       }
     });
 
+    let cobranzasMapped = [];
+
+    for await (let element of cobranzas){
+      // const aux = await db.collection('resultados').findOne({ codigo: element.codigo.replace('COB', 'RES') });
+      const auxGi = element?.id_GI_personalAsignado
+        ? await db.collection('gi').findOne({ _id: ObjectID(element.id_GI_personalAsignado) })
+        : undefined
+
+      cobranzasMapped.push({
+        ...element,
+        nombre_evaluador: !!auxGi ? auxGi.razon_social : '',
+        rut_evaluador: !!auxGi ? auxGi.rut : ''
+      });
+    }
+
     createPdfConsolidado(CONSOLIDATED_REPORT_RESULTS_PDF, gi, listExam, cobranzas, 'resultados', filtrofecha, filtrocontrato, filtrofaena);
-    createExcelConsolidadoResults(CONSOLIDATED_EXCEL_RESULTS, cobranzas);
+    createExcelConsolidadoResults(CONSOLIDATED_EXCEL_RESULTS, cobranzasMapped);
 
-    setTimeout(() => {
-      const fileContent = fs.readFileSync(`uploads/${CONSOLIDATED_REPORT_RESULTS_PDF}`);
-      const excelContent = fs.readFileSync(`uploads/${CONSOLIDATED_EXCEL_RESULTS}`);
+    // setTimeout(() => {
+    //   const fileContent = fs.readFileSync(`uploads/${CONSOLIDATED_REPORT_RESULTS_PDF}`);
+    //   const excelContent = fs.readFileSync(`uploads/${CONSOLIDATED_EXCEL_RESULTS}`);
 
-      const params = {
-        Bucket: AWS_BUCKET_NAME,
-        Body: fileContent,
-        Key: nameFIle,
-        ContentType: 'application/pdf'
-      };
+    //   const params = {
+    //     Bucket: AWS_BUCKET_NAME,
+    //     Body: fileContent,
+    //     Key: nameFIle,
+    //     ContentType: 'application/pdf'
+    //   };
 
-      const excelParams = {
-        Bucket: AWS_BUCKET_NAME,
-        Body: fileContent,
-        Key: nameFIle,
-        ContentType: 'application/vnd.ms-excel'
-      }
+    //   const excelParams = {
+    //     Bucket: AWS_BUCKET_NAME,
+    //     Body: fileContent,
+    //     Key: nameFIle,
+    //     ContentType: 'application/vnd.ms-excel'
+    //   }
 
-      uploadFileToS3(params);
-      uploadFileToS3(excelParams);
+    //   uploadFileToS3(params);
+    //   uploadFileToS3(excelParams);
 
-      sendinblue(
-        emails,
-        SB_TEMPLATE_SEND_CONSOLIDATED_RESULTS,
-        {
-          RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
-        },
-        [
-          {
-            content: Buffer.from(fileContent).toString('base64'), // Should be publicly available and shouldn't be a local file
-            name: `${nameFIle}.pdf`
-          },
-          {
-            content: Buffer.from(excelContent).toString('base64'), // Should be publicly available and shouldn't be a local file
-            name: `${nameExcelFile}.xlsx`
-          }
-        ]
-      );
+    //   sendinblue(
+    //     emails,
+    //     SB_TEMPLATE_SEND_CONSOLIDATED_RESULTS,
+    //     {
+    //       RAZON_SOCIAL_CP_SOLICITUD: gi.razon_social || '',
+    //     },
+    //     [
+    //       {
+    //         content: Buffer.from(fileContent).toString('base64'), // Should be publicly available and shouldn't be a local file
+    //         name: `${nameFIle}.pdf`
+    //       },
+    //       {
+    //         content: Buffer.from(excelContent).toString('base64'), // Should be publicly available and shouldn't be a local file
+    //         name: `${nameExcelFile}.xlsx`
+    //       }
+    //     ]
+    //   );
 
-    }, 2000);
+    // }, 2000);
 
     return res.status(200).json({ err: null, msg: 'Informe enviado correctamente', res: [] })
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(err), msg: ERROR, res: null });
   } finally {
-    // conn.close();
+    conn.close();
   }
 });
 
