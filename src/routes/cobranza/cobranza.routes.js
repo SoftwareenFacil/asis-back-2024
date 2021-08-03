@@ -113,7 +113,8 @@ router.post("/pdfconsolidado", async (req, res) => {
         ...element,
         fecha_resultado: !!aux ? aux.fecha_resultado : '',
         nombre_evaluador: !!auxGi ? auxGi.razon_social : '',
-        rut_evaluador: !!auxGi ? auxGi.rut : ''
+        rut_evaluador: !!auxGi ? auxGi.rut : '',
+        estado_resultado: !!aux ? aux.estado_resultado : '',
       });
     }
 

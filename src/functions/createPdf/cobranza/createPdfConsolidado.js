@@ -534,7 +534,7 @@ export default function createPdfConsolidado(
     doc
       .font("Helvetica")
       .text("SALDO", 540, generalSpace + 16, { align: "left", width: 200, lineBreak: false })
-      .rect(535, generalSpace + 10, 40, 17)
+      .rect(535, generalSpace + 10, 45, 17)
       .fillColor('grey', 0.14)
       .fillAndStroke();
 
@@ -657,8 +657,8 @@ export default function createPdfConsolidado(
       .fillColor('grey', 0.04)
       .fillAndStroke();
 
-    // doc.addPage();
-    generalSpace += 40;
+    doc.addPage();
+    generalSpace = 30;
   });
 
   const TGservicio = cobranzas.reduce((acc, current) => acc + current.valor_servicio, 0);
