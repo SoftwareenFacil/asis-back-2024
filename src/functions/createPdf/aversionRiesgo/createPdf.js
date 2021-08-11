@@ -176,7 +176,7 @@ export default function createPdf(
   doc.font("Helvetica").text(informacionPersonal.nombre, 260, generalSpace - 10, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.edad, 260, generalSpace + 5, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.rut, 260, generalSpace + 20, { align: "left" });
-  doc.font("Helvetica").text(informacionPersonal.educacion, 260, generalSpace + 35, { align: "left" });
+  doc.font("Helvetica").text(informacionPersonal.educacion !== '' ? informacionPersonal.educacion : 'Dato No Requerido', 260, generalSpace + 35, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.cargo, 260, generalSpace + 50, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.maquinarias_conducir !== '' ? informacionPersonal.maquinarias_conducir : 'Información no requerida', 260, generalSpace + 65, { align: "left" });
   doc.font("Helvetica").text(informacionPersonal.ciudad, 260, generalSpace + 80, { align: "left" });
