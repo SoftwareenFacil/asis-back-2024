@@ -73,63 +73,87 @@ router.get("/consolidated/:anio", async (req, res) => {
     let finalData = [];
     let aux;
 
-    const solicitudes = await db.collection("solicitudes").find({ fecha_solicitud: { $regex: anio }, isActive: true }).toArray();
+    const solicitudes = await db.collection("solicitudes").find({ anio_solicitud: 2021, isActive: true }).toArray();
+    console.log(solicitudes.length);
 
-    if(!solicitudes) return res.status(404).json({ err: 98, msg: 'No se encontraron solicitudes', res: [] });
+    if(!!solicitudes) return res.status(404).json({ err: 98, msg: 'No se encontraron solicitudes', res: [] });
 
-    for await(let solicitud of solicitudes){
-      aux = {
-        ...aux,
-        sol_codigo: solicitud.codigo,
-        estado_sol: solicitud.estado,
-        fecha_sol: solicitud.fecha_solicitud,
-        mes_sol: solicitud.mes_solicitud,
-        anio_sol: solicitud.anio_solicitud,
-        categoria1_sol: solicitud.categoria1,
-        categoria2_sol: solicitud.categoria2,
-        categoria3_sol: solicitud.categoria3,
-        nombre_sol: solicitud.nombre_servicio,
-        tipo_servicio_sol: solicitud.tipo_servicio,
-        lugar_servicio_sol: solicitud.lugar_servicio,
-        sucursal_sol: solicitud.sucursal,
-        monto_neto_sol: solicitud.monto_neto,
-        impuesto_sol: solicitud.valor_impuesto,
-        exento_sol: solicitud.exento,
-        monto_total_sol: solicitud.monto_total,
-        descripcion_sol: solicitud.descripcion_servicio,
-        rut_cp_sol: solicitud.rut_CP,
-        razon_social_cp_sol: solicitud.razon_social_CP,
-        contrato_gi_sol: solicitud.nro_contrato_seleccionado_cp,
-        faena_gi_sol: solicitud.faena_seleccionada_cp,
-        rut_cs_sol: solicitud.rut_cs,
-        razon_social_cs_sol: solicitud.razon_social_cs
-      }
+    let auxCode;
+    let auxReserva;
 
-      const giCS = await db.collection('gi').findOne({ rut: solicitud.rut_cs, activo_inactivo: true, categoria: 'Persona Natural' });
-
-      if(giCS){
-        aux = {
-          ...aux,
-          licencia_gi_cs: giCS.licencia_conduccion,
-          clase_licencia_gi_cs: !!giCS && !!giCS.clase_licencia.length ? giCS.clase_licencia.toString() : '',
-          ley_aplicable_gi_cs: giCS.ley_aplicable
+    for await (let solicitud of solicitudes){
+      auxCode = solicitud.codigo.replace('SOL', 'AGE');
+      if(auxCode){
+        auxReserva = await db.collection('reservas').findOne({ codigo: auxCode });
+        if(auxReserva){
+          finalData.push(auxReserva);
         }
       }
-      // const reserva = await db.collection('reservas').findOne({ codigo: solicitud.codigo.replace('SOL', 'AGE') });
-      // if(reserva){
-      //   aux = {
-      //     ...aux,
-
-      //   }
-      // }
-
-      finalData.push(aux);
     }
+
+
+    // for await(let solicitud of solicitudes){
+    //   aux = {
+    //     ...aux,
+    //     sol_codigo: solicitud.codigo,
+    //     estado_sol: solicitud.estado,
+    //     fecha_sol: solicitud.fecha_solicitud,
+    //     mes_sol: solicitud.mes_solicitud,
+    //     anio_sol: solicitud.anio_solicitud,
+    //     categoria1_sol: solicitud.categoria1,
+    //     categoria2_sol: solicitud.categoria2,
+    //     categoria3_sol: solicitud.categoria3,
+    //     nombre_sol: solicitud.nombre_servicio,
+    //     tipo_servicio_sol: solicitud.tipo_servicio,
+    //     lugar_servicio_sol: solicitud.lugar_servicio,
+    //     sucursal_sol: solicitud.sucursal,
+    //     monto_neto_sol: solicitud.monto_neto,
+    //     impuesto_sol: solicitud.valor_impuesto,
+    //     exento_sol: solicitud.exento,
+    //     monto_total_sol: solicitud.monto_total,
+    //     descripcion_sol: solicitud.descripcion_servicio,
+    //     rut_cp_sol: solicitud.rut_CP,
+    //     razon_social_cp_sol: solicitud.razon_social_CP,
+    //     contrato_gi_sol: solicitud.nro_contrato_seleccionado_cp,
+    //     faena_gi_sol: solicitud.faena_seleccionada_cp,
+    //     rut_cs_sol: solicitud.rut_cs,
+    //     razon_social_cs_sol: solicitud.razon_social_cs
+    //   }
+
+    //   const giCS = await db.collection('gi').findOne({ rut: solicitud.rut_cs, activo_inactivo: true, categoria: 'Persona Natural' });
+
+    //   if(giCS){
+    //     aux = {
+    //       ...aux,
+    //       licencia_gi_cs: giCS.licencia_conduccion,
+    //       clase_licencia_gi_cs: !!giCS && !!giCS.clase_licencia.length ? giCS.clase_licencia.toString() : '',
+    //       ley_aplicable_gi_cs: giCS.ley_aplicable
+    //     }
+    //   }
+    //   const reserva = await db.collection('reservas').findOne({ codigo: solicitud.codigo.replace('SOL', 'AGE') });
+    //   if(reserva){
+    //     aux = {
+    //       ...aux,
+
+    //     }
+    //   }
+
+    //   finalData.push(aux);
+    // }
 
     return res.status(200).json({
       err: null,
-      msg: `Registros obtenido (${finalData.length})`,
-      res: finalData
+      msg: `Registros encontrados`,
+      res: {
+        solicitudes: {
+          cant: solicitudes.length,
+          data: solicitudes
+        },
+        reservas: {
+          cant: finalData.length,
+          data: finalData
+        }
+      }
     });
   } catch (error) {
     return res.status(500).json({
