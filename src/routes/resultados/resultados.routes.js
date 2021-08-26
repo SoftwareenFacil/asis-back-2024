@@ -69,7 +69,7 @@ router.get('/gifilter/:rut', async (req, res) => {
   const db = conn.db('asis-db');
 
   try {
-    const results = await db.collection('resultados').find({ rut_cp: rut }).toArray();
+    const results = await db.collection('resultados').find({ rut_cp: rut, isActive: true }).toArray();
     if (!results) return { err: 98, msg: 'No se encontraron resultados para el GI seleccionado', res: null };
 
     return res.status(200).json({ err: null, msg: 'Resultados encontrados encontradas', res: results })
