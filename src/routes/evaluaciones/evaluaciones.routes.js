@@ -451,9 +451,9 @@ router.post('/evaluacionaversion', async (req, res) => {
     `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${data.codigo} Fecha vigencia: ${fecha_vigencia} Resultado: ${resultado}`
   );
 
-  const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion' });
-  const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural' });
-  const pa = await db.collection('gi').findOne({ _id: ObjectId(data.id_GI_personalAsignado) });
+  const cp = await db.collection('gi').findOne({ rut: rutClientePrincipal, categoria: 'Empresa/Organizacion', activo_inactivo: true });
+  const cs = await db.collection('gi').findOne({ rut: rutClienteSecundario, categoria: 'Persona Natural', activo_inactivo: true });
+  const pa = await db.collection('gi').findOne({ _id: ObjectId(data.id_GI_personalAsignado), activo_inactivo: true });
 
 
   if (cp && cs && pa) {
