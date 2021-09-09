@@ -63,48 +63,53 @@ export default function createExcel(nombrePdf, resultados) {
     .string('FECHA RES.')
     .style(headerStyle);
 
-  ws.column(3).setWidth(25)
+  ws.column(3).setWidth(20)
   ws.cell(1, 3)
+    .string('FECHA VENC. EXAMEN')
+    .style(headerStyle);
+
+  ws.column(4).setWidth(25)
+  ws.cell(1, 4)
     .string('NOMBRE EVALUADO')
     .style(headerStyle);
 
-  ws.column(4).setWidth(17)
-  ws.cell(1, 4)
+  ws.column(5).setWidth(17)
+  ws.cell(1, 5)
     .string('RUT EVALUADO')
     .style(headerStyle);
 
-  ws.column(5).setWidth(32)
-  ws.cell(1, 5)
+  ws.column(6).setWidth(32)
+  ws.cell(1, 6)
     .string('NOMBRE EVALUADOR')
     .style(headerStyle);
 
-  ws.column(6).setWidth(17)
-  ws.cell(1, 6)
+  ws.column(7).setWidth(17)
+  ws.cell(1, 7)
     .string('RUT EVALUADOR')
     .style(headerStyle);
 
-  ws.column(7).setWidth(40)
-  ws.cell(1, 7)
+  ws.column(8).setWidth(40)
+  ws.cell(1, 8)
     .string('NOMBRE SERVICIO')
     .style(headerStyle);
 
-  ws.column(8).setWidth(27)
-  ws.cell(1, 8)
-    .string('ESTADO RESULTADO')
-    .style(headerStyle);
-
-  ws.column(9).setWidth(11)
+  ws.column(9).setWidth(27)
   ws.cell(1, 9)
-    .string('V.SERVICIO')
+    .string('ESTADO RESULTADO')
     .style(headerStyle);
 
   ws.column(10).setWidth(11)
   ws.cell(1, 10)
-    .string('V.PAGADO')
+    .string('V.SERVICIO')
     .style(headerStyle);
 
   ws.column(11).setWidth(11)
   ws.cell(1, 11)
+    .string('V.PAGADO')
+    .style(headerStyle);
+
+  ws.column(12).setWidth(11)
+  ws.cell(1, 12)
     .string('SALDO')
     .style(headerStyle);
 
@@ -127,56 +132,60 @@ export default function createExcel(nombrePdf, resultados) {
       .style(cellStyle);
 
     ws.cell(index + 2, 3)
-      .string(element.razon_social_cs)
+      .string(element.fecha_vencimiento_examen)
       .style(cellStyle);
 
     ws.cell(index + 2, 4)
-      .string(element.rut_cs)
+      .string(element.razon_social_cs)
       .style(cellStyle);
 
     ws.cell(index + 2, 5)
-      .string(element.nombre_evaluador)
+      .string(element.rut_cs)
       .style(cellStyle);
 
     ws.cell(index + 2, 6)
-      .string(element.rut_evaluador)
+      .string(element.nombre_evaluador)
       .style(cellStyle);
 
     ws.cell(index + 2, 7)
-      .string(element.nombre_servicio)
+      .string(element.rut_evaluador)
       .style(cellStyle);
 
     ws.cell(index + 2, 8)
-      .string(element.estado_resultado)
+      .string(element.nombre_servicio)
       .style(cellStyle);
 
     ws.cell(index + 2, 9)
-      .string(`$${MilesFormat(element.valor_servicio)}`)
+      .string(element.estado_resultado)
       .style(cellStyle);
 
     ws.cell(index + 2, 10)
-      .string(`$${MilesFormat(element.valor_cancelado)}`)
+      .string(`$${MilesFormat(element.valor_servicio)}`)
       .style(cellStyle);
 
     ws.cell(index + 2, 11)
+      .string(`$${MilesFormat(element.valor_cancelado)}`)
+      .style(cellStyle);
+
+    ws.cell(index + 2, 12)
       .string(`$${MilesFormat(element.valor_deuda)}`)
       .style(cellStyle);
   });
 
   //totales
-  ws.cell(totalRegisters.length + 2, 8)
+  ws.cell(totalRegisters.length + 2, 9)
     .string('Total')
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 9)
+  ws.cell(totalRegisters.length + 2, 10)
     .string(`$${MilesFormat(totals.service)}`)
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 10)
+  ws.cell(totalRegisters.length + 2, 11)
     .string(`$${MilesFormat(totals.payed)}`)
     .style(headerStyle);
 
-  ws.cell(totalRegisters.length + 2, 11)
+  ws.cell(totalRegisters.length + 2, 12)
     .string(`$${MilesFormat(totals.balance)}`)
     .style(headerStyle);
 

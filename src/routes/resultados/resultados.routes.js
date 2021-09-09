@@ -205,9 +205,11 @@ router.post("/pdfconsolidado", async (req, res) => {
       cobranzasMapped.push({
         ...element,
         nombre_evaluador: !!auxGi ? auxGi.razon_social : '',
-        rut_evaluador: !!auxGi ? auxGi.rut : ''
+        rut_evaluador: !!auxGi ? auxGi.rut : '',
       });
-    }
+    };
+
+    console.log(cobranzasMapped[0])
 
     createPdfConsolidado(CONSOLIDATED_REPORT_RESULTS_PDF, gi, listExam, cobranzas, 'resultados', filtrofecha, filtrocontrato, filtrofaena);
     createExcelConsolidadoResults(CONSOLIDATED_EXCEL_RESULTS, cobranzasMapped);

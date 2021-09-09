@@ -43,3 +43,5 @@ export const COMPANY_CATEGORY = [
 
 export const CURRENT_ROL = 'clientes';
 export const COLABORATION_ROL = 'colaboradores'
+
+export const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
