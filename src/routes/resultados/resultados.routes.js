@@ -195,6 +195,7 @@ router.post("/pdfconsolidado", async (req, res) => {
     });
 
     let cobranzasMapped = [];
+    let cobranzasFiltered = [];
 
     for await (let element of cobranzas){
       // const aux = await db.collection('resultados').findOne({ codigo: element.codigo.replace('COB', 'RES') });
@@ -202,16 +203,24 @@ router.post("/pdfconsolidado", async (req, res) => {
         ? await db.collection('gi').findOne({ _id: ObjectID(element.id_GI_personalAsignado) })
         : undefined
 
-      cobranzasMapped.push({
-        ...element,
-        nombre_evaluador: !!auxGi ? auxGi.razon_social : '',
-        rut_evaluador: !!auxGi ? auxGi.rut : '',
-      });
+      if(element?.estado && element.estado_archivo && element.estado === 'Revisado' && element.estado_archivo === 'Aprobado'){
+        cobranzasMapped.push({
+          ...element,
+          nombre_evaluador: !!auxGi ? auxGi.razon_social : '',
+          rut_evaluador: !!auxGi ? auxGi.rut : '',
+        });
+      }
     };
+
+    cobranzas.forEach(element => {
+      if(element?.estado && element.estado_archivo && element.estado === 'Revisado' && element.estado_archivo === 'Aprobado'){
+        cobranzasFiltered.push(element);
+      }
+    });
 
     console.log(cobranzasMapped[0])
 
-    createPdfConsolidado(CONSOLIDATED_REPORT_RESULTS_PDF, gi, listExam, cobranzas, 'resultados', filtrofecha, filtrocontrato, filtrofaena);
+    createPdfConsolidado(CONSOLIDATED_REPORT_RESULTS_PDF, gi, listExam, cobranzasFiltered, 'resultados', filtrofecha, filtrocontrato, filtrofaena);
     createExcelConsolidadoResults(CONSOLIDATED_EXCEL_RESULTS, cobranzasMapped);
 
     setTimeout(() => {
