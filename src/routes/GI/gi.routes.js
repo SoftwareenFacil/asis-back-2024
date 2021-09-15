@@ -170,11 +170,11 @@ router.get("/empresas", async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
   try {
-    const result = await db
-      .collection("gi")
-      .find({ categoria: "Empresa/Organizacion", activo_inactivo: true })
-      .toArray();
-    return res.status(200).json({ err: null, res: result });
+    // const result = await db
+    //   .collection("gi")
+    //   .find({ categoria: "Empresa/Organizacion", activo_inactivo: true })
+    //   .toArray();
+    return res.status(200).json({ err: null, res: [] });
   } catch (error) {
     return res.status(400).json({ err: String(error), res: [] })
   }finally{
