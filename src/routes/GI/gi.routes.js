@@ -206,10 +206,11 @@ router.get('/workers', async (req, res) => {
   try {
     const result = await db
       .collection("gi")
-      .find({ categoria: "Persona Natural", activo_inactivo: true })
+      .find({ categoria: "Persona Natural", activo_inactivo: true, $or: [{ grupo_interes: 'Empleados' }, {grupo_interes: 'Colaboradores'}] })
       .toArray();
-    const gisMapped = result.filter((gi) => gi.grupo_interes === 'Empleados' || gi.grupo_interes === 'Colaboradores') || []
-    return res.status(200).json({ err: null, res: gisMapped });
+    // const gisMapped = result.filter((gi) => gi.grupo_interes === 'Empleados' || gi.grupo_interes === 'Colaboradores') || []
+    console.log(result.length)
+    return res.status(200).json({ err: null, res: result });
   } catch (error) {
     return res.status(400).json({ err: String(error), res: [] })
   }finally{
