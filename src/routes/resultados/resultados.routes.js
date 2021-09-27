@@ -236,7 +236,7 @@ router.post("/pdfconsolidado", async (req, res) => {
 
       const excelParams = {
         Bucket: AWS_BUCKET_NAME,
-        Body: fileContent,
+        Body: excelContent,
         Key: nameFIle,
         ContentType: 'application/vnd.ms-excel'
       }

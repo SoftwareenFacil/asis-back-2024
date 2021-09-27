@@ -4,9 +4,7 @@ import { getYear } from "../../functions/getYearActual";
 import { getDate } from "../../functions/getDateNow";
 import excelToJson from "../../functions/insertManyGis/excelToJson";
 import sendinblue from "../../libs/sendinblue/sendinblue";
-import { isRolSolicitudes } from "../../functions/isRol";
-import createSolicitudes from "../../functions/insertManySolicitudes/createJsonSolForInsert";
-import addCodeSolicitud from "../../functions/insertManySolicitudes/addCodeSolicitud";
+import { uploadFileToS3 } from "../../libs/aws";
 // const addDays = require("add-days");
 import moment from "moment";
 moment.locale('es', {
@@ -34,12 +32,15 @@ import multer from "../../libs/multer";
 
 const router = Router();
 const YEAR = getYear();
+var fs = require("fs");
 
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, FORMAT_DATE, SB_TEMPLATE_INSERT_REQUEST_ID, SB_TEMPLATE_CONFIRM_REQUEST_ID, CURRENT_ROL, COLABORATION_ROL } from "../../constant/var";
+import { NOT_EXISTS, AWS_BUCKET_NAME, FORMAT_DATE, SB_TEMPLATE_INSERT_REQUEST_ID, SB_TEMPLATE_CONFIRM_REQUEST_ID, CURRENT_ROL, COLABORATION_ROL, NUMBER_MONTHS, EXCEL_CONSOLIDATED_REQUESTS, COLUMNS_NAME_REQUESTS, COLUMNS_NAME_RESERVATIONS, COLUMNS_NAME_EVALUATIONS, COLUMNS_NAME_RESULTS, SB_TEMPLATE_SEND_CONSOLIDATED_RESULTS, SB_TEMPLATE_SEND_CONSOLIDATE_REQUESTS } from "../../constant/var";
 import { mapRequestsToInsert, addCodeRequest } from "../../functions/requestInsertMassive";
+import createAnualExcel from "../../functions/createExcel/createExcelAnualProcesos";
+import MilesFormat from "../../functions/formattedPesos";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -64,98 +65,165 @@ router.get("/", async (req, res) => {
 });
 
 //GENERATE CONSOLIDATED EXCEL SYSTEM
-router.get("/consolidated/:anio", async (req, res) => {
-  const { anio } = req.params;
+router.post("/consolidated/:anio/:mes", async (req, res) => {
+  const { anio, mes } = req.params;
+  const { emails } = req.body;
   const conn = await connect();
   const db = conn.db('asis-db');
   try {
 
-    let finalData = [];
+    console.log([anio, mes, emails])
+
+    let columnsName = [];
     let aux;
 
-    const solicitudes = await db.collection("solicitudes").find({ anio_solicitud: 2021, isActive: true }).toArray();
-    console.log(solicitudes.length);
+    const solicitudes = await db.collection("solicitudes").find({ anio_solicitud: anio, mes_solicitud: mes, isActive: true }).toArray();
+    const reservas = await db.collection("reservas").find({ anio: anio, mes: mes, isActive: true }).toArray();
+    const evaluaciones = await db.collection("evaluaciones").find({ anio: anio, mes: mes, isActive: true }).toArray();
+    const resultados = await db.collection("resultados").find({ fecha_resultado: { $regex: `${NUMBER_MONTHS[mes.toLowerCase()]}-${anio}` }, isActive: true }).toArray();
+    const profesionalesAsignados = await db.collection("gi")
+      .find({ categoria: "Persona Natural", activo_inactivo: true, $or: [{ grupo_interes: 'Empleados' }, { grupo_interes: 'Colaboradores' }] })
+      .toArray();
 
-    if(!!solicitudes) return res.status(404).json({ err: 98, msg: 'No se encontraron solicitudes', res: [] });
+    if (!solicitudes) return res.status(404).json({ err: 98, msg: 'No se encontraron solicitudes', res: [] });
 
-    let auxCode;
-    let auxReserva;
-
-    for await (let solicitud of solicitudes){
-      auxCode = solicitud.codigo.replace('SOL', 'AGE');
-      if(auxCode){
-        auxReserva = await db.collection('reservas').findOne({ codigo: auxCode });
-        if(auxReserva){
-          finalData.push(auxReserva);
-        }
-      }
-    }
-
-
-    // for await(let solicitud of solicitudes){
-    //   aux = {
-    //     ...aux,
-    //     sol_codigo: solicitud.codigo,
-    //     estado_sol: solicitud.estado,
-    //     fecha_sol: solicitud.fecha_solicitud,
-    //     mes_sol: solicitud.mes_solicitud,
-    //     anio_sol: solicitud.anio_solicitud,
-    //     categoria1_sol: solicitud.categoria1,
-    //     categoria2_sol: solicitud.categoria2,
-    //     categoria3_sol: solicitud.categoria3,
-    //     nombre_sol: solicitud.nombre_servicio,
-    //     tipo_servicio_sol: solicitud.tipo_servicio,
-    //     lugar_servicio_sol: solicitud.lugar_servicio,
-    //     sucursal_sol: solicitud.sucursal,
-    //     monto_neto_sol: solicitud.monto_neto,
-    //     impuesto_sol: solicitud.valor_impuesto,
-    //     exento_sol: solicitud.exento,
-    //     monto_total_sol: solicitud.monto_total,
-    //     descripcion_sol: solicitud.descripcion_servicio,
-    //     rut_cp_sol: solicitud.rut_CP,
-    //     razon_social_cp_sol: solicitud.razon_social_CP,
-    //     contrato_gi_sol: solicitud.nro_contrato_seleccionado_cp,
-    //     faena_gi_sol: solicitud.faena_seleccionada_cp,
-    //     rut_cs_sol: solicitud.rut_cs,
-    //     razon_social_cs_sol: solicitud.razon_social_cs
-    //   }
-
-    //   const giCS = await db.collection('gi').findOne({ rut: solicitud.rut_cs, activo_inactivo: true, categoria: 'Persona Natural' });
-
-    //   if(giCS){
-    //     aux = {
-    //       ...aux,
-    //       licencia_gi_cs: giCS.licencia_conduccion,
-    //       clase_licencia_gi_cs: !!giCS && !!giCS.clase_licencia.length ? giCS.clase_licencia.toString() : '',
-    //       ley_aplicable_gi_cs: giCS.ley_aplicable
-    //     }
-    //   }
-    //   const reserva = await db.collection('reservas').findOne({ codigo: solicitud.codigo.replace('SOL', 'AGE') });
-    //   if(reserva){
-    //     aux = {
-    //       ...aux,
-
-    //     }
-    //   }
-
-    //   finalData.push(aux);
-    // }
-
-    return res.status(200).json({
-      err: null,
-      msg: `Registros encontrados`,
-      res: {
-        solicitudes: {
-          cant: solicitudes.length,
-          data: solicitudes
-        },
-        reservas: {
-          cant: finalData.length,
-          data: finalData
-        }
+    const auxSolicitudes = solicitudes.map(solicitud => {
+      const aux = profesionalesAsignados.find(profesional => solicitud.id_GI_PersonalAsignado === `${profesional._id}`);
+      return {
+        ...solicitud,
+        monto_neto: !!solicitud.monto_neto ? `$ ${MilesFormat(solicitud.monto_neto)}` : '',
+        porcentaje_impuesto: `${solicitud.porcentaje_impuesto}`,
+        valor_impuesto: `${solicitud.valor_impuesto}`,
+        monto_total: !!solicitud.monto_total ? `$ ${MilesFormat(solicitud.monto_total)}` : '',
+        exento: `$ ${MilesFormat(solicitud.exento)}`,
+        observacion_solicitud: !!solicitud.observacion_solicitud.length ? solicitud.observacion_solicitud[solicitud.observacion_solicitud.length - 1].obs : '',
+        profesional_asignado: !!aux ? aux.razon_social : ''
       }
     });
+
+    const auxReservas = !!reservas ? reservas.reduce((acc, reserva) => {
+      const aux = solicitudes.find(solicitud => solicitud.codigo === reserva.codigo.replace("AGE", "SOL"));
+      if (aux) {
+        acc.push({
+          codigo_solicitud: aux.codigo,
+          ...reserva
+        })
+      }
+      return acc;
+    }, []) : [];
+
+    const auxEvaluaciones = !!evaluaciones ? evaluaciones.reduce((acc, evaluacion) => {
+      const aux = solicitudes.find(solicitud => solicitud.codigo === evaluacion.codigo.replace("EVA", "SOL"));
+      if (aux) {
+        acc.push({
+          codigo_solicitud: aux.codigo,
+          ...evaluacion
+        })
+      }
+      return acc;
+    }, []) : [];
+
+    const auxResultados = !!resultados ? resultados.reduce((acc, resultado) => {
+      const aux = solicitudes.find(solicitud => solicitud.codigo === resultado.codigo.replace("RES", "SOL"));
+      if (aux) {
+        acc.push({
+          codigo_solicitud: aux.codigo,
+          ...resultado
+        })
+      }
+      return acc;
+    }, []) : [];
+
+    const pdfname = `${EXCEL_CONSOLIDATED_REQUESTS}_${mes.toUpperCase()}_${anio}.xlsx`;
+
+    createAnualExcel(
+      pdfname,
+      {
+        columnsNameRequests: COLUMNS_NAME_REQUESTS,
+        colummnsNameReservations: COLUMNS_NAME_RESERVATIONS,
+        columnsNameEvaluations: COLUMNS_NAME_EVALUATIONS,
+        columnsNameResults: COLUMNS_NAME_RESULTS
+      },
+      {
+        rowsDataRequests: auxSolicitudes,
+        rowsDataReservations: auxReservas,
+        rowsDataEvaluations: auxEvaluaciones,
+        rowsDataResults: auxResultados
+      },
+      {
+        headerKeyColorRequests: '#334ACD',
+        headerKeyColorReservations: '#334ACD',
+        headerKeyColorEvaluations: '#334ACD',
+        headerKeyColorResults: '#334ACD'
+      },
+      {
+        headersColorRequests: '#334ACD',
+        headersColorReservations: '#B534BB',
+        headerColorEvaluations: '#79BD35',
+        headerColorResults: '#7B8497'
+      },
+      {
+        fontColorRequests: 'white',
+        fontColorReservations: 'white',
+        fontColorEvaluations: 'white',
+        fontColorResults: 'white'
+      }
+    );
+
+    setTimeout(() => {
+      const excelContent = fs.readFileSync(`uploads/${pdfname}`);
+
+      const excelParams = {
+        Bucket: AWS_BUCKET_NAME,
+        Body: excelContent,
+        Key: pdfname,
+        ContentType: 'application/vnd.ms-excel'
+      }
+
+      uploadFileToS3(excelParams);
+
+      sendinblue(
+        emails,
+        SB_TEMPLATE_SEND_CONSOLIDATE_REQUESTS,
+        {
+          CODIGO_SOLICITUD: ''
+        },
+        [
+          {
+            content: Buffer.from(excelContent).toString('base64'), // Should be publicly available and shouldn't be a local file
+            name: `${pdfname}.xlsx`
+          }
+        ]
+      );
+
+    }, 2000);
+
+    return res.status(200).json({ err: null, msg: 'Informe generado correctamente', res: null });
+
+    // return res.status(200).json({
+    //   err: null,
+    //   msg: `Registros encontrados`,
+    //   res: {
+    //     solicitudes: {
+    //       cant: auxSolicitudes.length,
+    //       data: auxSolicitudes
+    //     },
+    //     reservas: {
+    //       cant: auxReservas.length,
+    //       data: auxReservas
+    //     },
+    //     evaluaciones: {
+    //       cant: auxEvaluaciones.length,
+    //       data: auxEvaluaciones
+    //     },
+    //     resultados: {
+    //       cant: auxResultados.length,
+    //       data: auxResultados
+    //     }
+    //   }
+    // });
   } catch (error) {
+    console.log(error)
     return res.status(500).json({
       err: String(error),
       msg: ERROR,
@@ -475,12 +543,12 @@ router.post("/buscar", async (req, res) => {
     //     .toArray();
     // }
 
-    if(token && !!dataToken && dataToken.rol === CURRENT_ROL){
+    if (token && !!dataToken && dataToken.rol === CURRENT_ROL) {
       countSol = await db
         .collection("solicitudes")
         .find({ [headFilter]: rexExpresionFiltro, rut_CP: dataToken.rut, isActive: true })
         .count();
-  
+
       result = await db
         .collection("solicitudes")
         .find({ [headFilter]: rexExpresionFiltro, rut_CP: dataToken.rut, isActive: true })
@@ -489,12 +557,12 @@ router.post("/buscar", async (req, res) => {
         .limit(nPerPage)
         .toArray();
     }
-    else if(token && !!dataToken && dataToken.rol === COLABORATION_ROL){
+    else if (token && !!dataToken && dataToken.rol === COLABORATION_ROL) {
       countSol = await db
         .collection("solicitudes")
         .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id, isActive: true })
         .count();
-  
+
       result = await db
         .collection("solicitudes")
         .find({ [headFilter]: rexExpresionFiltro, id_GI_PersonalAsignado: dataToken.id, isActive: true })
@@ -503,12 +571,12 @@ router.post("/buscar", async (req, res) => {
         .limit(nPerPage)
         .toArray();
     }
-    else{
+    else {
       countSol = await db
         .collection("solicitudes")
         .find({ [headFilter]: rexExpresionFiltro, isActive: true })
         .count();
-  
+
       result = await db
         .collection("solicitudes")
         .find({ [headFilter]: rexExpresionFiltro, isActive: true })
