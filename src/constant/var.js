@@ -226,7 +226,7 @@ export const COLUMNS_NAME_RESERVATIONS = [
   },
   {
     width: 20,
-    name: 'ESTADO',
+    name: 'ESTADO PROCESO',
     requestName: 'estado'
   },
   {
@@ -299,7 +299,7 @@ export const COLUMNS_NAME_EVALUATIONS = [
   },
   {
     width: 20,
-    name: 'ESTADO',
+    name: 'ESTADO PROCESO',
     requestName: 'estado'
   },
   {
@@ -367,7 +367,7 @@ export const COLUMNS_NAME_RESULTS = [
   },
   {
     width: 20,
-    name: 'ESTADO',
+    name: 'ESTADO PROCESO',
     requestName: 'estado'
   },
   {
@@ -421,3 +421,252 @@ export const COLUMNS_NAME_RESULTS = [
     requestName: 'razon_social_cs'
   },
 ];
+
+export const COLUMNS_NAME_INVOICES = [
+  {
+    width: 20,
+    name: 'CODIGO SOL',
+    requestName: 'codigo_solicitud'
+  },
+  {
+    width: 20,
+    name: 'CODIGO',
+    requestName: 'codigo'
+  },
+  {
+    width: 25,
+    name: 'ESTADO PROCESO',
+    requestName: 'estado'
+  },
+  {
+    width: 20,
+    name: 'NOMBRE SERVICIO',
+    requestName: 'nombre_servicio'
+  },
+  {
+    width: 12,
+    name: 'RUT CP',
+    requestName: 'rut_cp'
+  },
+  {
+    width: 35,
+    name: 'RAZON SOCIAL CP',
+    requestName: 'razon_social_cp'
+  },
+  {
+    width: 12,
+    name: 'RUT CS',
+    requestName: 'rut_cs'
+  },
+  {
+    width: 35,
+    name: 'RAZON SOCIAL CS',
+    requestName: 'razon_social_cs'
+  },
+  {
+    width: 20,
+    name: 'REQUIERE OC',
+    requestName: 'oc'
+  },
+  {
+    width: 20,
+    name: 'NUMERO OC',
+    requestName: 'nro_oc'
+  },
+  {
+    width: 20,
+    name: 'FECHA OC',
+    requestName: 'fecha_oc'
+  },
+  {
+    width: 20,
+    name: 'HORA OC',
+    requestName: 'hora_oc'
+  },
+  {
+    width: 20,
+    name: 'FECHA FACTURA',
+    requestName: 'fecha_facturacion'
+  },
+  {
+    width: 20,
+    name: 'NRO. FACTURA',
+    requestName: 'nro_factura'
+  },
+  {
+    width: 35,
+    name: 'RAZON SOCIAL EMPRESA',
+    requestName: 'razon_social_empresa'
+  },
+  {
+    width: 20,
+    name: 'MONTO NETO',
+    requestName: 'monto_neto'
+  },
+  {
+    width: 20,
+    name: '% IMPUESTO',
+    requestName: 'porcentaje_impuesto'
+  },
+  {
+    width: 12,
+    name: 'IVA',
+    requestName: 'valor_impuesto'
+  },
+  {
+    width: 20,
+    name: 'SUBTOTAL',
+    requestName: 'sub_total'
+  },
+  {
+    width: 20,
+    name: 'EXENTO',
+    requestName: 'exento'
+  },
+  {
+    width: 20,
+    name: 'DESCUENTO',
+    requestName: 'descuento'
+  },
+  {
+    width: 20,
+    name: 'TOTAL',
+    requestName: 'total'
+  },
+]
+
+export const COLUMNS_NAME_PAYMENTS = [
+  {
+    width: 20,
+    name: 'CODIGO SOL',
+    requestName: 'codigo_solicitud'
+  },
+  {
+    width: 20,
+    name: 'CODIGO',
+    requestName: 'codigo'
+  },
+  {
+    width: 25,
+    name: 'ESTADO PROCESO',
+    requestName: 'estado'
+  },
+  {
+    width: 20,
+    name: 'NOMBRE SERVICIO',
+    requestName: 'nombre_servicio'
+  },
+  {
+    width: 12,
+    name: 'RUT CP',
+    requestName: 'rut_cp'
+  },
+  {
+    width: 35,
+    name: 'RAZON SOCIAL CP',
+    requestName: 'razon_social_cp'
+  },
+  {
+    width: 12,
+    name: 'RUT CS',
+    requestName: 'rut_cs'
+  },
+  {
+    width: 35,
+    name: 'RAZON SOCIAL CS',
+    requestName: 'razon_social_cs'
+  },
+  {
+    width: 20,
+    name: 'FECHA FACTURA',
+    requestName: 'fecha_facturacion'
+  },
+  {
+    width: 20,
+    name: 'NRO. FACTURA',
+    requestName: 'nro_factura'
+  },
+  {
+    width: 20,
+    name: 'CREDITO',
+    requestName: 'credito'
+  },
+  {
+    width: 20,
+    name: 'DIAS CREDITO',
+    requestName: 'dias_credito'
+  },
+  {
+    width: 20,
+    name: 'VALOR PAGADO',
+    requestName: 'valor_cancelado'
+  },
+  {
+    width: 20,
+    name: 'VALOR SERVICIO',
+    requestName: 'valor_servicio'
+  },
+]
+
+export const COLUMNS_NAME_REQUESTPAYMENTS = [
+  {
+    width: 20,
+    name: 'CODIGO SOL',
+    requestName: 'codigo_solicitud'
+  },
+  {
+    width: 20,
+    name: 'CODIGO',
+    requestName: 'codigo'
+  },
+  {
+    width: 25,
+    name: 'ESTADO PROCESO',
+    requestName: 'estado'
+  },
+  {
+    width: 20,
+    name: 'NOMBRE SERVICIO',
+    requestName: 'nombre_servicio'
+  },
+  {
+    width: 12,
+    name: 'RUT CP',
+    requestName: 'rut_cp'
+  },
+  {
+    width: 35,
+    name: 'RAZON SOCIAL CP',
+    requestName: 'razon_social_cp'
+  },
+  {
+    width: 12,
+    name: 'RUT CS',
+    requestName: 'rut_cs'
+  },
+  {
+    width: 35,
+    name: 'RAZON SOCIAL CS',
+    requestName: 'razon_social_cs'
+  },
+  {
+    width: 20,
+    name: 'FECHA FACTURA',
+    requestName: 'fecha_facturacion'
+  },
+  {
+    width: 20,
+    name: 'DIAS CREDITO',
+    requestName: 'dias_credito'
+  },
+  {
+    width: 20,
+    name: 'VALOR PAGADO',
+    requestName: 'valor_cancelado'
+  },
+  {
+    width: 20,
+    name: 'VALOR DEUDA',
+    requestName: 'valor_servicio'
+  },
+]

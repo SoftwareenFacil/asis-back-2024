@@ -37,7 +37,7 @@ var fs = require("fs");
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, AWS_BUCKET_NAME, FORMAT_DATE, SB_TEMPLATE_INSERT_REQUEST_ID, SB_TEMPLATE_CONFIRM_REQUEST_ID, CURRENT_ROL, COLABORATION_ROL, NUMBER_MONTHS, EXCEL_CONSOLIDATED_REQUESTS, COLUMNS_NAME_REQUESTS, COLUMNS_NAME_RESERVATIONS, COLUMNS_NAME_EVALUATIONS, COLUMNS_NAME_RESULTS, SB_TEMPLATE_SEND_CONSOLIDATED_RESULTS, SB_TEMPLATE_SEND_CONSOLIDATE_REQUESTS } from "../../constant/var";
+import { NOT_EXISTS, AWS_BUCKET_NAME, FORMAT_DATE, SB_TEMPLATE_INSERT_REQUEST_ID, SB_TEMPLATE_CONFIRM_REQUEST_ID, CURRENT_ROL, COLABORATION_ROL, NUMBER_MONTHS, EXCEL_CONSOLIDATED_REQUESTS, COLUMNS_NAME_REQUESTS, COLUMNS_NAME_RESERVATIONS, COLUMNS_NAME_EVALUATIONS, COLUMNS_NAME_RESULTS, SB_TEMPLATE_SEND_CONSOLIDATED_RESULTS, SB_TEMPLATE_SEND_CONSOLIDATE_REQUESTS, COLUMNS_NAME_INVOICES, COLUMNS_NAME_PAYMENTS, COLUMNS_NAME_REQUESTPAYMENTS } from "../../constant/var";
 import { mapRequestsToInsert, addCodeRequest } from "../../functions/requestInsertMassive";
 import createAnualExcel from "../../functions/createExcel/createExcelAnualProcesos";
 import MilesFormat from "../../functions/formattedPesos";
@@ -84,6 +84,10 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
     const profesionalesAsignados = await db.collection("gi")
       .find({ categoria: "Persona Natural", activo_inactivo: true, $or: [{ grupo_interes: 'Empleados' }, { grupo_interes: 'Colaboradores' }] })
       .toArray();
+    
+    const facturaciones = await db.collection('facturaciones').find({ fecha_facturacion: { $regex: `${NUMBER_MONTHS[mes.toLowerCase()]}-${anio}` }, isActive: true }).toArray();
+    const pagos = await db.collection('pagos').find({ fecha_facturacion: { $regex: `${NUMBER_MONTHS[mes.toLowerCase()]}-${anio}` }, isActive: true }).toArray();
+    const cobranza = await db.collection('cobranza').find({ fecha_facturacion: { $regex: `${NUMBER_MONTHS[mes.toLowerCase()]}-${anio}` }, isActive: true }).toArray();
 
     if (!solicitudes) return res.status(404).json({ err: 98, msg: 'No se encontraron solicitudes', res: [] });
 
@@ -134,6 +138,54 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
       return acc;
     }, []) : [];
 
+    //facturacion, pagos y cobranzas
+    const auxFacturaciones = !!facturaciones ? facturaciones.reduce((acc, facturacion) => {
+      const aux = solicitudes.find(solicitud => solicitud.codigo === facturacion.codigo.replace("FAC", "SOL"));
+      if(aux){
+        acc.push({
+          codigo_solicitud: aux.codigo,
+          ...facturacion,
+          monto_neto: `$ ${MilesFormat(facturacion.monto_neto)}`,
+          porcentaje_impuesto: `${facturacion.porcentaje_impuesto}%`,
+          valor_impuesto: `$ ${MilesFormat(facturacion.valor_impuesto)}`,
+          sub_total: `$ ${MilesFormat(facturacion.sub_total)}`,
+          exento: `$ ${MilesFormat(facturacion.exento)}`,
+          descuento: `$ ${MilesFormat(facturacion.descuento)}`,
+          total: `$ ${MilesFormat(facturacion.total)}`,
+        });
+      }
+      return acc;
+    }, []) : []
+
+    const auxPagos = !!pagos ? pagos.reduce((acc, pago) => {
+      const aux = solicitudes.find(solicitud => solicitud.codigo === pago.codigo.replace("PAG", "SOL"));
+      if(aux){
+        acc.push({
+          codigo_solicitud: aux.codigo,
+          ...pago,
+          dias_credito: `${pago.dias_credito}`,
+          valor_servicio: `$ ${MilesFormat(pago.valor_servicio)}`,
+          valor_cancelado: `$ ${MilesFormat(pago.valor_cancelado)}`
+        });
+      }
+      return acc;
+    }, []) : []
+
+    const auxCobranzas = !!cobranza ? cobranza.reduce((acc, cobranza) => {
+      const aux = solicitudes.find(solicitud => solicitud.codigo === cobranza.codigo.replace("COB", "SOL"));
+      if(aux){
+        acc.push({
+          codigo_solicitud: aux.codigo,
+          ...cobranza,
+          dias_credito: `${cobranza.dias_credito}`,
+          valor_servicio: `$ ${MilesFormat(cobranza.valor_servicio)}`,
+          valor_cancelado: `$ ${MilesFormat(cobranza.valor_cancelado)}`,
+          valor_deuda: `$ ${MilesFormat(cobranza.valor_deuda)}`
+        });
+      }
+      return acc;
+    }, []) : []
+
     const pdfname = `${EXCEL_CONSOLIDATED_REQUESTS}_${mes.toUpperCase()}_${anio}.xlsx`;
 
     createAnualExcel(
@@ -142,31 +194,46 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
         columnsNameRequests: COLUMNS_NAME_REQUESTS,
         colummnsNameReservations: COLUMNS_NAME_RESERVATIONS,
         columnsNameEvaluations: COLUMNS_NAME_EVALUATIONS,
-        columnsNameResults: COLUMNS_NAME_RESULTS
+        columnsNameResults: COLUMNS_NAME_RESULTS,
+        columnsNameInvoices: COLUMNS_NAME_INVOICES,
+        columnsNamePayments: COLUMNS_NAME_PAYMENTS,
+        columnsNameRequestPayments: COLUMNS_NAME_REQUESTPAYMENTS
       },
       {
         rowsDataRequests: auxSolicitudes,
         rowsDataReservations: auxReservas,
         rowsDataEvaluations: auxEvaluaciones,
-        rowsDataResults: auxResultados
+        rowsDataResults: auxResultados,
+        rowsDataInvoices: auxFacturaciones,
+        rowsDataPayments: auxPagos,
+        rowsDataRequestPayment: auxCobranzas
       },
       {
         headerKeyColorRequests: '#334ACD',
         headerKeyColorReservations: '#334ACD',
         headerKeyColorEvaluations: '#334ACD',
-        headerKeyColorResults: '#334ACD'
+        headerKeyColorResults: '#334ACD',
+        headerKeyCOlorInvoices: '#334ACD',
+        headerKeyColorPayments: '#334ACD',
+        headerKeyColorRequestPayments: '#334ACD'
       },
       {
         headersColorRequests: '#334ACD',
         headersColorReservations: '#B534BB',
         headerColorEvaluations: '#79BD35',
-        headerColorResults: '#7B8497'
+        headerColorResults: '#7B8497',
+        headerColorInvoices: '#581845',
+        headerColorPayments: '#DC4706',
+        headerColorRequestPayment: '#9AA587'
       },
       {
         fontColorRequests: 'white',
         fontColorReservations: 'white',
         fontColorEvaluations: 'white',
-        fontColorResults: 'white'
+        fontColorResults: 'white',
+        fontColorInvoices: 'white',
+        fontColorPayments: 'white',
+        fontColorRequestPayments: 'white'
       }
     );
 
@@ -200,28 +267,6 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
 
     return res.status(200).json({ err: null, msg: 'Informe generado correctamente', res: null });
 
-    // return res.status(200).json({
-    //   err: null,
-    //   msg: `Registros encontrados`,
-    //   res: {
-    //     solicitudes: {
-    //       cant: auxSolicitudes.length,
-    //       data: auxSolicitudes
-    //     },
-    //     reservas: {
-    //       cant: auxReservas.length,
-    //       data: auxReservas
-    //     },
-    //     evaluaciones: {
-    //       cant: auxEvaluaciones.length,
-    //       data: auxEvaluaciones
-    //     },
-    //     resultados: {
-    //       cant: auxResultados.length,
-    //       data: auxResultados
-    //     }
-    //   }
-    // });
   } catch (error) {
     console.log(error)
     return res.status(500).json({

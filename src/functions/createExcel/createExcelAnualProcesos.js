@@ -5,6 +5,9 @@ var wsRequests = wb.addWorksheet("Solicitudes");
 var wsReservations = wb.addWorksheet("Reservas");
 var wsEvaluations = wb.addWorksheet("Evaluaciones");
 var wsResults = wb.addWorksheet("Resultados");
+var wsInvoices = wb.addWorksheet("Facturaciones");
+var wsPayments = wb.addWorksheet("Pagos");
+var wsRequestPayments = wb.addWorksheet("Cobranza");
 
 export default function createAnualExcel(
   pdfName,
@@ -12,31 +15,46 @@ export default function createAnualExcel(
     columnsNameRequests,
     colummnsNameReservations,
     columnsNameEvaluations,
-    columnsNameResults
+    columnsNameResults,
+    columnsNameInvoices,
+    columnsNamePayments,
+    columnsNameRequestPayments
   },
   {
     rowsDataRequests,
     rowsDataReservations,
     rowsDataEvaluations,
-    rowsDataResults
+    rowsDataResults,
+    rowsDataInvoices,
+    rowsDataPayments,
+    rowsDataRequestPayment
   },
   {
     headerKeyColorRequests,
     headerKeyColorReservations,
     headerKeyColorEvaluations,
-    headerKeyColorResults
+    headerKeyColorResults,
+    headerKeyCOlorInvoices,
+    headerKeyColorPayments,
+    headerKeyColorRequestPayments
   },
   {
     headersColorRequests,
     headersColorReservations,
     headerColorEvaluations,
-    headerColorResults
+    headerColorResults,
+    headerColorInvoices,
+    headerColorPayments,
+    headerColorRequestPayment
   },
   {
     fontColorRequests,
     fontColorReservations,
     fontColorEvaluations,
-    fontColorResults
+    fontColorResults,
+    fontColorInvoices,
+    fontColorPayments,
+    fontColorRequestPayments
   }
 ) {
 
@@ -253,6 +271,162 @@ export default function createAnualExcel(
   rowsDataResults.forEach((row, index) => {
     columnsNameResults.forEach((column, subindex) => {
       wsResults.cell(index + 2, subindex + 1)
+        .string(row[column.requestName])
+        .style(cellStyle)
+    })
+  });
+
+  //--------------------------------------------INVOICES
+  columnsNameInvoices.forEach((column, index) => {
+    wsInvoices.column(index + 1).setWidth(column.width);
+    wsInvoices.cell(1, index + 1)
+      .string(column.name)
+      .style(index === 0 ?
+        wb.createStyle({
+          fill: {
+            type: 'pattern',
+            patternType: 'solid',
+            bgColor: headerKeyCOlorInvoices,
+            fgColor: headerKeyCOlorInvoices
+          },
+          font: {
+            color: fontColorInvoices,
+            size: 10,
+            bold: true,
+            name: 'Roboto'
+          },
+          alignment: {
+            shrinkToFit: true,
+            wrapText: true
+          }
+        }) : wb.createStyle({
+          fill: {
+            type: 'pattern',
+            patternType: 'solid',
+            bgColor: headerColorInvoices,
+            fgColor: headerColorInvoices
+          },
+          font: {
+            color: fontColorInvoices,
+            size: 10,
+            bold: true,
+            name: 'Roboto'
+          },
+          alignment: {
+            shrinkToFit: true,
+            wrapText: true
+          }
+        }))
+  });
+
+  //filas de información
+  rowsDataInvoices.forEach((row, index) => {
+    columnsNameInvoices.forEach((column, subindex) => {
+      wsInvoices.cell(index + 2, subindex + 1)
+        .string(row[column.requestName])
+        .style(cellStyle)
+    })
+  });
+
+  //--------------------------------------------PAYMENTS
+  columnsNamePayments.forEach((column, index) => {
+    wsPayments.column(index + 1).setWidth(column.width);
+    wsPayments.cell(1, index + 1)
+      .string(column.name)
+      .style(index === 0 ?
+        wb.createStyle({
+          fill: {
+            type: 'pattern',
+            patternType: 'solid',
+            bgColor: headerKeyColorPayments,
+            fgColor: headerKeyColorPayments
+          },
+          font: {
+            color: fontColorPayments,
+            size: 10,
+            bold: true,
+            name: 'Roboto'
+          },
+          alignment: {
+            shrinkToFit: true,
+            wrapText: true
+          }
+        }) : wb.createStyle({
+          fill: {
+            type: 'pattern',
+            patternType: 'solid',
+            bgColor: headerColorPayments,
+            fgColor: headerColorPayments
+          },
+          font: {
+            color: fontColorPayments,
+            size: 10,
+            bold: true,
+            name: 'Roboto'
+          },
+          alignment: {
+            shrinkToFit: true,
+            wrapText: true
+          }
+        }))
+  });
+
+  //filas de información
+  rowsDataPayments.forEach((row, index) => {
+    columnsNamePayments.forEach((column, subindex) => {
+      wsPayments.cell(index + 2, subindex + 1)
+        .string(row[column.requestName])
+        .style(cellStyle)
+    })
+  });
+
+  //-------------------------------------------REQUEST PAYMENTS
+  columnsNameRequestPayments.forEach((column, index) => {
+    wsRequestPayments.column(index + 1).setWidth(column.width);
+    wsRequestPayments.cell(1, index + 1)
+      .string(column.name)
+      .style(index === 0 ?
+        wb.createStyle({
+          fill: {
+            type: 'pattern',
+            patternType: 'solid',
+            bgColor: headerKeyColorRequestPayments,
+            fgColor: headerKeyColorRequestPayments
+          },
+          font: {
+            color: fontColorRequestPayments,
+            size: 10,
+            bold: true,
+            name: 'Roboto'
+          },
+          alignment: {
+            shrinkToFit: true,
+            wrapText: true
+          }
+        }) : wb.createStyle({
+          fill: {
+            type: 'pattern',
+            patternType: 'solid',
+            bgColor: headerColorRequestPayment,
+            fgColor: headerColorRequestPayment
+          },
+          font: {
+            color: fontColorRequestPayments,
+            size: 10,
+            bold: true,
+            name: 'Roboto'
+          },
+          alignment: {
+            shrinkToFit: true,
+            wrapText: true
+          }
+        }))
+  });
+
+  //filas de información
+  rowsDataRequestPayment.forEach((row, index) => {
+    columnsNameRequestPayments.forEach((column, subindex) => {
+      wsRequestPayments.cell(index + 2, subindex + 1)
         .string(row[column.requestName])
         .style(cellStyle)
     })
