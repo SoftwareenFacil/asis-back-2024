@@ -77,6 +77,8 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
     let columnsName = [];
     let aux;
 
+    console.log([anio, mes])
+
     const solicitudes = await db.collection("solicitudes").find({ anio_solicitud: anio, mes_solicitud: mes, isActive: true }).toArray();
     const reservas = await db.collection("reservas").find({ anio: anio, mes: mes, isActive: true }).toArray();
     const evaluaciones = await db.collection("evaluaciones").find({ anio: anio, mes: mes, isActive: true }).toArray();
@@ -186,7 +188,7 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
       return acc;
     }, []) : []
 
-    const pdfname = `${EXCEL_CONSOLIDATED_REQUESTS}_${mes.toUpperCase()}_${anio}.xlsx`;
+    const pdfname = `${EXCEL_CONSOLIDATED_REQUESTS}.xlsx`;
 
     createAnualExcel(
       pdfname,

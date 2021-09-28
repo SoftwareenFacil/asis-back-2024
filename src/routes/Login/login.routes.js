@@ -43,6 +43,7 @@ router.post('/', async (req, res) => {
   //le paso la data de los roles
   try {
     const result = await db.collection('roles').find().toArray();
+    console.log(result[0].admin.acciones)
     let roles = (result, rol = '') => {
       console.log(rol)
       switch (rol.toLowerCase()) {
@@ -62,8 +63,9 @@ router.post('/', async (req, res) => {
     }
 
     const objectRoles = roles(result, rol);
-    console.log(objectRoles)
+    // console.log(objectRoles)
     const acciones = objectRoles.acciones;
+    // console.log(acciones)
     delete objectRoles.acciones || {};
     const clienteRoles = { ...objectRoles, ...acciones };
 
