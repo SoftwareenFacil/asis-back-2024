@@ -10,6 +10,7 @@ var wsPayments = wb.addWorksheet("Pagos");
 var wsRequestPayments = wb.addWorksheet("Cobranza");
 
 export default function createAnualExcel(
+  mes,
   pdfName,
   {
     columnsNameRequests,
@@ -112,11 +113,13 @@ export default function createAnualExcel(
 
   //filas de información
   rowsDataRequests.forEach((row, index) => {
-    columnsNameRequests.forEach((column, subindex) => {
-      wsRequests.cell(index + 2, subindex + 1)
-        .string(row[column.requestName])
-        .style(cellStyle)
-    })
+    if(row.mes_solicitud === mes){
+      columnsNameRequests.forEach((column, subindex) => {
+        wsRequests.cell(index + 2, subindex + 1)
+          .string(row[column.requestName])
+          .style(cellStyle)
+      })
+    }
   });
 
   //------------------------------------- RESERVAS

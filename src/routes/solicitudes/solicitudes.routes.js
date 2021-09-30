@@ -5,6 +5,7 @@ import { getDate } from "../../functions/getDateNow";
 import excelToJson from "../../functions/insertManyGis/excelToJson";
 import sendinblue from "../../libs/sendinblue/sendinblue";
 import { uploadFileToS3 } from "../../libs/aws";
+import { v4 as uuid } from "uuid";
 // const addDays = require("add-days");
 import moment from "moment";
 moment.locale('es', {
@@ -77,8 +78,6 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
     let columnsName = [];
     let aux;
 
-    console.log([anio, mes])
-
     const solicitudes = await db.collection("solicitudes").find({ anio_solicitud: anio, mes_solicitud: mes, isActive: true }).toArray();
     const reservas = await db.collection("reservas").find({ anio: anio, mes: mes, isActive: true }).toArray();
     const evaluaciones = await db.collection("evaluaciones").find({ anio: anio, mes: mes, isActive: true }).toArray();
@@ -106,6 +105,8 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
         profesional_asignado: !!aux ? aux.razon_social : ''
       }
     });
+
+    console.log(auxSolicitudes.length)
 
     const auxReservas = !!reservas ? reservas.reduce((acc, reserva) => {
       const aux = solicitudes.find(solicitud => solicitud.codigo === reserva.codigo.replace("AGE", "SOL"));
@@ -188,9 +189,10 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
       return acc;
     }, []) : []
 
-    const pdfname = `${EXCEL_CONSOLIDATED_REQUESTS}.xlsx`;
+    const pdfname = `${EXCEL_CONSOLIDATED_REQUESTS}_${uuid()}.xlsx`;
 
     createAnualExcel(
+      mes,
       pdfname,
       {
         columnsNameRequests: COLUMNS_NAME_REQUESTS,
@@ -264,6 +266,12 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
           }
         ]
       );
+
+      try {
+        fs.unlinkSync(`uploads/${pdfname}`);
+      } catch (error) {
+        console.log('No se ha podido eliminar el archivo ', error)
+      }
 
     }, 5000);
 
