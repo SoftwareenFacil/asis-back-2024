@@ -65,6 +65,8 @@ router.get('/:anio', async (req, res) => {
     let rankingFacturacion = [];
     let rankingPagos = [];
 
+    let solicitudesPorSucursal = [];
+
     //grupos de interes activos
     const activeGIs = await db.collection('gi').find({ activo_inactivo: true }).count();
     //solicitudes totales
@@ -240,15 +242,55 @@ router.get('/:anio', async (req, res) => {
       return 0;
     });
 
-    res.status(200).json({
-      activeGIs,
-      countSolicitudes: totalSolicitudes.length,
-      countResultados: totalResultados.length,
-      production,
-      facturacion,
-      flujoCaja,
-      rankingFacturacion,
-      rankingPagos
+    //solicitudes por sucursal
+    let totalSucursales = [{ type: [], data: [] }]
+    const solicitudesSucursal = totalSolicitudes.reduce((acc, current) => {
+      const aux = acc.find(element => element.type === current.sucursal);
+      if(!aux){
+        acc.push({
+          type: current.sucursal,
+          data: 1
+        });
+      }
+      else{
+        const auxAcc = acc.map(obj => {
+          if(obj.type === aux.type){
+            return {
+              type: obj.type,
+              data: obj.data + 1
+            }
+          }
+          else{
+            return obj
+          }
+        });
+
+        acc = auxAcc;
+      }
+
+      return acc;
+    }, []);
+
+    solicitudesSucursal.forEach(solicitud => {
+      totalSucursales[0].type.push(solicitud.type)
+      totalSucursales[0].data.push(solicitud.data)
+    });
+
+
+    return res.status(200).json({
+      err: null,
+      msg: 'Reportes Generados',
+      res: {
+        activeGIs,
+        countRequests: totalSolicitudes.length,
+        countResults: totalResultados.length,
+        production,
+        invoices: facturacion,
+        cashFlow: flujoCaja,
+        rankingInvoices: rankingFacturacion,
+        rankingPayments: rankingPagos,
+        totalOffices: totalSucursales
+      }
     })
   } catch (error) {
     console.log(error);
