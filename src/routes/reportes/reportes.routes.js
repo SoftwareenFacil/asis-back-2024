@@ -287,8 +287,8 @@ router.get('/:anio', async (req, res) => {
         production,
         invoices: facturacion,
         cashFlow: flujoCaja,
-        rankingInvoices: rankingFacturacion,
-        rankingPayments: rankingPagos,
+        rankingInvoices: rankingFacturacion.slice(0, 9),
+        rankingPayments: rankingPagos.slice(0, 9),
         totalOffices: totalSucursales
       }
     })
