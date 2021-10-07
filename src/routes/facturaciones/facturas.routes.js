@@ -926,8 +926,8 @@ router.post("/validar/:id", async (req, res) => {
         //   result.value.fecha_facturacion,
         //   Number(gi.dias_credito)
         // ),
-        fecha_pago: moment(FORMAT_DATE, result.value.fecha_facturacion)
-          .add(Number(gi.dias_credito) || 0, 'M').format(FORMAT_DATE),
+        fecha_pago: moment(result.value.fecha_facturacion, FORMAT_DATE)
+          .add(Number(gi.dias_credito) || 0, 'days').format(FORMAT_DATE),
         pagos: [],
         isActive: true
       });
