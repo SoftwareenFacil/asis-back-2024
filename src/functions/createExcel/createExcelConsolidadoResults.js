@@ -7,21 +7,12 @@ var path = require("path");
 // Require library
 var xl = require('excel4node');
 
-// Create a new instance of a Workbook class
-var wb = new xl.Workbook();
-
-// Add Worksheets to the workbook
-var ws = wb.addWorksheet('Consolidado');
-
 export default function createExcel(nombrePdf, resultados) {
-  // Create a reusable style
-  // var style = wb.createStyle({
-  //   font: {
-  //     color: '#FF0800',
-  //     size: 12,
-  //   },
-  //   numberFormat: '$#,##0.00; ($#,##0.00); -',
-  // });
+  // Create a new instance of a Workbook class
+  var wb = new xl.Workbook();
+
+  // Add Worksheets to the workbook
+  var ws = wb.addWorksheet('Consolidado');
 
   const totalRegisters = resultados;
 

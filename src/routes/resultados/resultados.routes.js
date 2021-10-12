@@ -218,8 +218,6 @@ router.post("/pdfconsolidado", async (req, res) => {
       }
     });
 
-    console.log(cobranzasMapped[0])
-
     createPdfConsolidado(CONSOLIDATED_REPORT_RESULTS_PDF, gi, listExam, cobranzasFiltered, 'resultados', filtrofecha, filtrocontrato, filtrofaena);
     createExcelConsolidadoResults(CONSOLIDATED_EXCEL_RESULTS, cobranzasMapped);
 
