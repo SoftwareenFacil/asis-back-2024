@@ -91,42 +91,48 @@ router.get('/:anio', async (req, res) => {
       }, 0);
 
       const auxReservas = totalReservas.reduce((acc, current) => {
-        if (!!current && current.fecha_reserva.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxSOlAge = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("AGE", "SOL"));
+        if (!!current && current.fecha_reserva.split('-')[1] === NUMBER_MONTHS[month] && auxSOlAge) {
           acc = acc + 1;
         }
         return acc
       }, 0);
 
       const auxEvaluaciones = totalEvaluaciones.reduce((acc, current) => {
-        if (!!current && current.fecha_evaluacion.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxEvaSol = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("EVA", "SOL"));
+        if (!!current && current.fecha_evaluacion.split('-')[1] === NUMBER_MONTHS[month] && auxEvaSol) {
           acc = acc + 1;
         }
         return acc
       }, 0);
 
       const auxResultados = totalResultados.reduce((acc, current) => {
-        if (!!current && current.fecha_resultado.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxSolRes = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("RES", "SOL"));
+        if (!!current && current.fecha_resultado.split('-')[1] === NUMBER_MONTHS[month] && auxSolRes) {
           acc = acc + 1;
         }
         return acc
       }, 0);
 
       const auxFacturaciones = totalFacturaciones.reduce((acc, current) => {
-        if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxSolFac = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("FAC", "SOL"));
+        if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month] && auxSolFac) {
           acc = acc + 1;
         }
         return acc
       }, 0);
 
       const auxPagos = totalPagos.reduce((acc, current) => {
-        if (!!current && current.fecha_pago.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxSolPag = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("PAG", "SOL"));
+        if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month] && auxSolPag) {
           acc = acc + 1;
         }
         return acc
       }, 0);
 
       const auxCobranzas = totalCobranzas.reduce((acc, current) => {
-        if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxSolCob = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("COB", "SOL"));
+        if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month] && auxSolCob) {
           acc = acc + 1;
         }
         return acc
@@ -135,7 +141,7 @@ router.get('/:anio', async (req, res) => {
       production[0].data.push(auxSolicitudes);
       production[1].data.push(auxReservas);
       production[2].data.push(auxEvaluaciones);
-      production[3].data.push(auxReservas);
+      production[3].data.push(auxResultados);
       production[4].data.push(auxFacturaciones);
       production[5].data.push(auxPagos);
       production[6].data.push(auxCobranzas);

@@ -78,41 +78,43 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
     let columnsName = [];
     let aux;
 
-    const solicitudes = await db.collection("solicitudes").find({ anio_solicitud: anio, mes_solicitud: mes, isActive: true }).toArray();
-    const reservas = await db.collection("reservas").find({ anio: anio, mes: mes, isActive: true }).toArray();
-    const evaluaciones = await db.collection("evaluaciones").find({ anio: anio, mes: mes, isActive: true }).toArray();
-    const resultados = await db.collection("resultados").find({ fecha_resultado: { $regex: `${NUMBER_MONTHS[mes.toLowerCase()]}-${anio}` }, isActive: true }).toArray();
+    const solicitudes = await db.collection("solicitudes").find({ anio_solicitud: anio, isActive: true }).toArray();
+    const reservas = await db.collection("reservas").find({ fecha_reserva: { $regex: anio }, isActive: true }).toArray();
+    const evaluaciones = await db.collection("evaluaciones").find({ fecha_evaluacion: { $regex: anio }, isActive: true }).toArray();
+    const resultados = await db.collection("resultados").find({ fecha_resultado: { $regex: anio }, isActive: true }).toArray();
     const profesionalesAsignados = await db.collection("gi")
       .find({ categoria: "Persona Natural", activo_inactivo: true, $or: [{ grupo_interes: 'Empleados' }, { grupo_interes: 'Colaboradores' }] })
       .toArray();
-    
-    const facturaciones = await db.collection('facturaciones').find({ fecha_facturacion: { $regex: `${NUMBER_MONTHS[mes.toLowerCase()]}-${anio}` }, isActive: true }).toArray();
-    const pagos = await db.collection('pagos').find({ fecha_facturacion: { $regex: `${NUMBER_MONTHS[mes.toLowerCase()]}-${anio}` }, isActive: true }).toArray();
-    const cobranza = await db.collection('cobranza').find({ fecha_facturacion: { $regex: `${NUMBER_MONTHS[mes.toLowerCase()]}-${anio}` }, isActive: true }).toArray();
+
+    const facturaciones = await db.collection('facturaciones').find({ fecha_facturacion: { $regex: anio }, isActive: true }).toArray();
+    const pagos = await db.collection('pagos').find({ fecha_facturacion: { $regex: anio }, isActive: true }).toArray();
+    const cobranza = await db.collection('cobranza').find({ fecha_facturacion: { $regex: anio }, isActive: true }).toArray();
 
     if (!solicitudes) return res.status(404).json({ err: 98, msg: 'No se encontraron solicitudes', res: [] });
 
-    const auxSolicitudes = solicitudes.map(solicitud => {
+    const auxSolicitudes = solicitudes.filter(solicitud => {
       const aux = profesionalesAsignados.find(profesional => solicitud.id_GI_PersonalAsignado === `${profesional._id}`);
-      return {
-        ...solicitud,
-        monto_neto: !!solicitud.monto_neto ? `$ ${MilesFormat(solicitud.monto_neto)}` : '',
-        porcentaje_impuesto: `${solicitud.porcentaje_impuesto}`,
-        valor_impuesto: `${solicitud.valor_impuesto}`,
-        monto_total: !!solicitud.monto_total ? `$ ${MilesFormat(solicitud.monto_total)}` : '',
-        exento: `$ ${MilesFormat(solicitud.exento)}`,
-        observacion_solicitud: !!solicitud.observacion_solicitud.length ? solicitud.observacion_solicitud[solicitud.observacion_solicitud.length - 1].obs : '',
-        profesional_asignado: !!aux ? aux.razon_social : ''
+      const auxHasMonth = solicitud.fecha_solicitud.split('-')[1] === NUMBER_MONTHS[mes.toLowerCase()];
+      if(auxHasMonth){
+        return {
+          ...solicitud,
+          monto_neto: !!solicitud.monto_neto ? `$ ${MilesFormat(solicitud.monto_neto)}` : '',
+          porcentaje_impuesto: `${solicitud.porcentaje_impuesto}`,
+          valor_impuesto: `${solicitud.valor_impuesto}`,
+          monto_total: !!solicitud.monto_total ? `$ ${MilesFormat(solicitud.monto_total)}` : '',
+          exento: `$ ${MilesFormat(solicitud.exento)}`,
+          observacion_solicitud: !!solicitud.observacion_solicitud.length ? solicitud.observacion_solicitud[solicitud.observacion_solicitud.length - 1].obs : '',
+          profesional_asignado: !!aux ? aux.razon_social : ''
+        }
       }
     });
 
-    console.log(auxSolicitudes.length)
-
     const auxReservas = !!reservas ? reservas.reduce((acc, reserva) => {
       const aux = solicitudes.find(solicitud => solicitud.codigo === reserva.codigo.replace("AGE", "SOL"));
-      if (aux) {
+      const auxHasMonth = reserva.fecha_reserva.split('-')[1] === NUMBER_MONTHS[mes.toLowerCase()]
+      if (auxHasMonth && aux) {
         acc.push({
-          codigo_solicitud: aux.codigo,
+          codigo_solicitud: aux?.codigo || '',
           ...reserva
         })
       }
@@ -121,9 +123,10 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
 
     const auxEvaluaciones = !!evaluaciones ? evaluaciones.reduce((acc, evaluacion) => {
       const aux = solicitudes.find(solicitud => solicitud.codigo === evaluacion.codigo.replace("EVA", "SOL"));
-      if (aux) {
+      const auxHasMonth = evaluacion.fecha_evaluacion.split('-')[1] === NUMBER_MONTHS[mes.toLowerCase()]
+      if (auxHasMonth && aux) {
         acc.push({
-          codigo_solicitud: aux.codigo,
+          codigo_solicitud: aux?.codigo || '',
           ...evaluacion
         })
       }
@@ -132,9 +135,17 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
 
     const auxResultados = !!resultados ? resultados.reduce((acc, resultado) => {
       const aux = solicitudes.find(solicitud => solicitud.codigo === resultado.codigo.replace("RES", "SOL"));
-      if (aux) {
+      const auxHasMonth = resultado.fecha_resultado.split('-')[1] === NUMBER_MONTHS[mes.toLowerCase()]
+      // const aux = resultado.fecha
+      // if (aux) {
+      //   acc.push({
+      //     codigo_solicitud: aux.codigo,
+      //     ...resultado
+      //   })
+      // }
+      if(aux && auxHasMonth){
         acc.push({
-          codigo_solicitud: aux.codigo,
+          codigo_solicitud: aux?.codigo || '',
           ...resultado
         })
       }
@@ -144,9 +155,23 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
     //facturacion, pagos y cobranzas
     const auxFacturaciones = !!facturaciones ? facturaciones.reduce((acc, facturacion) => {
       const aux = solicitudes.find(solicitud => solicitud.codigo === facturacion.codigo.replace("FAC", "SOL"));
-      if(aux){
+      const auxHasMonth = facturacion.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[mes.toLowerCase()]
+      // if(aux){
+      //   acc.push({
+      //     codigo_solicitud: aux.codigo,
+      //     ...facturacion,
+      //     monto_neto: `$ ${MilesFormat(facturacion.monto_neto)}`,
+      //     porcentaje_impuesto: `${facturacion.porcentaje_impuesto}%`,
+      //     valor_impuesto: `$ ${MilesFormat(facturacion.valor_impuesto)}`,
+      //     sub_total: `$ ${MilesFormat(facturacion.sub_total)}`,
+      //     exento: `$ ${MilesFormat(facturacion.exento)}`,
+      //     descuento: `$ ${MilesFormat(facturacion.descuento)}`,
+      //     total: `$ ${MilesFormat(facturacion.total)}`,
+      //   });
+      // }
+      if(auxHasMonth && aux){
         acc.push({
-          codigo_solicitud: aux.codigo,
+          codigo_solicitud: aux?.codigo || '',
           ...facturacion,
           monto_neto: `$ ${MilesFormat(facturacion.monto_neto)}`,
           porcentaje_impuesto: `${facturacion.porcentaje_impuesto}%`,
@@ -162,9 +187,19 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
 
     const auxPagos = !!pagos ? pagos.reduce((acc, pago) => {
       const aux = solicitudes.find(solicitud => solicitud.codigo === pago.codigo.replace("PAG", "SOL"));
-      if(aux){
+      const auxHasMonth = pago.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[mes.toLowerCase()]
+      // if(aux){
+      //   acc.push({
+      //     codigo_solicitud: aux.codigo,
+      //     ...pago,
+      //     dias_credito: `${pago.dias_credito}`,
+      //     valor_servicio: `$ ${MilesFormat(pago.valor_servicio)}`,
+      //     valor_cancelado: `$ ${MilesFormat(pago.valor_cancelado)}`
+      //   });
+      // }
+      if(auxHasMonth && aux){
         acc.push({
-          codigo_solicitud: aux.codigo,
+          codigo_solicitud: aux?.codigo || '',
           ...pago,
           dias_credito: `${pago.dias_credito}`,
           valor_servicio: `$ ${MilesFormat(pago.valor_servicio)}`,
@@ -176,9 +211,20 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
 
     const auxCobranzas = !!cobranza ? cobranza.reduce((acc, cobranza) => {
       const aux = solicitudes.find(solicitud => solicitud.codigo === cobranza.codigo.replace("COB", "SOL"));
-      if(aux){
+      const auxHasMonth = cobranza.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[mes.toLowerCase()]
+      // if (aux) {
+      //   acc.push({
+      //     codigo_solicitud: aux.codigo,
+      //     ...cobranza,
+      //     dias_credito: `${cobranza.dias_credito}`,
+      //     valor_servicio: `$ ${MilesFormat(cobranza.valor_servicio)}`,
+      //     valor_cancelado: `$ ${MilesFormat(cobranza.valor_cancelado)}`,
+      //     valor_deuda: `$ ${MilesFormat(cobranza.valor_deuda)}`
+      //   });
+      // }
+      if(auxHasMonth && aux){
         acc.push({
-          codigo_solicitud: aux.codigo,
+          codigo_solicitud: aux?.codigo || '',
           ...cobranza,
           dias_credito: `${cobranza.dias_credito}`,
           valor_servicio: `$ ${MilesFormat(cobranza.valor_servicio)}`,
@@ -190,6 +236,14 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
     }, []) : []
 
     const pdfname = `${EXCEL_CONSOLIDATED_REQUESTS}_${uuid()}.xlsx`;
+
+    console.log('solicitudes', auxSolicitudes.length);
+    console.log('resveras', auxReservas.length);
+    console.log('evaluaciones', auxEvaluaciones.length);
+    console.log('resultados', auxResultados.length);
+    console.log('facturaciones', auxFacturaciones.length);
+    console.log('pagos', auxPagos.length);
+    console.log('cobranzas', auxCobranzas.length);
 
     createAnualExcel(
       mes,
@@ -241,39 +295,39 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
       }
     );
 
-    setTimeout(() => {
-      const excelContent = fs.readFileSync(`uploads/${pdfname}`);
+    // setTimeout(() => {
+    //   const excelContent = fs.readFileSync(`uploads/${pdfname}`);
 
-      const excelParams = {
-        Bucket: AWS_BUCKET_NAME,
-        Body: excelContent,
-        Key: pdfname,
-        ContentType: 'application/vnd.ms-excel'
-      }
+    //   const excelParams = {
+    //     Bucket: AWS_BUCKET_NAME,
+    //     Body: excelContent,
+    //     Key: pdfname,
+    //     ContentType: 'application/vnd.ms-excel'
+    //   }
 
-      uploadFileToS3(excelParams);
+    //   uploadFileToS3(excelParams);
 
-      sendinblue(
-        emails,
-        SB_TEMPLATE_SEND_CONSOLIDATE_REQUESTS,
-        {
-          CODIGO_SOLICITUD: ''
-        },
-        [
-          {
-            content: Buffer.from(excelContent).toString('base64'), // Should be publicly available and shouldn't be a local file
-            name: `${pdfname}.xlsx`
-          }
-        ]
-      );
+    //   sendinblue(
+    //     emails,
+    //     SB_TEMPLATE_SEND_CONSOLIDATE_REQUESTS,
+    //     {
+    //       CODIGO_SOLICITUD: ''
+    //     },
+    //     [
+    //       {
+    //         content: Buffer.from(excelContent).toString('base64'), // Should be publicly available and shouldn't be a local file
+    //         name: `${pdfname}.xlsx`
+    //       }
+    //     ]
+    //   );
 
-      try {
-        fs.unlinkSync(`uploads/${pdfname}`);
-      } catch (error) {
-        console.log('No se ha podido eliminar el archivo ', error)
-      }
+    //   try {
+    //     fs.unlinkSync(`uploads/${pdfname}`);
+    //   } catch (error) {
+    //     console.log('No se ha podido eliminar el archivo ', error)
+    //   }
 
-    }, 5000);
+    // }, 5000);
 
     return res.status(200).json({ err: null, msg: 'Informe generado correctamente', res: null });
 
