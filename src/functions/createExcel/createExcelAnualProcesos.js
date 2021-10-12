@@ -1,13 +1,13 @@
 var path = require('path');
 var xl = require('excel4node');
-var wb = new xl.Workbook();
-var wsRequests = wb.addWorksheet("Solicitudes");
-var wsReservations = wb.addWorksheet("Reservas");
-var wsEvaluations = wb.addWorksheet("Evaluaciones");
-var wsResults = wb.addWorksheet("Resultados");
-var wsInvoices = wb.addWorksheet("Facturaciones");
-var wsPayments = wb.addWorksheet("Pagos");
-var wsRequestPayments = wb.addWorksheet("Cobranza");
+// var wb = new xl.Workbook();
+// var wsRequests = wb.addWorksheet("Solicitudes");
+// var wsReservations = wb.addWorksheet("Reservas");
+// var wsEvaluations = wb.addWorksheet("Evaluaciones");
+// var wsResults = wb.addWorksheet("Resultados");
+// var wsInvoices = wb.addWorksheet("Facturaciones");
+// var wsPayments = wb.addWorksheet("Pagos");
+// var wsRequestPayments = wb.addWorksheet("Cobranza");
 
 export default function createAnualExcel(
   mes,
@@ -58,6 +58,15 @@ export default function createAnualExcel(
     fontColorRequestPayments
   }
 ) {
+
+  var wb = new xl.Workbook();
+  var wsRequests = wb.addWorksheet("Solicitudes");
+  var wsReservations = wb.addWorksheet("Reservas");
+  var wsEvaluations = wb.addWorksheet("Evaluaciones");
+  var wsResults = wb.addWorksheet("Resultados");
+  var wsInvoices = wb.addWorksheet("Facturaciones");
+  var wsPayments = wb.addWorksheet("Pagos");
+  var wsRequestPayments = wb.addWorksheet("Cobranza");
 
   var cellStyle = wb.createStyle({
     font: {
@@ -113,7 +122,7 @@ export default function createAnualExcel(
 
   //filas de información
   rowsDataRequests.forEach((row, index) => {
-    if(row.mes_solicitud === mes){
+    if (row.mes_solicitud === mes) {
       columnsNameRequests.forEach((column, subindex) => {
         wsRequests.cell(index + 2, subindex + 1)
           .string(row[column.requestName])
