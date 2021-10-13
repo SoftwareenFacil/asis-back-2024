@@ -299,39 +299,39 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
 
     console.log(auxSolicitudes[0])
 
-    // setTimeout(() => {
-    //   const excelContent = fs.readFileSync(`uploads/${pdfname}`);
+    setTimeout(() => {
+      const excelContent = fs.readFileSync(`uploads/${pdfname}`);
 
-    //   const excelParams = {
-    //     Bucket: AWS_BUCKET_NAME,
-    //     Body: excelContent,
-    //     Key: pdfname,
-    //     ContentType: 'application/vnd.ms-excel'
-    //   }
+      const excelParams = {
+        Bucket: AWS_BUCKET_NAME,
+        Body: excelContent,
+        Key: pdfname,
+        ContentType: 'application/vnd.ms-excel'
+      }
 
-    //   uploadFileToS3(excelParams);
+      uploadFileToS3(excelParams);
 
-    //   sendinblue(
-    //     emails,
-    //     SB_TEMPLATE_SEND_CONSOLIDATE_REQUESTS,
-    //     {
-    //       CODIGO_SOLICITUD: ''
-    //     },
-    //     [
-    //       {
-    //         content: Buffer.from(excelContent).toString('base64'), // Should be publicly available and shouldn't be a local file
-    //         name: `${pdfname}.xlsx`
-    //       }
-    //     ]
-    //   );
+      sendinblue(
+        emails,
+        SB_TEMPLATE_SEND_CONSOLIDATE_REQUESTS,
+        {
+          CODIGO_SOLICITUD: ''
+        },
+        [
+          {
+            content: Buffer.from(excelContent).toString('base64'), // Should be publicly available and shouldn't be a local file
+            name: `${pdfname}.xlsx`
+          }
+        ]
+      );
 
-    //   try {
-    //     fs.unlinkSync(`uploads/${pdfname}`);
-    //   } catch (error) {
-    //     console.log('No se ha podido eliminar el archivo ', error)
-    //   }
+      try {
+        fs.unlinkSync(`uploads/${pdfname}`);
+      } catch (error) {
+        console.log('No se ha podido eliminar el archivo ', error)
+      }
 
-    // }, 5000);
+    }, 5000);
 
     return res.status(200).json({ err: null, msg: 'Informe generado correctamente', res: null });
 
