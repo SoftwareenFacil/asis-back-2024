@@ -92,22 +92,23 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
 
     if (!solicitudes) return res.status(404).json({ err: 98, msg: 'No se encontraron solicitudes', res: [] });
 
-    const auxSolicitudes = solicitudes.filter(solicitud => {
+    const auxSolicitudes = solicitudes.reduce((acc, solicitud) => {
       const aux = profesionalesAsignados.find(profesional => solicitud.id_GI_PersonalAsignado === `${profesional._id}`);
       const auxHasMonth = solicitud.fecha_solicitud.split('-')[1] === NUMBER_MONTHS[mes.toLowerCase()];
       if(auxHasMonth){
-        return {
+        acc.push({
           ...solicitud,
-          monto_neto: !!solicitud.monto_neto ? `$ ${MilesFormat(solicitud.monto_neto)}` : '',
-          porcentaje_impuesto: `${solicitud.porcentaje_impuesto}`,
-          valor_impuesto: `${solicitud.valor_impuesto}`,
-          monto_total: !!solicitud.monto_total ? `$ ${MilesFormat(solicitud.monto_total)}` : '',
+          monto_neto: `$ ${MilesFormat(solicitud.monto_neto || 0)}`,
+          porcentaje_impuesto: `$ ${solicitud.porcentaje_impuesto}`,
+          valor_impuesto: `$ ${solicitud.valor_impuesto}`,
+          monto_total: `$ ${MilesFormat(solicitud.monto_total || 0)}`,
           exento: `$ ${MilesFormat(solicitud.exento)}`,
           observacion_solicitud: !!solicitud.observacion_solicitud.length ? solicitud.observacion_solicitud[solicitud.observacion_solicitud.length - 1].obs : '',
           profesional_asignado: !!aux ? aux.razon_social : ''
-        }
+        })
       }
-    });
+      return acc;
+    }, []);
 
     const auxReservas = !!reservas ? reservas.reduce((acc, reserva) => {
       const aux = solicitudes.find(solicitud => solicitud.codigo === reserva.codigo.replace("AGE", "SOL"));
@@ -294,6 +295,9 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
         fontColorRequestPayments: 'white'
       }
     );
+
+
+    console.log(auxSolicitudes[0])
 
     // setTimeout(() => {
     //   const excelContent = fs.readFileSync(`uploads/${pdfname}`);

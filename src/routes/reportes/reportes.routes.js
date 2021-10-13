@@ -82,6 +82,12 @@ router.get('/:anio', async (req, res) => {
 
     const totalGastos = await db.collection('gastos').find({ fecha: { $regex: anio } }).toArray();
 
+    //obtener solo los ids de las solicitudes
+    const idsSolArray = totalSolicitudes.reduce((acc, current) => {
+      acc.push(current.codigo);
+      return acc;
+    }, []);
+
     MONTHS.forEach(month => {
       const auxSolicitudes = totalSolicitudes.reduce((acc, current) => {
         if (!!current && current.fecha_solicitud.split('-')[1] === NUMBER_MONTHS[month]) {
@@ -92,7 +98,8 @@ router.get('/:anio', async (req, res) => {
 
       const auxReservas = totalReservas.reduce((acc, current) => {
         // const auxSOlAge = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("AGE", "SOL"));
-        if (!!current && current.fecha_reserva.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxSOlAge = (idsSolArray.indexOf(current.codigo.replace("AGE", "SOL")) > -1);
+        if (!!current && current.fecha_reserva.split('-')[1] === NUMBER_MONTHS[month] && auxSOlAge) {
           acc = acc + 1;
         }
         return acc
@@ -100,7 +107,8 @@ router.get('/:anio', async (req, res) => {
 
       const auxEvaluaciones = totalEvaluaciones.reduce((acc, current) => {
         // const auxEvaSol = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("EVA", "SOL"));
-        if (!!current && current.fecha_evaluacion.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxEvaSol = (idsSolArray.indexOf(current.codigo.replace("EVA", "SOL")) > -1);
+        if (!!current && current.fecha_evaluacion.split('-')[1] === NUMBER_MONTHS[month] && auxEvaSol) {
           acc = acc + 1;
         }
         return acc
@@ -108,7 +116,8 @@ router.get('/:anio', async (req, res) => {
 
       const auxResultados = totalResultados.reduce((acc, current) => {
         // const auxSolRes = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("RES", "SOL"));
-        if (!!current && current.fecha_resultado.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxSolRes = (idsSolArray.indexOf(current.codigo.replace("RES", "SOL")) > -1);
+        if (!!current && current.fecha_resultado.split('-')[1] === NUMBER_MONTHS[month] && auxSolRes) {
           acc = acc + 1;
         }
         return acc
@@ -116,7 +125,8 @@ router.get('/:anio', async (req, res) => {
 
       const auxFacturaciones = totalFacturaciones.reduce((acc, current) => {
         // const auxSolFac = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("FAC", "SOL"));
-        if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxSolFac = (idsSolArray.indexOf(current.codigo.replace("FAC", "SOL")) > -1);
+        if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month] && auxSolFac) {
           acc = acc + 1;
         }
         return acc
@@ -124,7 +134,8 @@ router.get('/:anio', async (req, res) => {
 
       const auxPagos = totalPagos.reduce((acc, current) => {
         // const auxSolPag = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("PAG", "SOL"));
-        if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxSolPag = (idsSolArray.indexOf(current.codigo.replace("PAG", "SOL")) > -1);
+        if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month] && auxSolPag) {
           acc = acc + 1;
         }
         return acc
@@ -132,7 +143,8 @@ router.get('/:anio', async (req, res) => {
 
       const auxCobranzas = totalCobranzas.reduce((acc, current) => {
         // const auxSolCob = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("COB", "SOL"));
-        if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month]) {
+        const auxSolCob = (idsSolArray.indexOf(current.codigo.replace("COB", "SOL")) > -1);
+        if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month] && auxSolCob) {
           acc = acc + 1;
         }
         return acc
