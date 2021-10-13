@@ -82,6 +82,12 @@ router.get('/:anio', async (req, res) => {
 
     const totalGastos = await db.collection('gastos').find({ fecha: { $regex: anio } }).toArray();
 
+    //obtener solo los ids de las solicitudes
+    const idsSolArray = totalSolicitudes.reduce((acc, current) => {
+      acc.push(current.codigo);
+      return acc;
+    }, []);
+
     MONTHS.forEach(month => {
       const auxSolicitudes = totalSolicitudes.reduce((acc, current) => {
         if (!!current && current.fecha_solicitud.split('-')[1] === NUMBER_MONTHS[month]) {
@@ -91,7 +97,8 @@ router.get('/:anio', async (req, res) => {
       }, 0);
 
       const auxReservas = totalReservas.reduce((acc, current) => {
-        const auxSOlAge = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("AGE", "SOL"));
+        // const auxSOlAge = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("AGE", "SOL"));
+        const auxSOlAge = (idsSolArray.indexOf(current.codigo.replace("AGE", "SOL")) > -1);
         if (!!current && current.fecha_reserva.split('-')[1] === NUMBER_MONTHS[month] && auxSOlAge) {
           acc = acc + 1;
         }
@@ -99,7 +106,8 @@ router.get('/:anio', async (req, res) => {
       }, 0);
 
       const auxEvaluaciones = totalEvaluaciones.reduce((acc, current) => {
-        const auxEvaSol = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("EVA", "SOL"));
+        // const auxEvaSol = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("EVA", "SOL"));
+        const auxEvaSol = (idsSolArray.indexOf(current.codigo.replace("EVA", "SOL")) > -1);
         if (!!current && current.fecha_evaluacion.split('-')[1] === NUMBER_MONTHS[month] && auxEvaSol) {
           acc = acc + 1;
         }
@@ -107,7 +115,8 @@ router.get('/:anio', async (req, res) => {
       }, 0);
 
       const auxResultados = totalResultados.reduce((acc, current) => {
-        const auxSolRes = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("RES", "SOL"));
+        // const auxSolRes = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("RES", "SOL"));
+        const auxSolRes = (idsSolArray.indexOf(current.codigo.replace("RES", "SOL")) > -1);
         if (!!current && current.fecha_resultado.split('-')[1] === NUMBER_MONTHS[month] && auxSolRes) {
           acc = acc + 1;
         }
@@ -115,7 +124,8 @@ router.get('/:anio', async (req, res) => {
       }, 0);
 
       const auxFacturaciones = totalFacturaciones.reduce((acc, current) => {
-        const auxSolFac = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("FAC", "SOL"));
+        // const auxSolFac = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("FAC", "SOL"));
+        const auxSolFac = (idsSolArray.indexOf(current.codigo.replace("FAC", "SOL")) > -1);
         if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month] && auxSolFac) {
           acc = acc + 1;
         }
@@ -123,7 +133,8 @@ router.get('/:anio', async (req, res) => {
       }, 0);
 
       const auxPagos = totalPagos.reduce((acc, current) => {
-        const auxSolPag = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("PAG", "SOL"));
+        // const auxSolPag = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("PAG", "SOL"));
+        const auxSolPag = (idsSolArray.indexOf(current.codigo.replace("PAG", "SOL")) > -1);
         if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month] && auxSolPag) {
           acc = acc + 1;
         }
@@ -131,7 +142,8 @@ router.get('/:anio', async (req, res) => {
       }, 0);
 
       const auxCobranzas = totalCobranzas.reduce((acc, current) => {
-        const auxSolCob = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("COB", "SOL"));
+        // const auxSolCob = totalSolicitudes.find(sol => sol.codigo === current.codigo.replace("COB", "SOL"));
+        const auxSolCob = (idsSolArray.indexOf(current.codigo.replace("COB", "SOL")) > -1);
         if (!!current && current.fecha_facturacion.split('-')[1] === NUMBER_MONTHS[month] && auxSolCob) {
           acc = acc + 1;
         }
