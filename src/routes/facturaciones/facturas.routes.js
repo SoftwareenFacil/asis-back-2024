@@ -483,7 +483,7 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
 
   try {
-    let new_array = [];
+    const new_array_fac = datos[1].codes;
 
     const obs = {
       obs: datos[0].observacion_factura,
@@ -493,9 +493,15 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
     let result = "";
 
-    datos[1].ids.forEach((element) => {
-      new_array.push(ObjectID(element));
+    // datos[1].ids.forEach((element) => {
+    //   new_array.push(ObjectID(element));
+    // });
+
+    const new_array_sol = new_array_fac.map(factura => {
+      return factura.replace("FAC", "SOL");
     });
+
+    const solicitudes = await db.collection('solicitudes').find({ codigo: { $in: new_array_sol } }).toArray();
 
     let archivo = '';
     if (req.file) {
@@ -517,21 +523,23 @@ router.post("/", multer.single("archivo"), async (req, res) => {
       }, 2000);
     };
 
-    result = await db.collection("facturaciones").updateMany(
-      { _id: { $in: new_array } },
-      {
+    for await (let factura of new_array_fac) {
+      const auxSol = solicitudes.find(sol => sol.codigo === factura.replace("FAC", "SOL"));
+      await db.collection("facturaciones").updateOne({ codigo: factura }, {
         $set: {
           fecha_facturacion: datos[0].fecha_facturacion,
           estado_archivo: "Cargado",
           nro_factura: datos[0].nro_factura,
           archivo_factura: archivo,
-          monto_neto: datos[0].monto_neto,
-          porcentaje_impuesto: datos[0].porcentaje_impuesto,
-          valor_impuesto: datos[0].valor_impuesto,
-          sub_total: datos[0].sub_total,
-          exento: datos[0].exento,
-          descuento: datos[0].descuento,
-          total: datos[0].total,
+
+          monto_neto: !!auxSol ? auxSol.monto_neto : 0,
+          porcentaje_impuesto: !!auxSol ? auxSol.porcentaje_impuesto : 0,
+          valor_impuesto: !!auxSol ? auxSol.valor_impuesto : 0,
+          sub_total: !!auxSol ? auxSol.monto_neto : 0,
+          exento: !!auxSol ? auxSol.exento : 0,
+          descuento: 0,
+          total: !!auxSol ? auxSol.monto_total : 0,
+
           representante: datos[0].representante,
           razon_social_empresa: datos[0].razon_social_empresa,
           email_empresa: datos[0].email_empresa,
@@ -539,8 +547,35 @@ router.post("/", multer.single("archivo"), async (req, res) => {
         $push: {
           observacion_factura: obs,
         },
-      }
-    );
+      })
+    }
+
+    // result = await db.collection("facturaciones").updateMany(
+    //   { _id: { $in: new_array } },
+    //   {
+    //     $set: {
+    // fecha_facturacion: datos[0].fecha_facturacion,
+    // estado_archivo: "Cargado",
+    // nro_factura: datos[0].nro_factura,
+    // archivo_factura: archivo,
+
+    // monto_neto: datos[0].monto_neto,
+    // porcentaje_impuesto: datos[0].porcentaje_impuesto,
+    // valor_impuesto: datos[0].valor_impuesto,
+    // sub_total: datos[0].sub_total,
+    // exento: datos[0].exento,
+    // descuento: datos[0].descuento,
+    // total: datos[0].total,
+
+    // representante: datos[0].representante,
+    // razon_social_empresa: datos[0].razon_social_empresa,
+    // email_empresa: datos[0].email_empresa,
+    //     },
+    //     $push: {
+    //       observacion_factura: obs,
+    //     },
+    //   }
+    // );
 
     return res.status(200).json({ err: null, msg: 'Facturas cargas satisfactoriamente', res: result });
   } catch (error) {
