@@ -1,6 +1,6 @@
 import { Router } from "express";
 import moment from "moment";
-import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, NOT_EXISTS, NAME_PSICO_PDF, NAME_AVERSION_PDF, ERROR_PDF, OTHER_NAME_PDF, FORMAT_DATE, CURRENT_ROL, COLABORATION_ROL, MONTHS, NUMBER_MONTHS } from "../../constant/var";
+import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, NOT_EXISTS, NAME_PSICO_PDF, NAME_AVERSION_PDF, ERROR_PDF, OTHER_NAME_PDF, FORMAT_DATE, CURRENT_ROL, COLABORATION_ROL, MONTHS, NUMBER_MONTHS, SUCURSALES } from "../../constant/var";
 
 //database connection
 import { connect } from "../../database";
@@ -83,10 +83,66 @@ router.get('/:anio', async (req, res) => {
     const totalGastos = await db.collection('gastos').find({ fecha: { $regex: anio } }).toArray();
 
     //obtener solo los ids de las solicitudes
-    const idsSolArray = totalSolicitudes.reduce((acc, current) => {
-      acc.push(current.codigo);
-      return acc;
-    }, []);
+    // const idsSolArray = totalSolicitudes.reduce((acc, current) => {
+    //   acc.push(current.codigo);
+    //   return acc;
+    // }, []);
+    let idsSolArray = [];
+    let dataCategory1 = [];
+    let dataCategory3 = [];
+    let dataServiceName = [];
+    let dataServiceType = [];
+    let dataSucursal = [];
+
+    totalSolicitudes.forEach(sol => {
+      idsSolArray.push(sol.codigo);
+      //sacando categorias 1
+      const auxCategoria1 = dataCategory1.find(category1 => category1.name === sol.categoria1);
+      if(!auxCategoria1){
+        dataCategory1.push({ name: sol.categoria1, quantity: 1 })
+      }
+      else{
+        const indicecat1 = dataCategory1.indexOf(auxCategoria1)
+        dataCategory1[indicecat1].quantity = auxCategoria1.quantity + 1;
+      }
+      //sacando categorias 3
+      const auxCategoria3 = dataCategory3.find(category3 => category3.name === sol.categoria3);
+      if(!auxCategoria3){
+        dataCategory3.push({ name: sol.categoria3, quantity: 1 })
+      }
+      else{
+        const indicecat3 = dataCategory3.indexOf(auxCategoria3)
+        dataCategory3[indicecat3].quantity = auxCategoria3.quantity + 1;
+      }
+      //sacando nombre de servicio
+      const auxNombreServicio = dataServiceName.find(servicio => servicio.name === sol.nombre_servicio);
+      if(!auxNombreServicio){
+        dataServiceName.push({ name: sol.nombre_servicio, quantity: 1 })
+      }
+      else{
+        const indicenombreservicio = dataServiceName.indexOf(auxNombreServicio)
+        dataServiceName[indicenombreservicio].quantity = auxNombreServicio.quantity + 1;
+      }
+      //sacando tipo servicio
+      const auxTipoServicio = dataServiceType.find(tipo => tipo.name === sol.tipo_servicio);
+      if(!auxTipoServicio){
+        dataServiceType.push({ name: sol.tipo_servicio, quantity: 1 })
+      }
+      else{
+        const indicetiposervicio = dataServiceType.indexOf(auxTipoServicio)
+        dataServiceType[indicetiposervicio].quantity = auxTipoServicio.quantity + 1;
+      }
+      //sacando sucursales
+      const auxSucursal = dataSucursal.find(sucursal => sucursal.name === sol.sucursal);
+      const existsSucursal = (SUCURSALES.indexOf(sol.sucursal) !== -1)
+      if(!auxSucursal && existsSucursal){
+        dataSucursal.push({ name: sol.sucursal, quantity: 1 })
+      }
+      else if(existsSucursal){
+        const indicesucursal = dataSucursal.indexOf(auxSucursal)
+        dataSucursal[indicesucursal].quantity = auxSucursal.quantity + 1;
+      }
+    });
 
     MONTHS.forEach(month => {
       const auxSolicitudes = totalSolicitudes.reduce((acc, current) => {
@@ -260,9 +316,11 @@ router.get('/:anio', async (req, res) => {
       return 0;
     });
 
+    const sucursalesFiltered = totalSolicitudes.filter(sol => SUCURSALES.indexOf(sol.sucursal) !== -1);
+
     //solicitudes por sucursal
     let totalSucursales = [{ type: [], data: [] }]
-    const solicitudesSucursal = totalSolicitudes.reduce((acc, current) => {
+    const solicitudesSucursal = sucursalesFiltered.reduce((acc, current) => {
       const aux = acc.find(element => element.type === current.sucursal);
       if(!aux){
         acc.push({
@@ -294,6 +352,37 @@ router.get('/:anio', async (req, res) => {
       totalSucursales[0].data.push(solicitud.data)
     });
 
+    //categorias reducidas
+    const totalCategory1 = dataCategory1.reduce((acc, current) => {
+      acc.type.push(current.name);
+      acc.data.push(current.quantity);
+      return acc;
+    }, { type: [], data: [] });
+
+    const totalCategory3 = dataCategory3.reduce((acc, current) => {
+      acc.type.push(current.name);
+      acc.data.push(current.quantity);
+      return acc;
+    }, { type: [], data: [] });
+
+    const totalServiceName = dataServiceName.reduce((acc, current) => {
+      acc.type.push(current.name);
+      acc.data.push(current.quantity);
+      return acc;
+    }, { type: [], data: [] });
+
+    const totalServiceType = dataServiceType.reduce((acc, current) => {
+      acc.type.push(current.name);
+      acc.data.push(current.quantity);
+      return acc;
+    }, { type: [], data: [] });
+
+    const totalworkplace = dataSucursal.reduce((acc, current) => {
+      acc.type.push(current.name);
+      acc.data.push(current.quantity);
+      return acc;
+    }, { type: [], data: [] });
+
 
     return res.status(200).json({
       err: null,
@@ -307,7 +396,14 @@ router.get('/:anio', async (req, res) => {
         cashFlow: flujoCaja,
         rankingInvoices: rankingFacturacion.slice(0, 9),
         rankingPayments: rankingPagos.slice(0, 9),
-        totalOffices: totalSucursales
+        totalOffices: totalSucursales,
+        categories: {
+          category1: totalCategory1,
+          category3: totalCategory3,
+          services: totalServiceName,
+          typeServices: totalServiceType,
+          workplaces: totalworkplace
+        }
       }
     })
   } catch (error) {

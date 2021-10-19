@@ -47,7 +47,9 @@ export const COMPANY_CATEGORY = [
 ];
 
 export const CURRENT_ROL = 'clientes';
-export const COLABORATION_ROL = 'colaboradores'
+export const COLABORATION_ROL = 'colaboradores';
+
+export const SUCURSALES = ['Fuera de oficina', 'Oficina Illapel', 'Oficina Salamanca']
 
 export const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 export const NUMBER_MONTHS = {
