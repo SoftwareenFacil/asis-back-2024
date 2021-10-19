@@ -1000,7 +1000,8 @@ router.put("/:id", multer.single("archivo"), async (req, res) => {
               obs: observacion_solicitud,
               fecha: getDate(new Date()),
             }
-          ]
+          ],
+          fecha_solicitud_format: new Date(moment(existsRequest.fecha_solicitud, FORMAT_DATE))
         },
         // $push: {
         //   observacion_solicitud: {
