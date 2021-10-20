@@ -238,7 +238,16 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
 
     const pdfname = `${EXCEL_CONSOLIDATED_REQUESTS}_${uuid()}.xlsx`;
 
-    console.log('solicitudes', auxSolicitudes.length);
+    console.log('solicitudes 1', auxSolicitudes[0]);
+    console.log('solicitudes 2', auxSolicitudes[1]);
+    console.log('solicitudes 3', auxSolicitudes[2]);
+    console.log('solicitudes 4', auxSolicitudes[3]);
+
+    console.log('auxSolicitudes 1', auxSolicitudes[0]);
+    console.log('auxSolicitudes 2', auxSolicitudes[2]);
+    console.log('auxSolicitudes 3', auxSolicitudes[3]);
+    console.log('auxSolicitudes 4', auxSolicitudes[4]);
+
     console.log('resveras', auxReservas.length);
     console.log('evaluaciones', auxEvaluaciones.length);
     console.log('resultados', auxResultados.length);

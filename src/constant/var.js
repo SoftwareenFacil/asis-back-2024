@@ -50,6 +50,7 @@ export const CURRENT_ROL = 'clientes';
 export const COLABORATION_ROL = 'colaboradores';
 
 export const SUCURSALES = ['Fuera de oficina', 'Oficina Illapel', 'Oficina Salamanca']
+export const LUGAR_SERVICIOS = ["Oficina", "Terreno", "No Aplica"]
 
 export const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 export const NUMBER_MONTHS = {

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import moment from "moment";
-import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, NOT_EXISTS, NAME_PSICO_PDF, NAME_AVERSION_PDF, ERROR_PDF, OTHER_NAME_PDF, FORMAT_DATE, CURRENT_ROL, COLABORATION_ROL, MONTHS, NUMBER_MONTHS, SUCURSALES } from "../../constant/var";
+import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, NOT_EXISTS, NAME_PSICO_PDF, NAME_AVERSION_PDF, ERROR_PDF, OTHER_NAME_PDF, FORMAT_DATE, CURRENT_ROL, COLABORATION_ROL, MONTHS, NUMBER_MONTHS, SUCURSALES, LUGAR_SERVICIOS } from "../../constant/var";
 
 //database connection
 import { connect } from "../../database";
@@ -92,6 +92,7 @@ router.get('/:anio', async (req, res) => {
     let dataCategory3 = [];
     let dataServiceName = [];
     let dataServiceType = [];
+    let dataServicePlace = [];
     let dataSucursal = [];
 
     totalSolicitudes.forEach(sol => {
@@ -131,6 +132,16 @@ router.get('/:anio', async (req, res) => {
       else{
         const indicetiposervicio = dataServiceType.indexOf(auxTipoServicio)
         dataServiceType[indicetiposervicio].quantity = auxTipoServicio.quantity + 1;
+      }
+      //sacando lugar servicio
+      const auxLugarServicio = dataServicePlace.find(tipo => tipo.name === sol.lugar_servicio);
+      const existsLugares = (LUGAR_SERVICIOS.indexOf(sol.lugar_servicio) !== -1)
+      if(!auxLugarServicio && existsLugares){
+        dataServicePlace.push({ name: sol.lugar_servicio, quantity: 1 });
+      }
+      else if(existsLugares){
+        const indicelugarservicio = dataServicePlace.indexOf(auxLugarServicio);
+        dataServicePlace[indicelugarservicio].quantity = auxLugarServicio.quantity + 1;
       }
       //sacando sucursales
       const auxSucursal = dataSucursal.find(sucursal => sucursal.name === sol.sucursal);
@@ -377,6 +388,12 @@ router.get('/:anio', async (req, res) => {
       return acc;
     }, { type: [], data: [] });
 
+    const totalServicePlace = dataServicePlace.reduce((acc, current) => {
+      acc.type.push(current.name);
+      acc.data.push(current.quantity);
+      return acc;
+    }, { type: [], data: [] });
+
     const totalworkplace = dataSucursal.reduce((acc, current) => {
       acc.type.push(current.name);
       acc.data.push(current.quantity);
@@ -402,6 +419,7 @@ router.get('/:anio', async (req, res) => {
           category3: totalCategory3,
           services: totalServiceName,
           typeServices: totalServiceType,
+          placeServices: totalServicePlace,
           workplaces: totalworkplace
         }
       }
