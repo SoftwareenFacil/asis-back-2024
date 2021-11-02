@@ -951,24 +951,19 @@ router.delete('/:id', async (req, res) => {
   const db = conn.db('asis-db');
 
   try {
-    const existReserva = await db.collection('reservas').findOne({ _id: ObjectID(id) });
-    if (!existReserva) return res.status(200).json({ err: 98, msg: `${NOT_EXISTS}: reserva`, res: [] });
-    // console.log(existReserva);
-    const codeSolicitud = existReserva.codigo.replace('AGE', 'SOL');
-    const existSolicitud = await db.collection('solicitudes').findOne({ codigo: codeSolicitud });
+    const resultAge = await db.collection('reservas').findOneAndUpdate({ _id: ObjectID(id) }, {$set: { isActive: false}})
 
-    if (!existSolicitud) return res.status(200).json({ err: 98, msg: `${NOT_EXISTS}: solicitud`, res: [] });
+    if(resultAge?.value?.codigo){
+      const codeAge = resultAge.value.codigo;
 
-    await db.collection('reservas').updateOne({ _id: ObjectID(id) }, {
-      $set: {
-        isActive: false
-      }
-    });
-    await db.collection('solicitudes').updateOne({ codigo: codeSolicitud }, {
-      $set: {
-        isActive: false
-      }
-    });
+      await db.collection('solicitudes').updateOne({ codigo: codeAge.replace("AGE", "SOL") }, {$set: { isActive: false}})
+      await db.collection('evaluaciones').updateOne({ codigo: codeAge.replace("AGE", "EVA") }, {$set: { isActive: false}});
+      await db.collection('resultados').updateOne({ codigo: codeAge.replace("AGE", "RES") }, {$set: { isActive: false}});
+      await db.collection('facturaciones').updateOne({ codigo: codeAge.replace("AGE", "FAC") }, {$set: { isActive: false}});
+      await db.collection('pagos').updateOne({ codigo: codeAge.replace("AGE", "PAG") }, {$set: { isActive: false}});
+      await db.collection('cobranza').updateOne({ codigo: codeAge.replace("AGE", "COB") }, {$set: { isActive: false}});
+    }
+
     return res.status(200).json({ err: null, msg: DELETE_SUCCESSFULL, res: [] });
   } catch (error) {
     console.log(error);

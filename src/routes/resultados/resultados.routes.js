@@ -319,10 +319,10 @@ router.get('/downloadfile/:id', async (req, res) => {
   const db = conn.db('asis-db');
 
   try {
-    const evaluacion = await db.collection('resultados').findOne({ _id: ObjectID(id), isActive: true });
-    if (!evaluacion) return res.status(500).json({ err: 98, msg: NOT_EXISTS, res: null });
+    const resultado = await db.collection('resultados').findOne({ _id: ObjectID(id), isActive: true });
+    if (!resultado) return res.status(500).json({ err: 98, msg: NOT_EXISTS, res: null });
 
-    const pathPdf = evaluacion.url_file_adjunto_res;
+    const pathPdf = resultado.url_file_adjunto_res;
 
     const s3 = new AWS.S3({
       accessKeyId: AWS_ACCESS_KEY,
@@ -334,6 +334,7 @@ router.get('/downloadfile/:id', async (req, res) => {
         return res.status(500).json({ err: String(error), msg: 'error s3 get file', res: null });
       }
       else {
+        console.log(pathPdf)
         return res.status(200).json({
           err: null,
           msg: 'Archivo descargado',
@@ -606,13 +607,14 @@ router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
       // const nombrePdf = datos.nombre_servicio === 'Psicosensotécnico Riguroso'
       //   ? NAME_PSICO_PDF : datos.nombre_servicio === 'Aversión al Riesgo' ? NAME_AVERSION_PDF : OTHER_NAME_PDF;
       const nombrePdf = OTHER_NAME_PDF;
+      const archivo = `${datos.razon_social_cs}_${datos.rut_cs}_${datos.nombre_servicio}_${datos.codigo.split('_')[3]}`;
 
       // const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_psicosensotecnico.png`;
-      archivo = datos.nombre_servicio === 'Psicosensotécnico Riguroso'
-        ? `psico_${datos.codigo}_${uuid()}`
-        : datos.nombre_servicio === 'Aversión al riesgo'
-          ? `aversion_${datos.codigo}_${uuid()}`
-          : `${datos.codigo}_${uuid()}`;
+      // archivo = datos.nombre_servicio === 'Psicosensotécnico Riguroso'
+      //   ? `psico_${datos.codigo}_${uuid()}`
+      //   : datos.nombre_servicio === 'Aversión al riesgo'
+      //     ? `aversion_${datos.codigo}_${uuid()}`
+      //     : `${datos.codigo}_${uuid()}`;
 
       setTimeout(() => {
         const fileContent = fs.readFileSync(`uploads/${nombrePdf}`);
@@ -814,41 +816,55 @@ router.delete('/:id', async (req, res) => {
   const db = conn.db('asis-db');
 
   try {
-    const existResultado = await db.collection('resultados').findOne({ _id: ObjectID(id) });
-    if (!existResultado) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'resultado no existe' });
+    // const existResultado = await db.collection('resultados').findOne({ _id: ObjectID(id) });
+    // if (!existResultado) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'resultado no existe' });
 
-    const codeEvaluacion = existResultado.codigo.replace('RES', 'EVA');
-    const existEvaluacion = await db.collection('evaluaciones').findOne({ codigo: codeEvaluacion });
-    if (!existEvaluacion) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'evaluacion no existe' });
+    // const codeEvaluacion = existResultado.codigo.replace('RES', 'EVA');
+    // const existEvaluacion = await db.collection('evaluaciones').findOne({ codigo: codeEvaluacion });
+    // if (!existEvaluacion) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'evaluacion no existe' });
 
-    const codeReserva = existEvaluacion.codigo.replace('EVA', 'AGE');
-    const existReserva = await db.collection('reservas').findOne({ codigo: codeReserva });
-    if (!existReserva) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'reserva no existe' });
+    // const codeReserva = existEvaluacion.codigo.replace('EVA', 'AGE');
+    // const existReserva = await db.collection('reservas').findOne({ codigo: codeReserva });
+    // if (!existReserva) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'reserva no existe' });
 
-    const codeSolicitud = existReserva.codigo.replace('AGE', 'SOL');
-    const existSolicitud = await db.collection('solicitudes').findOne({ codigo: codeSolicitud });
-    if (!existSolicitud) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'solicitud no existe no existe' });
+    // const codeSolicitud = existReserva.codigo.replace('AGE', 'SOL');
+    // const existSolicitud = await db.collection('solicitudes').findOne({ codigo: codeSolicitud });
+    // if (!existSolicitud) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'solicitud no existe no existe' });
 
-    await db.collection('resultados').updateOne({ _id: ObjectID(id) }, {
-      $set: {
-        isActive: false
-      }
-    });
-    await db.collection('evaluaciones').updateOne({ codigo: codeEvaluacion }, {
-      $set: {
-        isActive: false
-      }
-    });
-    await db.collection('reservas').updateOne({ codigo: codeReserva }, {
-      $set: {
-        isActive: false
-      }
-    });
-    await db.collection('solicitudes').updateOne({ codigo: codeSolicitud }, {
-      $set: {
-        isActive: false
-      }
-    });
+    // await db.collection('resultados').updateOne({ _id: ObjectID(id) }, {
+    //   $set: {
+    //     isActive: false
+    //   }
+    // });
+    // await db.collection('evaluaciones').updateOne({ codigo: codeEvaluacion }, {
+    //   $set: {
+    //     isActive: false
+    //   }
+    // });
+    // await db.collection('reservas').updateOne({ codigo: codeReserva }, {
+    //   $set: {
+    //     isActive: false
+    //   }
+    // });
+    // await db.collection('solicitudes').updateOne({ codigo: codeSolicitud }, {
+    //   $set: {
+    //     isActive: false
+    //   }
+    // });
+
+    const resultRes = await db.collection('resultados').findOneAndUpdate({ _id: ObjectID(id) }, {$set: { isActive: false}})
+
+    if(resultRes?.value?.codigo){
+      const codeRes = resultRes.value.codigo;
+
+      await db.collection('solicitudes').updateOne({ codigo: codeRes.replace("RES", "SOL") }, {$set: { isActive: false}})
+      await db.collection('reservas').updateOne({ codigo: codeRes.replace("RES", "AGE") }, {$set: { isActive: false}})
+      await db.collection('evaluaciones').updateOne({ codigo: codeRes.replace("RES", "EVA") }, {$set: { isActive: false}})
+      await db.collection('facturaciones').updateOne({ codigo: codeRes.replace("RES", "FAC") }, {$set: { isActive: false}});
+      await db.collection('pagos').updateOne({ codigo: codeRes.replace("RES", "PAG") }, {$set: { isActive: false}});
+      await db.collection('cobranza').updateOne({ codigo: codeRes.replace("RES", "COB") }, {$set: { isActive: false}});
+    }
+
     return res.status(200).json({ err: null, msg: DELETE_SUCCESSFULL, res: null });
   } catch (error) {
     console.log(error);

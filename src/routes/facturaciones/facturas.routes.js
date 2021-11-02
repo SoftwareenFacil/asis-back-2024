@@ -1199,21 +1199,24 @@ router.delete('/:id', async (req, res) => {
       $set: {
         isActive: false
       },
-    }, { returnNewDocument: true });
-
-    if (!invoice?.value?.codigo) return res.status(200).json({ err: null, msg: 'Factura eliminada correctamente', res: [] })
-
-    await db.collection('pagos').updateOne({ codigo: invoice.value.codigo.replace('FAC', 'PAG'), isActive: true }, {
-      $set: {
-        isActive: false
-      }
     });
 
-    await db.collection('cobranza').updateOne({ codigo: invoice.value.codigo.replace('FAC', 'COB'), isActive: true }, {
-      $set: {
-        isActive: false
-      }
-    });
+    if(invoice?.value?.codigo){
+      const codeInvoice = invoice.value.codigo;
+      
+      await db.collection('pagos').updateOne({ codigo: codeInvoice.replace('FAC', 'PAG'), isActive: true }, {
+        $set: {
+          isActive: false
+        }
+      });
+  
+      await db.collection('cobranza').updateOne({ codigo: codeInvoice.replace('FAC', 'COB'), isActive: true }, {
+        $set: {
+          isActive: false
+        }
+      });
+    }
+
 
     return res.status(200).json({ err: null, msg: 'Factura eliminada correctamente', res: [] })
   } catch (error) {
