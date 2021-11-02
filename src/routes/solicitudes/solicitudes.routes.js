@@ -1387,11 +1387,20 @@ router.delete('/:id', async (req, res) => {
   const db = conn.db('asis-db');
 
   try {
-    await db.collection('solicitudes').updateOne({ _id: ObjectID(id) }, {
-      $set: {
-        isActive: false
-      }
-    });
+    const resultSol = await db.collection('solicitudes').findOneAndUpdate({ _id: ObjectID(id) }, {$set: { isActive: false}});
+
+    if(resultSol?.value?.codigo){
+
+      const codeSol = resultSol.value.codigo;
+
+      await db.collection('reservas').updateOne({ codigo: codeSol.replace("SOL", "AGE") }, {$set: { isActive: false}});
+      await db.collection('evaluaciones').updateOne({ codigo: codeSol.replace("SOL", "EVA") }, {$set: { isActive: false}});
+      await db.collection('resultados').updateOne({ codigo: codeSol.replace("SOL", "RES") }, {$set: { isActive: false}});
+      await db.collection('facturaciones').updateOne({ codigo: codeSol.replace("SOL", "FAC") }, {$set: { isActive: false}});
+      await db.collection('pagos').updateOne({ codigo: codeSol.replace("SOL", "PAG") }, {$set: { isActive: false}});
+      await db.collection('cobranza').updateOne({ codigo: codeSol.replace("SOL", "COB") }, {$set: { isActive: false}});
+    }
+
     return res.status(200).json({ err: null, msg: DELETE_SUCCESSFULL, res: null });
   } catch (error) {
     console.log(error);

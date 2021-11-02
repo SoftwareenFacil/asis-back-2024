@@ -33,6 +33,7 @@ import { upperRutWithLetter } from "../../functions/uppercaseRutWithLetter";
 import { AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, NOT_EXISTS, NAME_PSICO_PDF, NAME_AVERSION_PDF, ERROR_PDF, OTHER_NAME_PDF, FORMAT_DATE, CURRENT_ROL, COLABORATION_ROL } from "../../constant/var";
 import { uploadFileToS3, getObjectFromS3 } from "../../libs/aws";
 import { pipe } from "pdfkit";
+import { TransformToCapitalize } from "../../functions/transformToCapitalize";
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -98,15 +99,20 @@ router.post('/evaluacionpsico', async (req, res) => {
     fecha: getDate(new Date()),
     estado: "Cargado"
   };
-  // obs.obs = datos.observaciones;
-  // obs.fecha = getDate(new Date());
-  // obs.estado = "Cargado";
 
-  // const nombrePdf = `RESULTADO_${data.codigo}_PSICOSENSOTECNICO.pdf`;
-  // const nombrePdf = NAME_PSICO_PDF;
   const nombrePdf = OTHER_NAME_PDF;
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_psicosensotecnico.png`;
-  const nameFIle = `psico_${data.codigo}_${uuid()}`;
+
+  const csFinded = await db.collection('gi').findOne({ rut: data.rut_cs, categoria: 'Persona Natural' });
+  const serviceFinded = await db.collection('solicitudes').findOne({ codigo: data.codigo.replace("EVA", "SOL") });
+
+  const firstPartFileName = !!csFinded.razon_social ? TransformToCapitalize(csFinded.razon_social) : 'SinDatos';
+  const secondPartFileName = data.rut_cs;
+  const thirdPartFileName = !!serviceFinded.nombre_servicio ? TransformToCapitalize(serviceFinded.nombre_servicio) : 'SinDatos';
+  const fourthPartFileName = data.codigo.split('-')[3];
+  const fifthPartFileName = uuid();
+
+  const nameFIle = `${firstPartFileName}_${secondPartFileName}_${fourthPartFileName}.pdf`;
 
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
@@ -424,18 +430,27 @@ router.post('/evaluacionaversion', async (req, res) => {
     estado: "Cargado"
   };
 
-  // const fortalezas = data.fortalezas;
-  // const areas_mejorar = data.area_mejora;
   const conclusionRiesgos = data.conclusion;
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
   const maquinariasConducir = data.maquinaria;
   const observacionConclusion = data.observaciones_conclusion;
-  // const nombre_servicio = data.nombre_servicio;
-  // const nombrePdf = NAME_AVERSION_PDF;
+
   const nombrePdf = OTHER_NAME_PDF;
   const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_aversionriesgo.png`;
-  const nameFIle = `aversion_${data.codigo}_${uuid()}`;
+
+  const csFinded = await db.collection('gi').findOne({ rut: data.rut_cs, categoria: 'Persona Natural' });
+  const serviceFinded = await db.collection('solicitudes').findOne({ codigo: data.codigo.replace("EVA", "SOL") });
+
+  const firstPartFileName = !!csFinded.razon_social ? TransformToCapitalize(csFinded.razon_social) : 'SinDatos';
+  const secondPartFileName = data.rut_cs;
+  const thirdPartFileName = !!serviceFinded.nombre_servicio ? TransformToCapitalize(serviceFinded.nombre_servicio) : 'SinDatos';
+  const fourthPartFileName = data.codigo.split('-')[3];
+  const fifthPartFileName = uuid();
+
+  const nameFIle = `${firstPartFileName}_${secondPartFileName}_${fourthPartFileName}.pdf`;
+
+  // const nameFIle = `${data.razon_social_cs.trim()}_${data.rut_cs}_${data.nombre_servicio.trim()}_${data.codigo.split('_')[3]}`;
   const fecha_vigencia = moment(data.fecha_evaluacion, FORMAT_DATE).add(data.meses_vigencia, 'M').format(FORMAT_DATE) || 'Sin Información';
 
   let resultado = '';
@@ -935,11 +950,15 @@ router.post("/evaluar/:id", multer.single("archivo"), async (req, res) => {
       const nombrePdf = OTHER_NAME_PDF;
 
       // const nombreQR = `${path.resolve("./")}/uploads/qr_${data.codigo}_psicosensotecnico.png`;
-      archivo = datos.nombre_servicio === 'Psicosensotécnico Riguroso'
-        ? `psico_${datos.codigo}_${uuid()}`
-        : datos.nombre_servicio === 'Aversión al Riesgo'
-          ? `aversion_${datos.codigo}_${uuid()}`
-          : `${datos.codigo}_${uuid()}`;
+      // archivo = datos.nombre_servicio === 'Psicosensotécnico Riguroso'
+      //   ? `psico_${datos.codigo}_${uuid()}`
+      //   : datos.nombre_servicio === 'Aversión al Riesgo'
+      //     ? `aversion_${datos.codigo}_${uuid()}`
+      //     : `${datos.codigo}_${uuid()}`;
+
+      const evaluacionFinded = await db.collection('evaluaciones').findOne({ codigo: datos.codigo });
+
+      archivo = `${evaluacionFinded.razon_social_cs.split(" ").join("")}_${evaluacionFinded.rut_cs}_${datos.nombre_servicio.split(" ").join("")}_${evaluacionFinded.codigo.split('-')[3]}`;
 
       setTimeout(() => {
         const fileContent = fs.readFileSync(`uploads/${nombrePdf}`);
@@ -1084,32 +1103,19 @@ router.delete('/:id', async (req, res) => {
   const db = conn.db('asis-db');
 
   try {
-    const existEvaluacion = await db.collection('evaluaciones').findOne({ _id: ObjectID(id) });
-    if (!existEvaluacion) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'evaluacion no existe' });
+    const resultEva = await db.collection('evaluaciones').findOneAndUpdate({ _id: ObjectID(id) }, {$set: { isActive: false}})
 
-    const codeReserva = existEvaluacion.codigo.replace('EVA', 'AGE');
-    const existReserva = await db.collection('reservas').findOne({ codigo: codeReserva });
-    if (!existReserva) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'reserva no existe' });
+    if(resultEva?.value?.codigo){
+      const codeEva = resultEva.value.codigo;
 
-    const codeSolicitud = existReserva.codigo.replace('AGE', 'SOL');
-    const existSolicitud = await db.collection('solicitudes').findOne({ codigo: codeSolicitud });
-    if (!existSolicitud) return res.status(200).json({ msg: DELETE_SUCCESSFULL, status: 'solicitud no existe no existe' });
+      await db.collection('solicitudes').updateOne({ codigo: codeEva.replace("EVA", "SOL") }, {$set: { isActive: false}})
+      await db.collection('reservas').updateOne({ codigo: codeEva.replace("EVA", "AGE") }, {$set: { isActive: false}})
+      await db.collection('resultados').updateOne({ codigo: codeEva.replace("EVA", "RES") }, {$set: { isActive: false}});
+      await db.collection('facturaciones').updateOne({ codigo: codeEva.replace("EVA", "FAC") }, {$set: { isActive: false}});
+      await db.collection('pagos').updateOne({ codigo: codeEva.replace("EVA", "PAG") }, {$set: { isActive: false}});
+      await db.collection('cobranza').updateOne({ codigo: codeEva.replace("EVA", "COB") }, {$set: { isActive: false}});
+    }
 
-    await db.collection('evaluaciones').updateOne({ _id: ObjectID(id) }, {
-      $set: {
-        isActive: false
-      }
-    });
-    await db.collection('reservas').updateOne({ codigo: codeReserva }, {
-      $set: {
-        isActive: false
-      }
-    });
-    await db.collection('solicitudes').updateOne({ codigo: codeSolicitud }, {
-      $set: {
-        isActive: false
-      }
-    });
     return res.status(200).json({ err: null, msg: DELETE_SUCCESSFULL, res: [] });
   } catch (error) {
     console.log(error);

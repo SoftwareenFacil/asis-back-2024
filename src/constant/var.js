@@ -95,6 +95,11 @@ export const COLUMNS_NAME_REQUESTS = [
     requestName: 'anio_solicitud'
   },
   {
+    width: 15,
+    name: 'Nombre Receptor',
+    requestName: 'nombre_receptor'
+  },
+  {
     width: 50,
     name: 'CATEGORIA 1',
     requestName: 'categoria1'
@@ -445,6 +450,11 @@ export const COLUMNS_NAME_INVOICES = [
     width: 20,
     name: 'NOMBRE SERVICIO',
     requestName: 'nombre_servicio'
+  },
+  {
+    width: 20,
+    name: 'RAZON SOCIAL EMPRESA',
+    requestName: 'razon_social_empresa'
   },
   {
     width: 12,
