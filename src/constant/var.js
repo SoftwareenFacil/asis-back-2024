@@ -135,6 +135,16 @@ export const COLUMNS_NAME_REQUESTS = [
     requestName: 'sucursal'
   },
   {
+    width: 20,
+    name: 'FAENA',
+    requestName: 'faena_seleccionada_cp'
+  },
+  {
+    width: 20,
+    name: 'CONTRATO',
+    requestName: 'nro_contrato_seleccionado_cp'
+  },
+  {
     width: 12,
     name: 'MONTO NETO',
     requestName: 'monto_neto'
