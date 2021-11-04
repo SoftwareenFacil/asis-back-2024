@@ -122,13 +122,11 @@ export default function createAnualExcel(
 
   //filas de información
   rowsDataRequests.forEach((row, index) => {
-    if (row.mes_solicitud === mes) {
-      columnsNameRequests.forEach((column, subindex) => {
-        wsRequests.cell(index + 2, subindex + 1)
-          .string(row[column.requestName])
-          .style(cellStyle)
-      })
-    }
+    columnsNameRequests.forEach((column, subindex) => {
+      wsRequests.cell(index + 2, subindex + 1)
+        .string(row[column.requestName])
+        .style(cellStyle)
+    })
   });
 
   //------------------------------------- RESERVAS
