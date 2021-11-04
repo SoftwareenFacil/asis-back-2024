@@ -342,7 +342,7 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
 
     }, 5000);
 
-    return res.status(200).json({ err: null, msg: 'Informe generado correctamente', res: [...solicitudes] });
+    return res.status(200).json({ err: null, msg: 'Informe generado correctamente', res: [] });
 
   } catch (error) {
     console.log(error)
