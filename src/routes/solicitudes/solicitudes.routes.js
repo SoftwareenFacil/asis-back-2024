@@ -98,6 +98,8 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
       if(auxHasMonth){
         acc.push({
           ...solicitud,
+          mes_solicitud: mes,
+          anio_solicitud: anio,
           monto_neto: `$ ${MilesFormat(solicitud.monto_neto || 0)}`,
           porcentaje_impuesto: `$ ${solicitud.porcentaje_impuesto}`,
           valor_impuesto: `$ ${solicitud.valor_impuesto}`,
