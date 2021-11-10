@@ -112,7 +112,7 @@ router.post('/evaluacionpsico', async (req, res) => {
   const fourthPartFileName = data.codigo.split('-')[3];
   const fifthPartFileName = uuid();
 
-  const nameFIle = `${firstPartFileName}_${secondPartFileName}_${fourthPartFileName}.pdf`;
+  const nameFIle = `${firstPartFileName}-${secondPartFileName}-${thirdPartFileName}-${fourthPartFileName}-${fifthPartFileName}.pdf`;
 
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
@@ -448,7 +448,7 @@ router.post('/evaluacionaversion', async (req, res) => {
   const fourthPartFileName = data.codigo.split('-')[3];
   const fifthPartFileName = uuid();
 
-  const nameFIle = `${firstPartFileName}_${secondPartFileName}_${fourthPartFileName}.pdf`;
+  const nameFIle = `${firstPartFileName}-${secondPartFileName}-${thirdPartFileName}-${fourthPartFileName}-${fifthPartFileName}.pdf`;
 
   // const nameFIle = `${data.razon_social_cs.trim()}_${data.rut_cs}_${data.nombre_servicio.trim()}_${data.codigo.split('_')[3]}`;
   const fecha_vigencia = moment(data.fecha_evaluacion, FORMAT_DATE).add(data.meses_vigencia, 'M').format(FORMAT_DATE) || 'Sin Información';
