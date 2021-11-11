@@ -106,9 +106,9 @@ router.post('/evaluacionpsico', async (req, res) => {
   const csFinded = await db.collection('gi').findOne({ rut: data.rut_cs, categoria: 'Persona Natural' });
   const serviceFinded = await db.collection('solicitudes').findOne({ codigo: data.codigo.replace("EVA", "SOL") });
 
-  const firstPartFileName = !!csFinded.razon_social ? TransformToCapitalize(csFinded.razon_social) : 'SinDatos';
+  const firstPartFileName = !!csFinded.razon_social ? csFinded.razon_social : 'SinDatos';
   const secondPartFileName = data.rut_cs;
-  const thirdPartFileName = !!serviceFinded.nombre_servicio ? TransformToCapitalize(serviceFinded.nombre_servicio) : 'SinDatos';
+  const thirdPartFileName = !!serviceFinded.nombre_servicio ? serviceFinded.nombre_servicio : 'SinDatos';
   const fourthPartFileName = data.codigo.split('-')[3];
   const fifthPartFileName = uuid();
 
@@ -442,9 +442,9 @@ router.post('/evaluacionaversion', async (req, res) => {
   const csFinded = await db.collection('gi').findOne({ rut: data.rut_cs, categoria: 'Persona Natural' });
   const serviceFinded = await db.collection('solicitudes').findOne({ codigo: data.codigo.replace("EVA", "SOL") });
 
-  const firstPartFileName = !!csFinded.razon_social ? TransformToCapitalize(csFinded.razon_social) : 'SinDatos';
+  const firstPartFileName = !!csFinded.razon_social ? csFinded.razon_social : 'SinDatos';
   const secondPartFileName = data.rut_cs;
-  const thirdPartFileName = !!serviceFinded.nombre_servicio ? TransformToCapitalize(serviceFinded.nombre_servicio) : 'SinDatos';
+  const thirdPartFileName = !!serviceFinded.nombre_servicio ? serviceFinded.nombre_servicio : 'SinDatos';
   const fourthPartFileName = data.codigo.split('-')[3];
   const fifthPartFileName = uuid();
 
