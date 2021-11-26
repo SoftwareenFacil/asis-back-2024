@@ -566,6 +566,23 @@ router.post('/buscar', async (req, res) => {
 
 })
 
+router.post('/filter/:date', async (req, res) => {
+  const { date } = req.params;
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
+  try {
+    const results = await db.collection('resultados').find({ fecha_resultado: date }).toArray();
+    console.log("COUNT RESULTS", results.length)
+    return res.status(200).json({ err: null, msg: 'Resultados encontrados', res: results });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ err: String(error), msg: 'ha ocurrido un error', res: [] })
+  } finally {
+    conn.close()
+  }
+})
+
 //SUBIR ARCHIVO RESULTADO
 router.post("/subir/:id", multer.single("archivo"), async (req, res) => {
   const { id } = req.params;

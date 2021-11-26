@@ -60,8 +60,19 @@ router.get("/getoc", async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
   try {
-    const result = await db.collection('facturaciones').find({ oc: 'Si', estado: 'Ingresado' }).toArray();
-    return res.status(200).json({ err: null, msg: 'Facturaciones cargadas', res: result });
+    let result = [];
+
+    let facturaciones = await db.collection('facturaciones').find({ oc: 'Si', estado: 'Ingresado' }).toArray();
+
+    // for await (let facturacion of facturaciones ){
+    //   const aux = await db.collection('resultados').findOne({ codigo: facturacion.codigo.replace("FAC", "RES") });
+    //   result.push({
+    //     ...facturacion,
+    //     fecha_resultado: aux.fecha_resultado ?? ''
+    //   })
+    // }
+    
+    return res.status(200).json({ err: null, msg: 'Facturaciones cargadas', res: facturaciones });
   } catch (error) {
     console.log(error)
     return res.status(500).json({ err: String(error), msg: ERROR, res: null })
