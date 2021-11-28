@@ -111,8 +111,9 @@ router.post('/evaluacionpsico', async (req, res) => {
   const thirdPartFileName = !!serviceFinded.nombre_servicio ? serviceFinded.nombre_servicio : 'SinDatos';
   const fourthPartFileName = data.codigo.split('-')[3];
   const fifthPartFileName = uuid();
+  const sixPartFileName = !!csFinded.nombre_fantasia ? csFinded.nombre_fantasia : 'SinDatos';
 
-  const nameFIle = `${firstPartFileName}_${secondPartFileName}_${thirdPartFileName}_${fourthPartFileName}_${fifthPartFileName}.pdf`;
+  const nameFIle = `${firstPartFileName}_${secondPartFileName}_${thirdPartFileName}_${fourthPartFileName}_${fifthPartFileName}_${sixPartFileName}.pdf`;
 
   const rutClienteSecundario = data.rut_cs;
   const rutClientePrincipal = data.rut_cp;
@@ -447,8 +448,9 @@ router.post('/evaluacionaversion', async (req, res) => {
   const thirdPartFileName = !!serviceFinded.nombre_servicio ? serviceFinded.nombre_servicio : 'SinDatos';
   const fourthPartFileName = data.codigo.split('-')[3];
   const fifthPartFileName = uuid();
+  const sixPartFileName = !!csFinded.nombre_fantasia ? csFinded.nombre_fantasia : 'SinDatos';
 
-  const nameFIle = `${firstPartFileName}_${secondPartFileName}_${thirdPartFileName}_${fourthPartFileName}_${fifthPartFileName}.pdf`;
+  const nameFIle = `${firstPartFileName}_${secondPartFileName}_${thirdPartFileName}_${fourthPartFileName}_${fifthPartFileName}_${sixPartFileName}.pdf`;
 
   // const nameFIle = `${data.razon_social_cs.trim()}_${data.rut_cs}_${data.nombre_servicio.trim()}_${data.codigo.split('_')[3]}`;
   const fecha_vigencia = moment(data.fecha_evaluacion, FORMAT_DATE).add(data.meses_vigencia, 'M').format(FORMAT_DATE) || 'Sin Información';
