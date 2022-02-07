@@ -47,7 +47,7 @@ export function generateNewCodeRequest(oldcode) {
   else{
     newFormatNumber = newNumberCode
   }
-  const newCode = `${aux[0]}-${aux[1]}-${aux[2]}-${newFormatNumber}`;
+  const newCode = `${aux[0]}-${moment().format('YYYY')}-${aux[2]}-${newFormatNumber}`;
   return newCode;
 };
 
