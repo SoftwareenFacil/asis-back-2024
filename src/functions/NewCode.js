@@ -27,7 +27,7 @@ export function calculate(item){
 };
 
 export function generateNewCodeRequest(oldcode) {
-  if(!oldcode) return `ASIS-${moment().format('YYYY')}-SOL-00001`;
+  if(!oldcode) return `ASIS-SOL-${moment().format('YYYY')}-00001`;
   const aux = oldcode.split('-');
   const auxNumber = parseInt(aux[3]);
   const newNumberCode = auxNumber + 1;
@@ -47,7 +47,7 @@ export function generateNewCodeRequest(oldcode) {
   else{
     newFormatNumber = newNumberCode
   }
-  const newCode = `${aux[0]}-${moment().format('YYYY')}-${aux[2]}-${newFormatNumber}`;
+  const newCode = `${aux[0]}-${aux[1]}-${moment().format('YYYY')}-${newFormatNumber}`;
   return newCode;
 };
 
