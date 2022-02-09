@@ -281,8 +281,12 @@ router.post('/evaluacionpsico', async (req, res) => {
         cargo: cs.cargo || '',
         licencia_acreditar: licencia || '',
         ley: cs.ley_aplicable || '',
-        vencimiento_licencia: cs.fecha_venc_licencia ? moment(cs.fecha_venc_licencia, FORMAT_DATE).format(FORMAT_DATE) : '',
-        observaciones_licencia: cs.estado_licencia || '',
+        vencimiento_licencia: (cs.fecha_venc_licencia && !!licencia && !licencia.toLowerCase().includes('no tiene')) 
+          ? moment(cs.fecha_venc_licencia, FORMAT_DATE).format(FORMAT_DATE) 
+          : 'No Aplica',
+        observaciones_licencia: (cs.estado_licencia && !!licencia && !licencia.toLowerCase().includes('no tiene'))
+          ? cs.estado_licencia
+          : 'No Aplica',
         fecha_examen: !!eva && !!eva.fecha_evaluacion ? moment(eva.fecha_evaluacion, FORMAT_DATE).format(FORMAT_DATE) : '',
         // fecha_examen: moment().format(FORMAT_DATE),
         resultado: resultado || '',
