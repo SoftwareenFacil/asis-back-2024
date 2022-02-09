@@ -92,7 +92,9 @@ router.post('/evaluacionpsico', async (req, res) => {
   const resultado = data.resultado;
   const restricciones = data.restricciones || 'Sin Restricciones';
   const vencimiento = moment().add(data.meses_vigencia, 'M').format('DD-MM-YYYY');
-  const licencia = data.licencia_a_acreditar;
+  const licencia = data.licencia_a_acreditar ?? [];
+
+  console.log("LICENCIA", licencia)
 
   const obs = {
     obs: data.conclusion_recomendacion,
@@ -281,10 +283,10 @@ router.post('/evaluacionpsico', async (req, res) => {
         cargo: cs.cargo || '',
         licencia_acreditar: licencia || '',
         ley: cs.ley_aplicable || '',
-        vencimiento_licencia: (cs.fecha_venc_licencia && !!licencia && !licencia.toLowerCase().includes('no tiene')) 
+        vencimiento_licencia: (cs.fecha_venc_licencia && !!licencia && !licencia.some(item => item === 'No tiene')) 
           ? moment(cs.fecha_venc_licencia, FORMAT_DATE).format(FORMAT_DATE) 
           : 'No Aplica',
-        observaciones_licencia: (cs.estado_licencia && !!licencia && !licencia.toLowerCase().includes('no tiene'))
+        observaciones_licencia: (cs.estado_licencia && !!licencia && !licencia.some(item => item === 'No tiene'))
           ? cs.estado_licencia
           : 'No Aplica',
         fecha_examen: !!eva && !!eva.fecha_evaluacion ? moment(eva.fecha_evaluacion, FORMAT_DATE).format(FORMAT_DATE) : '',
