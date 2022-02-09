@@ -1291,28 +1291,41 @@ router.post("/fortesting", async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
 
-  const evaluactions = await db.collection('evaluaciones').find({ estado: 'Evaluado' }).toArray();
-  console.log(evaluactions.length)
+  const cobranza = await db.collection('cobranza').find({fecha_facturacion: { $regex: '-2022' }, codigo: { $regex: 'ASIS-COB-2021' }}).toArray()
 
-  let cantEvaluationsIncompletate = [];
-
-  for await (let evaluation of evaluactions) {
-    const aux = await db.collection('resultados').findOne({ codigo: evaluation.codigo.replace('EVA', 'RES') });
-    if (!aux) {
-      cantEvaluationsIncompletate.push(evaluation);
-    }
-  }
-
-  console.log(cantEvaluationsIncompletate.length);
-
-  for await (let eva of cantEvaluationsIncompletate) {
-    await db.collection('evaluaciones').updateOne({ codigo: eva.codigo }, {
+  for await (let cob of cobranza) {
+    const aux = cob.codigo.split('-')
+    await db.collection('cobranza').updateOne({ codigo: cob.codigo }, {
       $set: {
-        estado_archivo: "Sin Documento",
-        estado: "Ingresado",
+        codigo: `${aux[0]}-${aux[1]}-2022-${aux[3]}`
       }
-    });
+    })
   }
+
+
+
+  // const evaluactions = await db.collection('evaluaciones').find({ estado: 'Evaluado' }).toArray();
+  // console.log(evaluactions.length)
+
+  // let cantEvaluationsIncompletate = [];
+
+  // for await (let evaluation of evaluactions) {
+  //   const aux = await db.collection('resultados').findOne({ codigo: evaluation.codigo.replace('EVA', 'RES') });
+  //   if (!aux) {
+  //     cantEvaluationsIncompletate.push(evaluation);
+  //   }
+  // }
+
+  // console.log(cantEvaluationsIncompletate.length);
+
+  // for await (let eva of cantEvaluationsIncompletate) {
+  //   await db.collection('evaluaciones').updateOne({ codigo: eva.codigo }, {
+  //     $set: {
+  //       estado_archivo: "Sin Documento",
+  //       estado: "Ingresado",
+  //     }
+  //   });
+  // }
 
   // await db.collection('solicitudes').updateMany({}, {
   //   $set: {

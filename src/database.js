@@ -8,7 +8,7 @@ export async function connect(){
         const MONGO_PROD = MONGODB_CONNECTION_PROD;
         const MONGO_PROD_NEW = MONGODB_CONNECTION_PROD_NEW;
 
-        const client = await MongoClient.connect(MONGO_PROD, {
+        const client = await MongoClient.connect(MONGO_DEV, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         })
