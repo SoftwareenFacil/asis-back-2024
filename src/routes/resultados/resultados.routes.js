@@ -31,11 +31,12 @@ var fs = require("fs");
 //database connection
 import { connect } from "../../database";
 import { ObjectID } from "mongodb";
-import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE, SB_TEMPLATE_SEND_RESULTS, CURRENT_ROL, COLABORATION_ROL, SB_TEMPLATE_SEND_CONSOLIDATED_RESULTS, CONSOLIDATED_REPORT_RESULTS_PDF, CONSOLIDATED_EXCEL_RESULTS } from "../../constant/var";
+import { NOT_EXISTS, AWS_BUCKET_NAME, AWS_ACCESS_KEY, AWS_SECRET_KEY, OTHER_NAME_PDF, FORMAT_DATE, SB_TEMPLATE_SEND_RESULTS, CURRENT_ROL, COLABORATION_ROL, SB_TEMPLATE_SEND_CONSOLIDATED_RESULTS, CONSOLIDATED_REPORT_RESULTS_PDF, CONSOLIDATED_EXCEL_RESULTS, NUMBER_MONTHS, EXCEL_CONSOLIDATED_RESULTS, COLUMNS_NAME_RESULTS, SB_TEMPLATE_SEND_CONSOLIDATE_REQUESTS } from "../../constant/var";
 import getCondicionatesString from "../../functions/transformCondicionantes";
 import createPdfConsolidado from "../../functions/createPdf/cobranza/createPdfConsolidado";
 // import createExcel from "../../functions/createExcel/createExcelConsolidado";
 import createExcelConsolidadoResults from '../../functions/createExcel/createExcelConsolidadoResults';
+import createExcelMensualResultados from '../../functions/createExcel/createExcelAnualResultados';
 
 //SELECT
 router.get("/", async (req, res) => {
@@ -61,6 +62,88 @@ router.get("/", async (req, res) => {
     conn.close()
   }
 });
+
+//GENERATE CONSOLIDATED EXCEL SYSTEM
+router.post("/consolidated/:anio/:mes", async (req, res) => {
+  const { anio, mes } = req.params;
+  const { emails } = req.body;
+  const conn = await connect();
+  const db = conn.db('asis-db');
+
+  try {
+
+    console.log([anio, mes, emails])
+
+    const regexDate = `-${NUMBER_MONTHS[mes.toLowerCase()]}-${anio}`
+
+    console.log("REGEX ANIO", regexDate)
+
+    const resultados = await db.collection("resultados").find({fecha_resultado: { $regex: regexDate }}).toArray();
+
+    const resultadosReduced = !!resultados ? resultados.map(resultado => {
+      return {
+        codigo_solicitud: !!resultado.codigo ? resultado.codigo.replace("RES", "SOL") : "",
+        ...resultado
+      }
+    }): [];
+
+    const pdfname = `${EXCEL_CONSOLIDATED_RESULTS}_${uuid()}.xlsx`;
+
+    createExcelMensualResultados(
+      pdfname,
+      { columnsNameResults: COLUMNS_NAME_RESULTS },
+      { rowsDataResults: resultadosReduced },
+      { headerKeyColorResults: '#334ACD' },
+      { headerColorResults: '#7B8497' },
+      { fontColorResults: 'white' }
+    );
+
+    setTimeout(() => {
+      const excelContent = fs.readFileSync(`uploads/${pdfname}`);
+
+      const excelParams = {
+        Bucket: AWS_BUCKET_NAME,
+        Body: excelContent,
+        Key: pdfname,
+        ContentType: 'application/vnd.ms-excel'
+      }
+
+      uploadFileToS3(excelParams);
+
+      sendinblue(
+        emails,
+        SB_TEMPLATE_SEND_CONSOLIDATE_REQUESTS,
+        {
+          CODIGO_SOLICITUD: ''
+        },
+        [
+          {
+            content: Buffer.from(excelContent).toString('base64'), // Should be publicly available and shouldn't be a local file
+            name: `${pdfname}.xlsx`
+          }
+        ]
+      );
+
+      try {
+        fs.unlinkSync(`uploads/${pdfname}`);
+      } catch (error) {
+        console.log('No se ha podido eliminar el archivo ', error)
+      }
+    }, 5000);
+
+    return res.status(200).json({ err: null, msg: 'Informe generado correctamente', res: [] });
+    
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({
+      err: String(error),
+      msg: ERROR,
+      res: null
+    });
+  } finally {
+    conn.close()
+  }
+})
 
 //SELECT FILTER
 router.get('/gifilter/:rut', async (req, res) => {
