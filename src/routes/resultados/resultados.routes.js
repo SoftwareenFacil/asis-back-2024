@@ -76,9 +76,7 @@ router.post("/consolidated/:anio/:mes", async (req, res) => {
 
     const regexDate = `-${NUMBER_MONTHS[mes.toLowerCase()]}-${anio}`
 
-    console.log("REGEX ANIO", regexDate)
-
-    const resultados = await db.collection("resultados").find({fecha_resultado: { $regex: regexDate }}).toArray();
+    const resultados = await db.collection("resultados").find({ isActive: true, fecha_resultado: { $regex: regexDate }}).toArray();
 
     const resultadosReduced = !!resultados ? resultados.map(resultado => {
       return {
