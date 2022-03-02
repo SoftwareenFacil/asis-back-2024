@@ -22,6 +22,7 @@ import EmpleadosAusenciasRoute from "./routes/empleados_ausencias/empleados_ause
 import LoginRoute from "./routes/Login/login.routes";
 import RolesRoute from "./routes/roles/roles.routes";
 import ReportesRoute from './routes/reportes/reportes.routes';
+import AdminRoutes from './routes/Admin/admin.routes';
 
 const app = express();
 
@@ -57,5 +58,6 @@ app.use('/ausencias', EmpleadosAusenciasRoute);
 app.use('/login', LoginRoute);
 app.use('/roles', RolesRoute);
 app.use('/reportes', ReportesRoute);
+app.use('/admin', AdminRoutes)
 
 module.exports = app;

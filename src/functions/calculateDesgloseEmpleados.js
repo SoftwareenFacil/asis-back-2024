@@ -6,7 +6,7 @@ export default function calculateDesgloseEmpleados(
   incDec,
   diasPendientes
 ) {
-  console.log([detalle, abrev, dias, diasVacaciones, incDec, diasPendientes])
+  // console.log([detalle, abrev, dias, diasVacaciones, incDec, diasPendientes])
   let obj = !!detalle ? detalle : {};
 
   if(!!diasPendientes){

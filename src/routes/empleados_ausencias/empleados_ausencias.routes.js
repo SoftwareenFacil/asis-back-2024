@@ -81,11 +81,11 @@ router.post("/", multer.single("archivo"), async (req, res) => {
   let r = null;
 
   try {
-    console.log(data)
-
     const empleado = await db.collection("gi").findOne({ _id: ObjectID(data.id_empleado) });
 
     if (!empleado) return res.status(200).json({ err: 98, msg: 'Empleado no existe en el sistema', res: null });
+
+    console.log("EMPLEADO ENCONTRADO!")
 
     let archivo;
 
@@ -111,28 +111,25 @@ router.post("/", multer.single("archivo"), async (req, res) => {
 
     await db.collection("empleados_ausencias").insertOne({ ...restOfData, archivo_adjunto: archivo });
 
-    const result = await db.collection("gi").updateOne(
-      { _id: ObjectID(data.id_empleado) },
-      {
-        $set: {
-          detalle_empleado: calculateDesgloseEmpleados(
-            empleado.detalle_empleado,
-            data.abrev_ausencia,
-            data.cantidad_dias,
-            empleado.dias_vacaciones,
-            "inc"
-          ),
-        },
-      }
-    );
-
-    console.log(calculateDesgloseEmpleados(
+    const resultDesglose = calculateDesgloseEmpleados(
       empleado.detalle_empleado,
       data.abrev_ausencia,
       data.cantidad_dias,
       empleado.dias_vacaciones,
       "inc"
-    ))
+    )
+
+    const result = await db.collection("gi").findOneAndUpdate(
+      { _id: ObjectID(data.id_empleado) },
+      {
+        $set: {
+          detalle_empleado: resultDesglose,
+        },
+      }
+    );
+
+    console.log("CALCULATE DESGLOSE", resultDesglose)
+
     conn.close();
     return res.status(200).json({ err: null, msg: 'Ausencia creada satisfactoriamente', res: result });
 
