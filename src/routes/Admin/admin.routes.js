@@ -74,7 +74,10 @@ router.put('/solicitudes/:id', async (req, res) => {
     fecha_servicio_solicitado_termino,
     hora_servicio_solicitado_termino,
     jornada,
-    id_GI_PersonalAsignado
+    id_GI_PersonalAsignado,
+    tipo_servicio,
+    lugar_servicio,
+    sucursal
   } = req.body
   const conn = await connect();
   const db = conn.db('asis-db');
@@ -85,7 +88,7 @@ router.put('/solicitudes/:id', async (req, res) => {
 
     const requestFinded = await db.collection("solicitudes").findOne({ _id: ObjectID(id), isActive: true })
 
-    if(requestFinded){
+    if (requestFinded) {
 
       await db.collection('solicitudes').updateOne({ _id: ObjectID(id), isActive: true }, {
         $set: {
@@ -109,13 +112,16 @@ router.put('/solicitudes/:id', async (req, res) => {
           hora_servicio_solicitado,
           fecha_servicio_solicitado_termino,
           hora_servicio_solicitado_termino,
-          jornada
+          jornada,
+          tipo_servicio,
+          lugar_servicio,
+          sucursal
         }
       });
 
       const reservationFinded = db.collection('reservas').findOne({ codigo: codigo.replace("SOL", "AGE"), isActive: true })
-  
-      if(reservationFinded){
+
+      if (reservationFinded) {
         await db.collection('reservas').updateOne({ codigo: codigo.replace("SOL", "AGE"), isActive: true }, {
           $set: {
             id_GI_personalAsignado: id_GI_PersonalAsignado,
@@ -125,14 +131,16 @@ router.put('/solicitudes/:id', async (req, res) => {
             fecha_reserva: fecha_servicio_solicitado,
             hora_reserva: hora_servicio_solicitado,
             fecha_reserva_fin: fecha_servicio_solicitado_termino,
-            hora_reserva_fin: hora_servicio_solicitado_termino
+            hora_reserva_fin: hora_servicio_solicitado_termino,
+            lugar_servicio,
+            sucursal
           }
         });
       }
 
       const evaluationFinded = await db.collection('evaluaciones').findOne({ codigo: codigo.replace("SOL", "EVA"), isActive: true })
 
-      if(evaluationFinded){
+      if (evaluationFinded) {
         await db.collection('evaluaciones').updateOne({ codigo: codigo.replace("SOL", "EVA"), isActive: true }, {
           $set: {
             id_GI_personalAsignado: id_GI_PersonalAsignado,
@@ -142,33 +150,39 @@ router.put('/solicitudes/:id', async (req, res) => {
             fecha_evaluacion: fecha_servicio_solicitado,
             fecha_evaluacion_fin: fecha_servicio_solicitado_termino,
             hora_inicio_evaluacion: hora_servicio_solicitado,
-            hora_termino_evaluacion: hora_servicio_solicitado_termino
+            hora_termino_evaluacion: hora_servicio_solicitado_termino,
+            lugar_servicio,
+            sucursal
           }
         });
       }
-  
+
       const resultFinded = await db.collection('resultados').findOne({ codigo: codigo.replace("SOL", "RES"), isActive: true })
-  
-      if(resultFinded){
+
+      if (resultFinded) {
         await db.collection('resultados').updateOne({ codigo: codigo.replace("SOL", "RES"), isActive: true }, {
           $set: {
             id_GI_personalAsignado: id_GI_PersonalAsignado,
             nombre_servicio,
             valor_servicio: monto_total,
-            faena_seleccionada_cp
+            faena_seleccionada_cp,
+            lugar_servicio,
+            sucursal
           }
         });
       }
 
-  
+
       const invoice = await db.collection('facturaciones').findOne({ codigo: codigo.replace("SOL", "FAC"), isActive: true })
-  
-      if(invoice){
+
+      if (invoice) {
         await db.collection('facturaciones').updateOne({ codigo: codigo.replace("SOL", "FAC"), isActive: true }, {
           $set: {
             id_GI_personalAsignado: id_GI_PersonalAsignado,
             nombre_servicio,
             faena_seleccionada_cp,
+            lugar_servicio,
+            sucursal,
             valor_servicio: monto_total,
             monto_neto,
             porcentaje_impuesto,
@@ -181,12 +195,14 @@ router.put('/solicitudes/:id', async (req, res) => {
       }
 
       const payment = await db.collection("pagos").findOne({ codigo: codigo.replace("SOL", "PAG"), isActive: true })
-  
-      if(payment){
+
+      if (payment) {
         await db.collection('pagos').updateOne({ codigo: codigo.replace("SOL", "PAG"), isActive: true }, {
           $set: {
             id_GI_personalAsignado: id_GI_PersonalAsignado,
             nombre_servicio,
+            lugar_servicio,
+            sucursal,
             valor_servicio: monto_total,
             faena_seleccionada_cp
           }
@@ -194,12 +210,14 @@ router.put('/solicitudes/:id', async (req, res) => {
       }
 
       const requestPayment = await db.collection('cobranza').findOne({ codigo: codigo.replace("SOL", "COB"), isActive: true })
-  
-      if(requestPayment){
+
+      if (requestPayment) {
         await db.collection('cobranza').updateOne({ codigo: codigo.replace("SOL", "COB"), isActive: true }, {
           $set: {
             nombre_servicio,
             faena_seleccionada_cp,
+            lugar_servicio,
+            sucursal,
             valor_servicio: monto_total,
             valor_deuda: monto_total,
           }
