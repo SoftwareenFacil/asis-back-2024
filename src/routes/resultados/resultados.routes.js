@@ -765,27 +765,12 @@ router.post("/confirmar/:id", async (req, res) => {
   const conn = await connect();
   const db = conn.db('asis-db');
   const datos = req.body;
-  // const token = req.headers['x-access-token'];
-
-  // if (!token) return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN, auth: UNAUTHOTIZED });
-
-  // const dataToken = await verifyToken(token);
-
-  // if (Object.entries(dataToken).length === 0) return res.status(400).json({ msg: ERROR_MESSAGE_TOKEN, auth: UNAUTHOTIZED });
-
-  // if (dataToken.rol === 'Clientes' || dataToken.rol === 'Colaboradores')
-  //   return res.status(401).json({ msg: MESSAGE_UNAUTHORIZED_TOKEN });
 
   let result = "";
   const obs = {
     obs: datos.observaciones,
     fecha: getDate(new Date())
   };
-  // let obs = {};
-  // obs.obs = datos.observaciones;
-  // obs.fecha = getDate(new Date());
-
-  console.log(datos);
 
   try {
     if (datos.estado_archivo == "Aprobado") {
@@ -806,9 +791,6 @@ router.post("/confirmar/:id", async (req, res) => {
               hora_resultado: datos.hora_resultado,
               condicionantes: datos.condicionantes,
               fecha_vencimiento_examen: moment(datos.fecha_resultado, FORMAT_DATE).add(datos.vigencia_examen, 'M').format(FORMAT_DATE)
-              // fecha_vencimiento_examen: getDateEspecific(
-              //   getFechaVencExam(datos.fecha_resultado, datos.vigencia_examen)
-              // ),
             },
             $push: {
               observaciones: obs,
