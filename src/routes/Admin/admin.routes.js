@@ -346,39 +346,39 @@ router.put("/facturaciones/:id", async (req, res) => {
         err: ERROR,
         msg: "Factura no encontrada",
         res: [],
-    });
+      });
 
-    const existsInvoiceDate = !!fecha_facturacion ? fecha_facturacion : '';
-    const existsInvoiceNumber = !!nro_factura ? nro_factura : '';
-    const existsNroOC = !!nro_oc ? nro_oc : ''
+    const existsInvoiceDate = !!fecha_facturacion ? fecha_facturacion : "";
+    const existsInvoiceNumber = !!nro_factura ? nro_factura : "";
+    const existsNroOC = !!nro_oc ? nro_oc : "";
 
-    await db.collection('facturaciones').findOneAndUpdate(
+    await db.collection("facturaciones").findOneAndUpdate(
       { _id: ObjectID(invoiceFinded._id) },
       {
         $set: {
           fecha_facturacion: existsInvoiceDate,
           nro_factura: existsInvoiceNumber,
-          nro_oc: existsNroOC
-        }
+          nro_oc: existsNroOC,
+        },
       }
     );
 
-    await db.collection('pagos').findOneAndUpdate(
+    await db.collection("pagos").findOneAndUpdate(
       { codigo: codigo.replace("FAC", "PAG"), isActive: true },
       {
         $set: {
           fecha_facturacion: existsInvoiceDate,
           nro_factura: existsInvoiceNumber,
-        }
+        },
       }
     );
 
-    await db.collection('cobranza').findOneAndUpdate(
+    await db.collection("cobranza").findOneAndUpdate(
       { codigo: codigo.replace("FAC", "COB"), isActive: true },
       {
         $set: {
-          fecha_facturacion: existsInvoiceDate
-        }
+          fecha_facturacion: existsInvoiceDate,
+        },
       }
     );
 
@@ -387,7 +387,34 @@ router.put("/facturaciones/:id", async (req, res) => {
       msg: "Factura editada correctamente",
       res: [],
     });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      err: String(error),
+      msg: ERROR,
+      res: null,
+    });
+  } finally {
+    conn.close();
+  }
+});
 
+//GET PERMISSIONS
+router.get("/permisos", async (req, res) => {
+  const conn = await connect();
+  const db = conn.db("asis-db");
+
+  try {
+    const permissions = await db.collection("roles").find({}).toArray();
+
+    const { _id, ...restData } = permissions[0];
+    const { admin, ...restModules } = restData;
+
+    return res.status(200).json({
+      err: null,
+      msg: "Permisos enviados",
+      res: restModules,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
