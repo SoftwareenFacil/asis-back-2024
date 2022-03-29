@@ -427,4 +427,45 @@ router.get("/permisos", async (req, res) => {
   }
 });
 
+//UPDATE PERMISSIONS
+router.put("/permisos", async (req, res) => {
+  const permissions = req.body;
+  const conn = await connect();
+  const db = conn.db("asis-db");
+
+  //hardcode
+  const idRoles = "5f5acb39d225561719b0912f";
+
+  try {
+    const roles = await db
+      .collection("roles")
+      .findOne({ _id: ObjectID(idRoles) });
+
+    await db.collection("roles").updateOne(
+      { _id: ObjectID(idRoles) },
+      {
+        $set: {
+          ...roles,
+          ...permissions,
+        },
+      }
+    );
+
+    return res.status(200).json({
+      err: null,
+      msg: "Permisos modificados correctamente",
+      res: [],
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      err: String(error),
+      msg: ERROR,
+      res: null,
+    });
+  } finally {
+    conn.close();
+  }
+});
+
 export default router;
