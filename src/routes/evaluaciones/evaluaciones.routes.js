@@ -306,7 +306,7 @@ router.post("/evaluacionpsico", async (req, res) => {
       .collection("evaluaciones")
       .findOne({ codigo: data.codigo });
 
-    console.log("cs------", cs);
+    // console.log("cs------", cs);
 
     generateQR(
       nombreQR,
@@ -324,6 +324,20 @@ router.post("/evaluacionpsico", async (req, res) => {
           : ""
       } Resultado: ${resultado}`
     );
+
+    console.log('mensaje qr-----', `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${
+      data.codigo
+    } Fecha de Evaluación: ${
+      !!eva && !!eva.fecha_evaluacion
+        ? moment(eva.fecha_evaluacion, FORMAT_DATE).format(FORMAT_DATE)
+        : ""
+    } Vencimiento: ${
+      !!eva && !!eva.fecha_evaluacion
+        ? moment(eva.fecha_evaluacion, FORMAT_DATE)
+            .add(data.meses_vigencia, "M")
+            .format(FORMAT_DATE)
+        : ""
+    } Resultado: ${resultado}`)
 
     if (cp && cs) {
       const informacionPersonal = {
@@ -368,7 +382,7 @@ router.post("/evaluacionpsico", async (req, res) => {
         nameFile: nameFIle,
       };
 
-      console.log("informacion personal--------", informacionPersonal);
+      // console.log("informacion personal--------", informacionPersonal);
 
       const signPerson = await db
         .collection("gi")
@@ -441,7 +455,7 @@ router.post("/evaluacionpsico", async (req, res) => {
       return res.json({ err: 98, msg: NOT_EXISTS, res: null });
     }
   } catch (error) {
-    console.log(error);
+    console.log("error ruta evaluaciones-----", error);
     return res.json({
       err: String(error),
       msg: "Error al crear el examen",

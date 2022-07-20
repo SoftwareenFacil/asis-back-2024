@@ -845,6 +845,7 @@ export default function createPdf(InformacionPersonal, evaluaciones, conclusion_
 
 
     //--QR code
+    console.log("nombre del qr", nombreQR)
     doc.image(nombreQR, 410, generalSpace + 98, {
         fit: [100, 100],
         align: "right",

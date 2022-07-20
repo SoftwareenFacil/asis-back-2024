@@ -151,7 +151,7 @@ export const generateQR = async (path, text) => {
             }
         })
     } catch (err) {
-        console.error(err)
+        console.error('Error al llamar al qr------', err)
     }
 };
 
