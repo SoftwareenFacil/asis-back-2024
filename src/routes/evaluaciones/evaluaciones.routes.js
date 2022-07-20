@@ -286,29 +286,33 @@ router.post("/evaluacionpsico", async (req, res) => {
     porce_conducta_vial: data.porcentaje_conducta_vial,
   };
 
-  generateQR(
-    nombreQR,
-    `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${
-      data.codigo
-    } Fecha de Evaluación: test Vencimiento: test2 Resultado: ${resultado}`
-  );
+  const eva = await db
+      .collection("evaluaciones")
+      .findOne({ codigo: data.codigo });
 
   // generateQR(
   //   nombreQR,
   //   `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${
   //     data.codigo
-  //   } Fecha de Evaluación: ${
-  //     !!eva && !!eva.fecha_evaluacion
-  //       ? moment(eva.fecha_evaluacion, FORMAT_DATE).format(FORMAT_DATE)
-  //       : ""
-  //   } Vencimiento: ${
-  //     !!eva && !!eva.fecha_evaluacion
-  //       ? moment(eva.fecha_evaluacion, FORMAT_DATE)
-  //           .add(data.meses_vigencia, "M")
-  //           .format(FORMAT_DATE)
-  //       : ""
-  //   } Resultado: ${resultado}`
+  //   } Fecha de Evaluación: test Vencimiento: test2 Resultado: ${resultado}`
   // );
+
+  generateQR(
+    nombreQR,
+    `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${
+      data.codigo
+    } Fecha de Evaluación: ${
+      !!eva && !!eva.fecha_evaluacion
+        ? moment(eva.fecha_evaluacion, FORMAT_DATE).format(FORMAT_DATE)
+        : ""
+    } Vencimiento: ${
+      !!eva && !!eva.fecha_evaluacion
+        ? moment(eva.fecha_evaluacion, FORMAT_DATE)
+            .add(data.meses_vigencia, "M")
+            .format(FORMAT_DATE)
+        : ""
+    } Resultado: ${resultado}`
+  );
 
   try {
     let objFile = {};
@@ -326,9 +330,6 @@ router.post("/evaluacionpsico", async (req, res) => {
     const pa = await db
       .collection("gi")
       .findOne({ _id: ObjectId(idProfesionalAsignado), activo_inactivo: true });
-    const eva = await db
-      .collection("evaluaciones")
-      .findOne({ codigo: data.codigo });
 
     // console.log("cs------", cs);
 
