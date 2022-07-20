@@ -316,14 +316,25 @@ router.post("/evaluacionpsico", async (req, res) => {
         !!eva && !!eva.fecha_evaluacion
           ? moment(eva.fecha_evaluacion, FORMAT_DATE).format(FORMAT_DATE)
           : ""
-      } Vencimiento: ${
-        !!eva && !!eva.fecha_evaluacion
-          ? moment(eva.fecha_evaluacion, FORMAT_DATE)
-              .add(data.meses_vigencia, "M")
-              .format(FORMAT_DATE)
-          : ""
-      } Resultado: ${resultado}`
+      }`
     );
+
+    // generateQR(
+    //   nombreQR,
+    //   `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${
+    //     data.codigo
+    //   } Fecha de Evaluación: ${
+    //     !!eva && !!eva.fecha_evaluacion
+    //       ? moment(eva.fecha_evaluacion, FORMAT_DATE).format(FORMAT_DATE)
+    //       : ""
+    //   } Vencimiento: ${
+    //     !!eva && !!eva.fecha_evaluacion
+    //       ? moment(eva.fecha_evaluacion, FORMAT_DATE)
+    //           .add(data.meses_vigencia, "M")
+    //           .format(FORMAT_DATE)
+    //       : ""
+    //   } Resultado: ${resultado}`
+    // );
 
     console.log('mensaje qr-----', `Empresa: ${rutClientePrincipal} Evaluado: ${rutClienteSecundario} Cod ASIS: ${
       data.codigo
