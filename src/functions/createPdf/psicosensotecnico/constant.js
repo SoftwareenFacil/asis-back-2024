@@ -9,7 +9,7 @@ export const generalInformation = [
     'Ley',
     'Vencimiento licencia municipal',
     'Observaciones licencia',
-    'Fecha Examen',
+    'Fecha Evaluación',
     'Resultado',
     'Restricciones',
     'Fecha de Vencimiento'
